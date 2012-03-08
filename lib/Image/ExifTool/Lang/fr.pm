@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::fr;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.19';
+$VERSION = '1.20';
 
 %Image::ExifTool::Lang::fr::Translate = (
    'AEAperture' => 'Ouverture AE',
@@ -1651,6 +1651,14 @@ $VERSION = '1.19';
    'ExtraSamples' => 'Echantillons supplémentaires',
    'FNumber' => 'Nombre F',
    'FOV' => 'Champ de vision',
+   'FaceOrientation' => {
+      PrintConv => {
+        'Horizontal (normal)' => '0° (haut/gauche)',
+        'Rotate 180' => '180° (bas/droit)',
+        'Rotate 270 CW' => '90° sens horaire (gauche/bas)',
+        'Rotate 90 CW' => '90° sens antihoraire (droit/haut)',
+      },
+    },
    'FastSeek' => {
       PrintConv => {
         'No' => 'Non',
@@ -4686,7 +4694,7 @@ and values.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

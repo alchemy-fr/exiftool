@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::ja;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.17';
+$VERSION = '1.18';
 
 %Image::ExifTool::Lang::ja::Translate = (
    'AEAperture' => 'AE絞り',
@@ -1963,6 +1963,14 @@ $VERSION = '1.17';
     },
    'FaceDetectArea' => '顔エリア',
    'FaceDetectFrameSize' => 'フレームサイズ',
+   'FaceOrientation' => {
+      PrintConv => {
+        'Horizontal (normal)' => '水平（標準）',
+        'Rotate 180' => '180度回転',
+        'Rotate 270 CW' => '270度回転 CW',
+        'Rotate 90 CW' => '90度回転 CW',
+      },
+    },
    'FacesDetected' => '顔認識',
    'FastSeek' => {
       PrintConv => {
@@ -5734,7 +5742,7 @@ and values.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

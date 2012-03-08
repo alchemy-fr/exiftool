@@ -82,7 +82,7 @@ sub MakeTag($$)
     # remove invalid characters in tag name and capitalize following letters
     $name =~ s/[^\w-]+(.?)/\U$1/sg;
     $name =~ s/([a-z0-9])_([a-z])/$1\U$2/g;
-    Image::ExifTool::AddTagToTable($tagTablePtr, $tag, { Name => $name });
+    AddTagToTable($tagTablePtr, $tag, { Name => $name });
 }
 
 #------------------------------------------------------------------------------
@@ -230,7 +230,7 @@ Currently doesn't parse MAC header unless it is at the start of the file.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

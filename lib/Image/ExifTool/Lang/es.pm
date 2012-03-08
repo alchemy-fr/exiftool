@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::es;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.06';
+$VERSION = '1.07';
 
 %Image::ExifTool::Lang::es::Translate = (
    'AFMicroAdjActive' => {
@@ -505,6 +505,14 @@ $VERSION = '1.06';
     },
    'ExtraSamples' => 'Muestra Extra',
    'FNumber' => 'Número F',
+   'FaceOrientation' => {
+      PrintConv => {
+        'Horizontal (normal)' => '0° (arriba/izquierda)',
+        'Rotate 180' => 'Rotar 180°',
+        'Rotate 270 CW' => 'Rotar 270° sentido reloj',
+        'Rotate 90 CW' => 'Rotar 90° sentido reloj',
+      },
+    },
    'FastSeek' => {
       PrintConv => {
         'Yes' => 'Si',
@@ -1693,7 +1701,7 @@ and values.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -20,6 +20,18 @@ Sony models.
 <tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
+<td title='0x0010 = 16'>0x0010</td>
+<td>CameraInfoA55
+  <br>CameraInfoUnknown</td>
+<td class=c>-<br>-</td>
+<td>--&gt; <a href='Sony.html#CameraInfoA55'>Sony CameraInfoA55 Tags</a>
+  <br>--&gt; <a href='Sony.html#CameraInfoUnknown'>Sony CameraInfoUnknown Tags</a></td></tr>
+<tr class=b>
+<td title='0x0020 = 32'>0x0020</td>
+<td>FocusInfo</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Sony.html#FocusInfo'>Sony FocusInfo Tags</a></td></tr>
+<tr>
 <td title='0x0102 = 258'>0x0102</td>
 <td>Quality</td>
 <td class=c>int32u</td>
@@ -42,10 +54,12 @@ Sony models.
 <td>Teleconverter</td>
 <td class=c>int32u</td>
 <td><span class=s>0x0 = None
-  <br>0x48 = Minolta AF 2x APO (D)
+  <br>0x48 = Minolta/Sony AF 2x APO (D)
   <br>0x50 = Minolta AF 2x APO II
-  <br>0x88 = Minolta AF 1.4x APO (D)
-  <br>0x90 = Minolta AF 1.4x APO II</span></td></tr>
+  <br>0x60 = Minolta AF 2x APO
+  <br>0x88 = Minolta/Sony AF 1.4x APO (D)
+  <br>0x90 = Minolta AF 1.4x APO II
+  <br>0xa0 = Minolta AF 1.4x APO</span></td></tr>
 <tr class=b>
 <td title='0x0112 = 274'>0x0112</td>
 <td>WhiteBalanceFineTune</td>
@@ -55,10 +69,12 @@ Sony models.
 <td title='0x0114 = 276'>0x0114</td>
 <td>CameraSettings
   <br>CameraSettings2
+  <br>CameraSettings3
   <br>CameraSettingsUnknown</td>
-<td class=c>-<br>-<br>-</td>
+<td class=c>-<br>-<br>-<br>-</td>
 <td>--&gt; <a href='Sony.html#CameraSettings'>Sony CameraSettings Tags</a>
   <br>--&gt; <a href='Sony.html#CameraSettings2'>Sony CameraSettings2 Tags</a>
+  <br>--&gt; <a href='Sony.html#CameraSettings3'>Sony CameraSettings3 Tags</a>
   <br>--&gt; <a href='Sony.html#CameraSettingsUnknown'>Sony CameraSettingsUnknown Tags</a></td></tr>
 <tr class=b>
 <td title='0x0115 = 277'>0x0115</td>
@@ -130,9 +146,10 @@ Sony models.
 <td>LongExposureNoiseReduction</td>
 <td class=c>int32u</td>
 <td><span class=s>0x0 = Off
-  <br>0x1 = On
-  <br>0xffff0000 = Off 2
-  <br>0xffff0001 = On 2
+  <br>0x1 = On (unused)
+  <br>0x10001 = On (dark subtracted)
+  <br>0xffff0000 = Off (65535)
+  <br>0xffff0001 = On (65535)
   <br>0xffffffff = n/a</span></td></tr>
 <tr class=b>
 <td title='0x2009 = 8201'>0x2009</td>
@@ -148,7 +165,8 @@ Sony models.
 <td title='0x200a = 8202'>0x200a</td>
 <td>HDR</td>
 <td class=c>int32u</td>
-<td><span class=s>0x0 = Off
+<td><table class=cols><tr>
+  <td>0x0 = Off
   <br>0x10001 = Auto
   <br>0x10010 = 1.0 EV
   <br>0x10011 = 1.5 EV
@@ -160,7 +178,32 @@ Sony models.
   <br>0x10017 = 4.5 EV
   <br>0x10018 = 5.0 EV
   <br>0x10019 = 5.5 EV
-  <br>0x1001a = 6.0 EV</span></td></tr>
+  <br>0x1001a = 6.0 EV</td><td>&nbsp;&nbsp;</td>
+  <td>0x20001 = Auto (2)
+  <br>0x20010 = 1.0 EV (2)
+  <br>0x20011 = 1.5 EV (2)
+  <br>0x20012 = 2.0 EV (2)
+  <br>0x20013 = 2.5 EV (2)
+  <br>0x20014 = 3.0 EV (2)
+  <br>0x20015 = 3.5 EV (2)
+  <br>0x20016 = 4.0 EV (2)
+  <br>0x20017 = 4.5 EV (2)
+  <br>0x20018 = 5.0 EV (2)
+  <br>0x20019 = 5.5 EV (2)
+  <br>0x2001a = 6.0 EV (2)
+  <br>0x30001 = Auto (3)</td><td>&nbsp;&nbsp;</td>
+  <td>0x30010 = 1.0 EV (3)
+  <br>0x30011 = 1.5 EV (3)
+  <br>0x30012 = 2.0 EV (3)
+  <br>0x30013 = 2.5 EV (3)
+  <br>0x30014 = 3.0 EV (3)
+  <br>0x30015 = 3.5 EV (3)
+  <br>0x30016 = 4.0 EV (3)
+  <br>0x30017 = 4.5 EV (3)
+  <br>0x30018 = 5.0 EV (3)
+  <br>0x30019 = 5.5 EV (3)
+  <br>0x3001a = 6.0 EV (3)</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x200b = 8203'>0x200b</td>
 <td>MultiFrameNoiseReduction</td>
@@ -169,11 +212,29 @@ Sony models.
   <br>1 = On
   <br>255 = n/a</span></td></tr>
 <tr>
+<td title='0x2011 = 8209'>0x2011</td>
+<td>VignettingCorrection</td>
+<td class=c>int32u</td>
+<td><span class=s>0 = Off
+  <br>2 = Auto</span></td></tr>
+<tr class=b>
+<td title='0x2012 = 8210'>0x2012</td>
+<td>LateralChromaticAberration</td>
+<td class=c>int32u</td>
+<td><span class=s>0 = Off
+  <br>2 = Auto</span></td></tr>
+<tr>
+<td title='0x2013 = 8211'>0x2013</td>
+<td>DistortionCorrection</td>
+<td class=c>int32u</td>
+<td><span class=s>0 = Off
+  <br>2 = Auto</span></td></tr>
+<tr class=b>
 <td title='0x3000 = 12288'>0x3000</td>
 <td>ShotInfo</td>
 <td class=c>-</td>
 <td>--&gt; <a href='Sony.html#ShotInfo'>Sony ShotInfo Tags</a></td></tr>
-<tr class=b>
+<tr>
 <td title='0xb000 = 45056'>0xb000</td>
 <td>FileFormat</td>
 <td class=c>int8u[4]</td>
@@ -182,8 +243,9 @@ Sony models.
   <br>&#39;2 0 0 0&#39; = ARW 1.0
   <br>&#39;3 0 0 0&#39; = ARW 2.0
   <br>&#39;3 1 0 0&#39; = ARW 2.1
-  <br>&#39;3 2 0 0&#39; = ARW 2.2</span></td></tr>
-<tr>
+  <br>&#39;3 2 0 0&#39; = ARW 2.2
+  <br>&#39;3 3 0 0&#39; = ARW 2.3</span></td></tr>
+<tr class=b>
 <td title='0xb001 = 45057'>0xb001</td>
 <td>SonyModelID</td>
 <td class=c>int16u</td>
@@ -198,38 +260,44 @@ Sony models.
   <br>263 = DSLR-A380/A390
   <br>264 = DSLR-A330
   <br>265 = DSLR-A230
-  <br>266 = DSLR-A290</td><td>&nbsp;&nbsp;</td>
-  <td>269 = DSLR-A850
-  <br>273 = DSLR-A550
-  <br>274 = DSLR-A500
+  <br>266 = DSLR-A290
+  <br>269 = DSLR-A850
+  <br>273 = DSLR-A550</td><td>&nbsp;&nbsp;</td>
+  <td>274 = DSLR-A500
   <br>275 = DSLR-A450
   <br>278 = NEX-5
   <br>279 = NEX-3
   <br>280 = SLT-A33
   <br>281 = SLT-A55V
   <br>282 = DSLR-A560
-  <br>283 = DSLR-A580</td><td>&nbsp;&nbsp;</td></tr></table>
+  <br>283 = DSLR-A580
+  <br>284 = NEX-C3
+  <br>286 = SLT-A65V
+  <br>287 = SLT-A77V
+  <br>288 = NEX-5N
+  <br>289 = NEX-7</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
-<tr class=b>
+<tr>
 <td title='0xb020 = 45088'>0xb020</td>
 <td>ColorReproduction</td>
 <td class=c>string</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td title='0xb021 = 45089'>0xb021</td>
 <td>ColorTemperature</td>
 <td class=c>int32u</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0xb022 = 45090'>0xb022</td>
 <td>ColorCompensationFilter</td>
 <td class=c>int32u</td>
 <td><span class=s><span class=n>(negative is green, positive is magenta)</span></span></td></tr>
-<tr>
+<tr class=b>
 <td title='0xb023 = 45091'>0xb023</td>
 <td>SceneMode</td>
 <td class=c>int32u</td>
-<td><span class=s>0 = Standard
+<td><table class=cols><tr>
+  <td>0 = Standard
   <br>1 = Portrait
   <br>2 = Text
   <br>3 = Night Scene
@@ -238,8 +306,8 @@ Sony models.
   <br>6 = Landscape
   <br>7 = Night Portrait
   <br>8 = Macro
-  <br>9 = Super Macro
-  <br>16 = Auto
+  <br>9 = Super Macro</td><td>&nbsp;&nbsp;</td>
+  <td>16 = Auto
   <br>17 = Night View/Portrait
   <br>18 = Sweep Panorama
   <br>19 = Handheld Night Shot
@@ -247,15 +315,16 @@ Sony models.
   <br>21 = Cont. Priority AE
   <br>22 = Auto+
   <br>23 = 3D Sweep Panorama
-  <br>65535 = n/a</span></td></tr>
-<tr class=b>
+  <br>65535 = n/a</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
+<tr>
 <td title='0xb024 = 45092'>0xb024</td>
 <td>ZoneMatching</td>
 <td class=c>int32u</td>
 <td><span class=s>0 = ISO Setting Used
   <br>1 = High Key
   <br>2 = Low Key</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0xb025 = 45093'>0xb025</td>
 <td>DynamicRangeOptimizer</td>
 <td class=c>int32u</td>
@@ -273,42 +342,50 @@ Sony models.
   <br>18 = Lv3
   <br>19 = Lv4
   <br>20 = Lv5</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0xb026 = 45094'>0xb026</td>
 <td>ImageStabilization</td>
 <td class=c>int32u</td>
 <td><span class=s>0 = Off
   <br>1 = On</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0xb027 = 45095'>0xb027</td>
 <td>LensType</td>
 <td class=c>int32u</td>
 <td>--&gt; <a href='Sony.html#LensType'>Sony LensType Values</a></td></tr>
-<tr class=b>
+<tr>
 <td title='0xb028 = 45096'>0xb028</td>
 <td>MinoltaMakerNote</td>
 <td class=c>-</td>
 <td>--&gt; <a href='Minolta.html'>Minolta Tags</a></td></tr>
-<tr>
+<tr class=b>
 <td title='0xb029 = 45097'>0xb029</td>
 <td>ColorMode</td>
 <td class=c>int32u</td>
-<td><span class=s>0 = Standard
+<td><table class=cols><tr>
+  <td>0 = Standard
   <br>1 = Vivid
   <br>2 = Portrait
   <br>3 = Landscape
   <br>4 = Sunset
   <br>5 = Night View/Portrait
   <br>6 = B&amp;W
-  <br>7 = Adobe RGB
-  <br>12 = Neutral
+  <br>7 = Adobe RGB</td><td>&nbsp;&nbsp;</td>
+  <td>12 = Neutral
   <br>100 = Neutral
   <br>101 = Clear
   <br>102 = Deep
   <br>103 = Light
   <br>104 = Night View
   <br>105 = Autumn Leaves
-  <br>4294967295 = n/a</span></td></tr>
+  <br>4294967295 = n/a</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
+<tr>
+<td title='0xb02a = 45098'>0xb02a</td>
+<td>LensSpec</td>
+<td class=c>int8u[8]</td>
+<td><span class=s><span class=n>(like LensInfo, but also specifies lens features: DT, E, ZA, G, SSM, SAM,
+OSS, STF, Reflex, Macro and Fisheye)</span></span></td></tr>
 <tr class=b>
 <td title='0xb02b = 45099'>0xb02b</td>
 <td>FullImageSize</td>
@@ -331,7 +408,8 @@ Sony models.
 <td title='0xb041 = 45121'>0xb041</td>
 <td>ExposureMode</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Auto
+<td><table class=cols><tr>
+  <td>0 = Auto
   <br>1 = Portrait
   <br>2 = Beach
   <br>4 = Snow
@@ -343,8 +421,8 @@ Sony models.
   <br>10 = Hi-Speed Shutter
   <br>11 = Twilight Portrait
   <br>12 = Soft Snap
-  <br>13 = Fireworks
-  <br>14 = Smile Shutter
+  <br>13 = Fireworks</td><td>&nbsp;&nbsp;</td>
+  <td>14 = Smile Shutter
   <br>15 = Manual
   <br>18 = High Sensitivity
   <br>20 = Advanced Sports Shooting
@@ -355,7 +433,8 @@ Sony models.
   <br>36 = Anti Motion Blur
   <br>37 = Pet
   <br>38 = Backlight Correction HDR
-  <br>65535 = n/a</span></td></tr>
+  <br>65535 = n/a</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0xb042 = 45122'>0xb042</td>
 <td>FocusMode</td>
@@ -396,8 +475,13 @@ Sony models.
 <td>FlashLevel</td>
 <td class=c>int16s</td>
 <td><span class=s>-32768 = Low
-  <br>-1 = n/a
+  <br>-3 = -3/3
+  <br>-2 = -2/3
+  <br>-1 = -1/3
   <br>0 = Normal
+  <br>1 = +1/3
+  <br>2 = +2/3
+  <br>3 = +3/3
   <br>32767 = High</span></td></tr>
 <tr>
 <td title='0xb049 = 45129'>0xb049</td>
@@ -499,16 +583,17 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>24.2</td><td>= Sigma 17-70mm F2.8-4.5 (D)</td>
 </tr><tr><td>24.3</td><td>= Sigma 20-40mm F2.8 EX DG Aspherical IF</td>
 </tr><tr><td>24.4</td><td>= Sigma 18-200mm F3.5-6.3 DC</td>
-</tr><tr><td>24.5</td><td>= Sigma 20-40mm F2.8 EX DG Aspherical IF</td>
-</tr><tr><td>24.6</td><td>= Tamron SP AF 28-75mm F2.8 XR Di (IF) Macro</td>
+</tr><tr><td>24.5</td><td>= Tamron SP AF 28-75mm F2.8 XR Di (IF) Macro</td>
 </tr><tr><td>25</td><td>= Minolta AF 100-300mm F4.5-5.6 APO (D) or Sigma Lens</td>
 </tr><tr><td>25.1</td><td>= Sigma 100-300mm F4 EX (APO (D) or D IF)</td>
 </tr><tr><td>25.2</td><td>= Sigma 70mm F2.8 EX DG Macro</td>
 </tr><tr><td>25.3</td><td>= Sigma 20mm F1.8 EX DG Aspherical RF</td>
-</tr><tr><td>25.4</td><td>= Sigma 30mm F1.4 DG EX</td>
+</tr><tr><td>25.4</td><td>= Sigma 30mm F1.4 EX DC</td>
+</tr><tr><td>25.5</td><td>= Sigma 24mm F1.8 EX DG ASP Macro</td>
 </tr><tr><td>27</td><td>= Minolta AF 85mm F1.4 G (D)</td>
 </tr><tr><td>28</td><td>= Minolta/Sony AF 100mm F2.8 Macro (D) or Tamron Lens</td>
 </tr><tr><td>28.1</td><td>= Tamron SP AF 90mm F2.8 Di Macro</td>
+</tr><tr><td>28.2</td><td>= Tamron AF 180mm F3.5 SP Di LD [IF] Macro</td>
 </tr><tr><td>29</td><td>= Minolta/Sony AF 75-300mm F4.5-5.6 (D)</td>
 </tr><tr><td>30</td><td>= Minolta AF 28-80mm F3.5-5.6 (D) or Sigma Lens</td>
 </tr><tr><td>30.1</td><td>= Sigma AF 10-20mm F4-5.6 EX DC</td>
@@ -523,34 +608,33 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>36</td><td>= Minolta AF 28-100mm F3.5-5.6 (D)</td>
 </tr><tr><td>38</td><td>= Minolta AF 17-35mm F2.8-4 (D)</td>
 </tr><tr><td>39</td><td>= Minolta AF 28-75mm F2.8 (D)</td>
-</tr><tr><td>40</td><td>= Minolta/Sony AF DT 18-70mm F3.5-5.6 (D) or 18-200m F3.5-6.3</td>
-</tr><tr><td>40.1</td><td>= Sony AF DT 18-200mm F3.5-6.3</td>
+</tr><tr><td>40</td><td>= Minolta/Sony AF DT 18-70mm F3.5-5.6 (D)</td>
 </tr><tr><td>41</td><td>= Minolta/Sony AF DT 11-18mm F4.5-5.6 (D) or Tamron Lens</td>
 </tr><tr><td>41.1</td><td>= Tamron SP AF 11-18mm F4.5-5.6 Di II LD Aspherical IF</td>
 </tr><tr><td>42</td><td>= Minolta/Sony AF DT 18-200mm F3.5-6.3 (D)</td>
-</tr><tr><td>43</td><td>= Sony 35mm F1.4 G (SAL-35F14G)</td>
-</tr><tr><td>44</td><td>= Sony 50mm F1.4 (SAL-50F14)</td>
-</tr><tr><td>45</td><td>= Carl Zeiss Planar T* 85mm F1.4 ZA</td>
-</tr><tr><td>46</td><td>= Carl Zeiss Vario-Sonnar T* DT 16-80mm F3.5-4.5 ZA</td>
-</tr><tr><td>47</td><td>= Carl Zeiss Sonnar T* 135mm F1.8 ZA</td>
-</tr><tr><td>48</td><td>= Carl Zeiss Vario-Sonnar T* 24-70mm F2.8 ZA SSM (SAL-2470Z)</td>
-</tr><tr><td>49</td><td>= Sony AF DT 55-200mm F4-5.6</td>
-</tr><tr><td>50</td><td>= Sony AF DT 18-250mm F3.5-6.3</td>
-</tr><tr><td>51</td><td>= Sony AF DT 16-105mm F3.5-5.6 or 55-200mm F4-5.5</td>
-</tr><tr><td>51.1</td><td>= Sony AF DT 55-200mm F4-5.5</td>
-</tr><tr><td>52</td><td>= Sony 70-300mm F4.5-5.6 G SSM</td>
-</tr><tr><td>53</td><td>= Sony AF 70-400mm F4-5.6 G SSM (SAL-70400G)</td>
-</tr><tr><td>54</td><td>= Carl Zeiss Vario-Sonnar T* 16-35mm F2.8 ZA SSM (SAL-1635Z)</td>
-</tr><tr><td>55</td><td>= Sony DT 18-55mm F3.5-5.6 SAM (SAL-1855)</td>
-</tr><tr><td>56</td><td>= Sony AF DT 55-200mm F4-5.6 SAM</td>
-</tr><tr><td>57</td><td>= Sony AF DT 50mm F1.8 SAM</td>
-</tr><tr><td>58</td><td>= Sony AF DT 30mm F2.8 SAM Macro</td>
-</tr><tr><td>59</td><td>= Sony 28-75/2.8 SAM</td>
-</tr><tr><td>60</td><td>= Carl Zeiss Distagon T* 24mm F2 SSM</td>
-</tr><tr><td>61</td><td>= Sony 85mm F2.8 SAM (SAL-85F28)</td>
-</tr><tr><td>62</td><td>= Sony DT 35mm F1.8 SAM (SAL-35F18)</td>
+</tr><tr><td>43</td><td>= Sony 35mm F1.4 G (SAL35F14G)</td>
+</tr><tr><td>44</td><td>= Sony 50mm F1.4 (SAL50F14)</td>
+</tr><tr><td>45</td><td>= Carl Zeiss Planar T* 85mm F1.4 ZA (SAL85F14Z)</td>
+</tr><tr><td>46</td><td>= Carl Zeiss Vario-Sonnar T* DT 16-80mm F3.5-4.5 ZA (SAL1680Z)</td>
+</tr><tr><td>47</td><td>= Carl Zeiss Sonnar T* 135mm F1.8 ZA (SAL135F18Z)</td>
+</tr><tr><td>48</td><td>= Carl Zeiss Vario-Sonnar T* 24-70mm F2.8 ZA SSM (SAL2470Z)</td>
+</tr><tr><td>49</td><td>= Sony DT 55-200mm F4-5.6 (SAL55200)</td>
+</tr><tr><td>50</td><td>= Sony DT 18-250mm F3.5-6.3 (SAL18250)</td>
+</tr><tr><td>51</td><td>= Sony DT 16-105mm F3.5-5.6 (SAL16105)</td>
+</tr><tr><td>52</td><td>= Sony 70-300mm F4.5-5.6 G SSM (SAL70300G)</td>
+</tr><tr><td>53</td><td>= Sony 70-400mm F4-5.6 G SSM (SAL70400G)</td>
+</tr><tr><td>54</td><td>= Carl Zeiss Vario-Sonnar T* 16-35mm F2.8 ZA SSM (SAL1635Z)</td>
+</tr><tr><td>55</td><td>= Sony DT 18-55mm F3.5-5.6 SAM (SAL1855)</td>
+</tr><tr><td>56</td><td>= Sony DT 55-200mm F4-5.6 SAM (SAL55200-2)</td>
+</tr><tr><td>57</td><td>= Sony DT 50mm F1.8 SAM (SAL50F18) or Tamron Lens</td>
+</tr><tr><td>57.1</td><td>= Tamron SP AF 60mm F2 Di II LD [IF] Macro 1:1</td>
+</tr><tr><td>58</td><td>= Sony DT 30mm F2.8 Macro SAM (SAL30M28)</td>
+</tr><tr><td>59</td><td>= Sony 28-75 F2.8 SAM (SAL2875)</td>
+</tr><tr><td>60</td><td>= Carl Zeiss Distagon T* 24mm F2 ZA SSM (SAL24F20Z)</td>
+</tr><tr><td>61</td><td>= Sony 85mm F2.8 SAM (SAL85F28)</td>
+</tr><tr><td>62</td><td>= Sony DT 35mm F1.8 SAM (SAL35F18)</td>
+</tr><tr><td>63</td><td>= Sony DT 16-50mm F2.8 SSM (SAL1650)</td>
 </tr><tr><td>128</td><td>= Tamron or Sigma Lens (128)</td>
-</tr><tr><td>128.10</td><td>= Sigma 50mm F1.4 EX DG HSM</td>
 </tr><tr><td>128.1</td><td>= Tamron 18-200mm F3.5-6.3</td>
 </tr><tr><td>128.2</td><td>= Tamron 28-300mm F3.5-6.3</td>
 </tr><tr><td>128.3</td><td>= Tamron 80-300mm F3.5-6.3</td>
@@ -560,6 +644,9 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>128.7</td><td>= Sigma 10-20mm F3.5 EX DC HSM</td>
 </tr><tr><td>128.8</td><td>= Sigma 70-200mm F2.8 II EX DG APO MACRO HSM</td>
 </tr><tr><td>128.9</td><td>= Sigma 10mm F2.8 EX DC HSM Fisheye</td>
+</tr><tr><td>128.10</td><td>= Sigma 50mm F1.4 EX DG HSM</td>
+</tr><tr><td>128.11</td><td>= Sigma 85mm F1.4 EX DG HSM</td>
+</tr><tr><td>128.12</td><td>= Sigma 24-70mm F2.8 IF EX DG HSM</td>
 </tr><tr><td>129</td><td>= Tamron Lens (129)</td>
 </tr><tr><td>129.1</td><td>= Tamron 200-400mm F5.6 LD</td>
 </tr><tr><td>129.2</td><td>= Tamron 70-300mm F4-5.6 LD</td>
@@ -593,6 +680,7 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>2552.5</td><td>= Tokina AT-X PRO II AF 28-70mm F2.6-2.8 270</td>
 </tr><tr><td>2552.6</td><td>= Tamron AF 19-35mm F3.5-4.5</td>
 </tr><tr><td>2552.7</td><td>= Angenieux AF 28-70mm F2.6</td>
+</tr><tr><td>2552.8</td><td>= Tokina AT-X 17 AF 17mm F3.5</td>
 </tr><tr><td>2553</td><td>= Minolta AF 28-135mm F4-4.5 or Sigma Lens</td>
 </tr><tr><td>2553.1</td><td>= Sigma ZOOM-alpha 35-135mm F3.5-4.5</td>
 </tr><tr><td>2553.2</td><td>= Sigma 28-105mm F2.8-4 Aspherical</td>
@@ -613,6 +701,8 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>2561.5</td><td>= Tokina AT-X AF 300mm F4</td>
 </tr><tr><td>2561.6</td><td>= Tokina AT-X AF 400mm F5.6 SD</td>
 </tr><tr><td>2561.7</td><td>= Tokina AF 730 II 75-300mm F4.5-5.6</td>
+</tr><tr><td>2561.8</td><td>= Sigma 800mm F5.6 APO</td>
+</tr><tr><td>2561.9</td><td>= Sigma AF 400mm F5.6 APO Macro</td>
 </tr><tr><td>2562</td><td>= Minolta AF 50mm F1.4 [New]</td>
 </tr><tr><td>2563</td><td>= Minolta AF 300mm F2.8 APO or Sigma Lens</td>
 </tr><tr><td>2563.1</td><td>= Sigma AF 50-500mm F4-6.3 EX DG APO</td>
@@ -622,24 +712,29 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>2564</td><td>= Minolta AF 50mm F2.8 Macro or Sigma Lens</td>
 </tr><tr><td>2564.1</td><td>= Sigma 50mm F2.8 EX Macro</td>
 </tr><tr><td>2565</td><td>= Minolta AF 600mm F4</td>
-</tr><tr><td>2566</td><td>= Minolta AF 24mm F2.8</td>
+</tr><tr><td>2566</td><td>= Minolta AF 24mm F2.8 or Sigma Lens</td>
+</tr><tr><td>2566.1</td><td>= Sigma 17-35mm F2.8-4 EX Aspherical</td>
 </tr><tr><td>2572</td><td>= Minolta/Sony AF 500mm F8 Reflex</td>
 </tr><tr><td>2578</td><td>= Minolta/Sony AF 16mm F2.8 Fisheye or Sigma Lens</td>
 </tr><tr><td>2578.1</td><td>= Sigma 8mm F4 EX [DG] Fisheye</td>
 </tr><tr><td>2578.2</td><td>= Sigma 14mm F3.5</td>
 </tr><tr><td>2578.3</td><td>= Sigma 15mm F2.8 Fisheye</td>
-</tr><tr><td>2579</td><td>= Minolta/Sony AF 20mm F2.8</td>
+</tr><tr><td>2579</td><td>= Minolta/Sony AF 20mm F2.8 or Tokina Lens</td>
+</tr><tr><td>2579.1</td><td>= Tokina AT-X Pro DX 11-16mm F2.8</td>
 </tr><tr><td>2581</td><td>= Minolta AF 100mm F2.8 Macro [New] or Sigma or Tamron Lens</td>
 </tr><tr><td>2581.1</td><td>= Sigma AF 90mm F2.8 Macro</td>
 </tr><tr><td>2581.2</td><td>= Sigma AF 105mm F2.8 EX [DG] Macro</td>
 </tr><tr><td>2581.3</td><td>= Sigma 180mm F5.6 Macro</td>
-</tr><tr><td>2581.4</td><td>= Tamron 90mm F2.8 Macro</td>
+</tr><tr><td>2581.4</td><td>= Sigma 180mm F3.5 EX DG Macro</td>
+</tr><tr><td>2581.5</td><td>= Tamron 90mm F2.8 Macro</td>
 </tr><tr><td>2585</td><td>= Minolta AF 35-105mm F3.5-4.5 New or Tamron Lens</td>
 </tr><tr><td>2585.1</td><td>= Beroflex 35-135mm F3.5-4.5</td>
 </tr><tr><td>2585.2</td><td>= Tamron 24-135mm F3.5-5.6</td>
 </tr><tr><td>2588</td><td>= Minolta AF 70-210mm F3.5-4.5</td>
 </tr><tr><td>2589</td><td>= Minolta AF 80-200mm F2.8 APO or Tokina Lens</td>
 </tr><tr><td>2589.1</td><td>= Tokina 80-200mm F2.8</td>
+</tr><tr><td>2590</td><td>= Minolta AF 200mm F2.8 G APO + Minolta AF 1.4x APO or Other Lens + 1.4x</td>
+</tr><tr><td>2590.1</td><td>= Minolta AF 600mm F4 HS-APO G + Minolta AF 1.4x APO</td>
 </tr><tr><td>2591</td><td>= Minolta AF 35mm F1.4</td>
 </tr><tr><td>2592</td><td>= Minolta AF 85mm F1.4 G (D)</td>
 </tr><tr><td>2593</td><td>= Minolta AF 200mm F2.8 G APO</td>
@@ -647,6 +742,8 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>2596</td><td>= Minolta AF 28mm F2</td>
 </tr><tr><td>2597</td><td>= Minolta AF 35mm F2 [New]</td>
 </tr><tr><td>2598</td><td>= Minolta AF 100mm F2</td>
+</tr><tr><td>2601</td><td>= Minolta AF 200mm F2.8 G APO + Minolta AF 2x APO or Other Lens + 2x</td>
+</tr><tr><td>2601.1</td><td>= Minolta AF 600mm F4 HS-APO G + Minolta AF 2x APO</td>
 </tr><tr><td>2604</td><td>= Minolta AF 80-200mm F4.5-5.6</td>
 </tr><tr><td>2605</td><td>= Minolta AF 35-80mm F4-5.6</td>
 </tr><tr><td>2606</td><td>= Minolta AF 100-300mm F4.5-5.6</td>
@@ -683,7 +780,7 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>4575</td><td>= 1.4x Teleconverter</td>
 </tr><tr><td>4585</td><td>= Tamron SP AF 300mm F2.8 LD IF</td>
 </tr><tr><td>4587</td><td>= Tamron AF 70-210mm f/2.8 SP LD</td>
-</tr><tr><td>6553</td><td>= T-Mount or Other Lens or no lens</td>
+</tr><tr><td>6553</td><td>= E-Mount, T-Mount, Other Lens or no lens</td>
 </tr><tr><td>6553.1</td><td>= Arax MC 35mm F2.8 Tilt+Shift</td>
 </tr><tr><td>6553.2</td><td>= Arax MC 80mm F2.8 Tilt+Shift</td>
 </tr><tr><td>6553.3</td><td>= Zenitar MF 16mm F2.8 Fisheye M42</td>
@@ -705,6 +802,7 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>25521.5</td><td>= Tokina AT-X PRO II AF 28-70mm F2.6-2.8 270</td>
 </tr><tr><td>25521.6</td><td>= Tamron AF 19-35mm F3.5-4.5</td>
 </tr><tr><td>25521.7</td><td>= Angenieux AF 28-70mm F2.6</td>
+</tr><tr><td>25521.8</td><td>= Tokina AT-X 17 AF 17mm F3.5</td>
 </tr><tr><td>25531</td><td>= Minolta AF 28-135mm F4-4.5 or Sigma Lens</td>
 </tr><tr><td>25531.1</td><td>= Sigma ZOOM-alpha 35-135mm F3.5-4.5</td>
 </tr><tr><td>25531.2</td><td>= Sigma 28-105mm F2.8-4 Aspherical</td>
@@ -725,6 +823,8 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>25611.5</td><td>= Tokina AT-X AF 300mm F4</td>
 </tr><tr><td>25611.6</td><td>= Tokina AT-X AF 400mm F5.6 SD</td>
 </tr><tr><td>25611.7</td><td>= Tokina AF 730 II 75-300mm F4.5-5.6</td>
+</tr><tr><td>25611.8</td><td>= Sigma 800mm F5.6 APO</td>
+</tr><tr><td>25611.9</td><td>= Sigma AF 400mm F5.6 APO Macro</td>
 </tr><tr><td>25621</td><td>= Minolta AF 50mm F1.4 [New]</td>
 </tr><tr><td>25631</td><td>= Minolta AF 300mm F2.8 APO or Sigma Lens</td>
 </tr><tr><td>25631.1</td><td>= Sigma AF 50-500mm F4-6.3 EX DG APO</td>
@@ -734,24 +834,29 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>25641</td><td>= Minolta AF 50mm F2.8 Macro or Sigma Lens</td>
 </tr><tr><td>25641.1</td><td>= Sigma 50mm F2.8 EX Macro</td>
 </tr><tr><td>25651</td><td>= Minolta AF 600mm F4</td>
-</tr><tr><td>25661</td><td>= Minolta AF 24mm F2.8</td>
+</tr><tr><td>25661</td><td>= Minolta AF 24mm F2.8 or Sigma Lens</td>
+</tr><tr><td>25661.1</td><td>= Sigma 17-35mm F2.8-4 EX Aspherical</td>
 </tr><tr><td>25721</td><td>= Minolta/Sony AF 500mm F8 Reflex</td>
 </tr><tr><td>25781</td><td>= Minolta/Sony AF 16mm F2.8 Fisheye or Sigma Lens</td>
 </tr><tr><td>25781.1</td><td>= Sigma 8mm F4 EX [DG] Fisheye</td>
 </tr><tr><td>25781.2</td><td>= Sigma 14mm F3.5</td>
 </tr><tr><td>25781.3</td><td>= Sigma 15mm F2.8 Fisheye</td>
-</tr><tr><td>25791</td><td>= Minolta/Sony AF 20mm F2.8</td>
+</tr><tr><td>25791</td><td>= Minolta/Sony AF 20mm F2.8 or Tokina Lens</td>
+</tr><tr><td>25791.1</td><td>= Tokina AT-X Pro DX 11-16mm F2.8</td>
 </tr><tr><td>25811</td><td>= Minolta AF 100mm F2.8 Macro [New] or Sigma or Tamron Lens</td>
 </tr><tr><td>25811.1</td><td>= Sigma AF 90mm F2.8 Macro</td>
 </tr><tr><td>25811.2</td><td>= Sigma AF 105mm F2.8 EX [DG] Macro</td>
 </tr><tr><td>25811.3</td><td>= Sigma 180mm F5.6 Macro</td>
-</tr><tr><td>25811.4</td><td>= Tamron 90mm F2.8 Macro</td>
+</tr><tr><td>25811.4</td><td>= Sigma 180mm F3.5 EX DG Macro</td>
+</tr><tr><td>25811.5</td><td>= Tamron 90mm F2.8 Macro</td>
 </tr><tr><td>25851</td><td>= Beroflex 35-135mm F3.5-4.5</td>
 </tr><tr><td>25858</td><td>= Minolta AF 35-105mm F3.5-4.5 New or Tamron Lens</td>
 </tr><tr><td>25858.1</td><td>= Tamron 24-135mm F3.5-5.6</td>
 </tr><tr><td>25881</td><td>= Minolta AF 70-210mm F3.5-4.5</td>
 </tr><tr><td>25891</td><td>= Minolta AF 80-200mm F2.8 APO or Tokina Lens</td>
 </tr><tr><td>25891.1</td><td>= Tokina 80-200mm F2.8</td>
+</tr><tr><td>25901</td><td>= Minolta AF 200mm F2.8 G APO + Minolta AF 1.4x APO or Other Lens + 1.4x</td>
+</tr><tr><td>25901.1</td><td>= Minolta AF 600mm F4 HS-APO G + Minolta AF 1.4x APO</td>
 </tr><tr><td>25911</td><td>= Minolta AF 35mm F1.4</td>
 </tr><tr><td>25921</td><td>= Minolta AF 85mm F1.4 G (D)</td>
 </tr><tr><td>25931</td><td>= Minolta AF 200mm F2.8 G APO</td>
@@ -759,6 +864,8 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>25961</td><td>= Minolta AF 28mm F2</td>
 </tr><tr><td>25971</td><td>= Minolta AF 35mm F2 [New]</td>
 </tr><tr><td>25981</td><td>= Minolta AF 100mm F2</td>
+</tr><tr><td>26011</td><td>= Minolta AF 200mm F2.8 G APO + Minolta AF 2x APO or Other Lens + 2x</td>
+</tr><tr><td>26011.1</td><td>= Minolta AF 600mm F4 HS-APO G + Minolta AF 2x APO</td>
 </tr><tr><td>26041</td><td>= Minolta AF 80-200mm F4.5-5.6</td>
 </tr><tr><td>26051</td><td>= Minolta AF 35-80mm F4-5.6</td>
 </tr><tr><td>26061</td><td>= Minolta AF 100-300mm F4.5-5.6</td>
@@ -795,7 +902,7 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>45751</td><td>= 1.4x Teleconverter</td>
 </tr><tr><td>45851</td><td>= Tamron SP AF 300mm F2.8 LD IF</td>
 </tr><tr><td>45871</td><td>= Tamron AF 70-210mm f/2.8 SP LD</td>
-</tr><tr><td>65535</td><td>= T-Mount or Other Lens or no lens</td>
+</tr><tr><td>65535</td><td>= E-Mount, T-Mount, Other Lens or no lens</td>
 </tr><tr><td>65535.1</td><td>= Arax MC 35mm F2.8 Tilt+Shift</td>
 </tr><tr><td>65535.2</td><td>= Arax MC 80mm F2.8 Tilt+Shift</td>
 </tr><tr><td>65535.3</td><td>= Zenitar MF 16mm F2.8 Fisheye M42</td>
@@ -805,13 +912,71 @@ original version of the lens has the same LensType.</p>
 </tr><tr><td>65535.7</td><td>= Helios 44-2 58mm F2.0</td>
 </tr></table></td></tr></table></blockquote>
 
+<h2><a name='CameraInfoA55'>Sony CameraInfoA55 Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='28 = 0x1c'>28</td>
+<td>LocalAFAreaPoint</td>
+<td class=c>int8u</td>
+<td><span class=s>0 = None
+  <br>1 = Center
+  <br>2 = Top
+  <br>3 = Top-right
+  <br>4 = Right
+  <br>5 = Bottom-right
+  <br>6 = Bottom
+  <br>7 = Bottom-left
+  <br>8 = Left
+  <br>9 = Top-left
+  <br>10 = Far Right
+  <br>11 = Far Left
+  <br>12 = Upper-middle
+  <br>13 = Near Right
+  <br>14 = Lower-middle
+  <br>15 = Near Left</span></td></tr>
+<tr class=b>
+<td class=r title='29 = 0x1d'>29</td>
+<td>FocusMode</td>
+<td class=c>int8u</td>
+<td><span class=s>0 = Manual
+  <br>1 = AF-S
+  <br>2 = AF-C
+  <br>3 = AF-A</span></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='CameraInfoUnknown'>Sony CameraInfoUnknown Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr><td colspan=4 class=c><i>[no tags known]</i></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='FocusInfo'>Sony FocusInfo Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='2491 = 0x9bb'>2491</td>
+<td>FocusPosition</td>
+<td class=c>int8u</td>
+<td><span class=s><span class=n>(A850 only)</span></span></td></tr>
+</table></td></tr></table></blockquote>
+
 <h2><a name='CameraSettings'>Sony CameraSettings Tags</a></h2>
 <p>Camera settings for the A200, A230, A300, A350, A700, A850 and A900.  Some
 tags are only valid for certain models.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='4 = 0x4'>4</td>
@@ -1049,7 +1214,7 @@ tags are only valid for certain models.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='16 = 0x10'>16</td>
@@ -1174,11 +1339,71 @@ tags are only valid for certain models.</p>
   <br>3 = Small</span></td></tr>
 </table></td></tr></table></blockquote>
 
+<h2><a name='CameraSettings3'>Sony CameraSettings3 Tags</a></h2>
+<p>Camera settings decoded for the SLT-A55, but they also seem to apply to some
+other models</p>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='2 = 0x2'>2</td>
+<td>ISOSetting</td>
+<td class=c>int8u</td>
+<td><span class=s>0 = Auto
+  <br>254 = n/a</span></td></tr>
+<tr class=b>
+<td class=r title='12 = 0xc'>12</td>
+<td>DynamicRangeOptimizerSetting</td>
+<td class=c>int8u</td>
+<td><span class=s>1 = Off
+  <br>16 = On (Auto)
+  <br>17 = On (Manual)</span></td></tr>
+<tr>
+<td class=r title='13 = 0xd'>13</td>
+<td>DynamicRangeOptimizerLevel</td>
+<td class=c>int8u</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='36 = 0x24'>36</td>
+<td>AFAreaMode</td>
+<td class=c>int8u</td>
+<td><span class=s>1 = Wide
+  <br>2 = Spot
+  <br>3 = Local</span></td></tr>
+<tr>
+<td class=r title='45 = 0x2d'>45</td>
+<td>AutoHDR</td>
+<td class=c>int8u</td>
+<td><span class=s>1 = Off
+  <br>16 = On (Auto)
+  <br>17 = On (Manual)</span></td></tr>
+<tr class=b>
+<td class=r title='46 = 0x2e'>46</td>
+<td>AutoHDRLevel</td>
+<td class=c>int8u</td>
+<td><span class=s>33 = 1 EV
+  <br>35 = 2 EV
+  <br>37 = 3 EV
+  <br>39 = 4 EV
+  <br>40 = 5 EV
+  <br>41 = 6 EV</span></td></tr>
+<tr>
+<td class=r title='53 = 0x35'>53</td>
+<td>MultiFrameNoiseReduction</td>
+<td class=c>int8u</td>
+<td><span class=s>0 = None
+  <br>1 = Off
+  <br>16 = On
+  <br>255 = n/a</span></td></tr>
+</table></td></tr></table></blockquote>
+
 <h2><a name='CameraSettingsUnknown'>Sony CameraSettingsUnknown Tags</a></h2>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr><td colspan=4 class=c><i>[no tags known]</i></td></tr>
 </table></td></tr></table></blockquote>
@@ -1190,7 +1415,7 @@ rotation -- the width is always the longer dimension.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index4</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='1 = 0x1'>1</td>
@@ -1254,7 +1479,7 @@ rotation -- the width is always the longer dimension.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='2 = 0x2'>2</td>
@@ -1292,7 +1517,7 @@ rotation -- the width is always the longer dimension.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -1341,7 +1566,7 @@ the full-sized unrotated image, with increasing Y downwards)</span></span></td><
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -1587,7 +1812,7 @@ the DSC-F1.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='8 = 0x8'>8</td>
@@ -1670,7 +1895,7 @@ the JPEG image from a PMP file)</span></span></td></tr>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Jul 7, 2011</i>
+<br><i>Last revised Jan 25, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

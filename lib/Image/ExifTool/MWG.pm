@@ -15,7 +15,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.08';
+$VERSION = '1.10';
 
 # enable MWG strict mode by default
 # (causes non-standard EXIF, IPTC and XMP to be ignored)
@@ -63,7 +63,12 @@ sub OverwriteStringList($$$$);
         records only in the standard location, but writes new tags to any
         EXIF/IPTC/XMP records that exist.
 
-        A complication of the specification is that although the MWG:Creator
+        Contrary to the EXIF specification, the MWG recommends that EXIF "ASCII"
+        string values be stored as UTF-8.  To honour this, the exiftool application
+        sets the default internal EXIF string encoding to "UTF8" when the MWG module
+        is loaded (but this setting does not change automatically via the API).
+
+        A complication of the MWG specification is that although the MWG:Creator
         property may consist of multiple values, the associated EXIF tag
         (EXIF:Artist) is only a simple string.  To resolve this discrepancy the MWG
         recommends a technique which allows a list of values to be stored in a
@@ -79,7 +84,7 @@ sub OverwriteStringList($$$$);
             2 => 'CurrentIPTCDigest',
             3 => 'IPTCDigest',
         },
-        ValueConv => q{
+        RawConv => q{
             return $val[1] if not defined $val[2] or (defined $val[1] and
                              (not defined $val[3] or $val[2] eq $val[3]));
             return Image::ExifTool::MWG::RecoverTruncatedIPTC($val[0], $val[1], 64);
@@ -101,7 +106,7 @@ sub OverwriteStringList($$$$);
             3 => 'CurrentIPTCDigest',
             4 => 'IPTCDigest',
         },
-        ValueConv => q{
+        RawConv => q{
             return $val[0] if defined $val[0] and $val[0] !~ /^ *$/;
             return $val[2] if not defined $val[3] or (defined $val[2] and
                              (not defined $val[4] or $val[3] eq $val[4]));
@@ -129,6 +134,9 @@ sub OverwriteStringList($$$$);
             5 => 'CurrentIPTCDigest',
             6 => 'IPTCDigest',
         },
+        # must check for validity in RawConv to avoid hiding a same-named tag,
+        # but IPTC dates use a ValueConv so we need to derive the value there
+        RawConv => '(defined $val[0] or defined $val[2] or defined $val[4]) ? $val : undef',
         ValueConv => q{
             if (defined $val[0] and $val[0] !~ /^[: ]*$/) {
                 return ($val[1] and $val[1] !~ /^ *$/) ? "$val[0].$val[1]" : $val[0];
@@ -165,6 +173,7 @@ sub OverwriteStringList($$$$);
             5 => 'CurrentIPTCDigest',
             6 => 'IPTCDigest',
         },
+        RawConv => '(defined $val[0] or defined $val[2] or defined $val[4]) ? $val : undef',
         ValueConv => q{
             if (defined $val[0] and $val[0] !~ /^[: ]*$/) {
                 return ($val[1] and $val[1] !~ /^ *$/) ? "$val[0].$val[1]" : $val[0];
@@ -197,7 +206,7 @@ sub OverwriteStringList($$$$);
             3 => 'CurrentIPTCDigest',
             4 => 'IPTCDigest',
         },
-        ValueConv => q{
+        RawConv => q{
             if (defined $val[0] and $val[0] !~ /^[: ]*$/) {
                 return ($val[1] and $val[1] !~ /^ *$/) ? "$val[0].$val[1]" : $val[0];
             }
@@ -247,7 +256,7 @@ sub OverwriteStringList($$$$);
             3 => 'CurrentIPTCDigest',
             4 => 'IPTCDigest',
         },
-        ValueConv => q{
+        RawConv => q{
             return $val[0] if defined $val[0] and $val[0] !~ /^ *$/;
             return $val[2] if not defined $val[3] or (defined $val[2] and
                              (not defined $val[4] or $val[3] eq $val[4]));
@@ -271,7 +280,7 @@ sub OverwriteStringList($$$$);
             3 => 'CurrentIPTCDigest',
             4 => 'IPTCDigest',
         },
-        ValueConv => q{
+        RawConv => q{
             return $val[0] if defined $val[0] and $val[0] !~ /^ *$/;
             return $val[2] if not defined $val[3] or (defined $val[2] and
                              (not defined $val[4] or $val[3] eq $val[4]));
@@ -294,7 +303,7 @@ sub OverwriteStringList($$$$);
             2 => 'CurrentIPTCDigest',
             3 => 'IPTCDigest',
         },
-        ValueConv => q{
+        RawConv => q{
             return $val[1] if not defined $val[2] or (defined $val[1] and
                              (not defined $val[3] or $val[2] eq $val[3]));
             return Image::ExifTool::MWG::RecoverTruncatedIPTC($val[0], $val[1], 64);
@@ -315,7 +324,7 @@ sub OverwriteStringList($$$$);
             2 => 'CurrentIPTCDigest',
             3 => 'IPTCDigest',
         },
-        ValueConv => q{
+        RawConv => q{
             return $val[1] if not defined $val[2] or (defined $val[1] and
                              (not defined $val[3] or $val[2] eq $val[3]));
             return Image::ExifTool::MWG::RecoverTruncatedIPTC($val[0], $val[1], 32);
@@ -336,7 +345,7 @@ sub OverwriteStringList($$$$);
             2 => 'CurrentIPTCDigest',
             3 => 'IPTCDigest',
         },
-        ValueConv => q{
+        RawConv => q{
             return $val[1] if not defined $val[2] or (defined $val[1] and
                              (not defined $val[3] or $val[2] eq $val[3]));
             return Image::ExifTool::MWG::RecoverTruncatedIPTC($val[0], $val[1], 32);
@@ -357,7 +366,7 @@ sub OverwriteStringList($$$$);
             2 => 'CurrentIPTCDigest',
             3 => 'IPTCDigest',
         },
-        ValueConv => q{
+        RawConv => q{
             return $val[1] if not defined $val[2] or (defined $val[1] and
                              (not defined $val[3] or $val[2] eq $val[3]));
             return Image::ExifTool::MWG::RecoverTruncatedIPTC($val[0], $val[1], 32);
@@ -380,7 +389,7 @@ unless ($Image::ExifTool::documentOnly) {
                                      'Image::ExifTool::Composite');
 }
 
-# modify EXIF:Artist to behave as a List-type tag
+# modify EXIF:Artist to behave as a list-type tag
 {
     my $artist = $Image::ExifTool::Exif::Main{0x13b};
     $$artist{List} = 1;
@@ -556,7 +565,7 @@ after loading the MWG module):
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -15,7 +15,8 @@
 #               8) Igal Milchtaich private communication
 #               9) Michael Reitinger private communication (DSC-TX7)
 #               10) http://www.klingebiel.com/tempest/hd/pmp.html
-#               11 Mike Battilana private communication
+#               11) Mike Battilana private communication
+#               12) Jos Roost private communication
 #               JD) Jens Duttke private communication
 #------------------------------------------------------------------------------
 
@@ -27,7 +28,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::Minolta;
 
-$VERSION = '1.51';
+$VERSION = '1.56';
 
 sub ProcessSRF($$$);
 sub ProcessSR2($$$);
@@ -65,6 +66,23 @@ my %binaryDataAttrs = (
     WRITE_PROC => \&Image::ExifTool::Exif::WriteExif,
     CHECK_PROC => \&Image::ExifTool::Exif::CheckExif,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    0x0010 => [ #PH
+        {
+            Name => 'CameraInfoA55',
+            Condition => '$$self{Model} =~ /SLT-A55V\b/',
+            SubDirectory => { TagTable => 'Image::ExifTool::Sony::CameraInfoA55' },
+        },{
+            Name => 'CameraInfoUnknown',
+            SubDirectory => { TagTable => 'Image::ExifTool::Sony::CameraInfoUnknown' },
+        }
+    ],
+    0x0020 => { #PH
+        Name => 'FocusInfo',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Sony::FocusInfo',
+            ByteOrder => 'BigEndian',
+        },
+    },
     0x0102 => { #5/JD
         Name => 'Quality',
         Writable => 'int32u',
@@ -89,13 +107,7 @@ my %binaryDataAttrs = (
         Name => 'Teleconverter',
         Writable => 'int32u',
         PrintHex => 1,
-        PrintConv => {
-            0 => 'None',
-            72 => 'Minolta AF 2x APO (D)',
-            80 => 'Minolta AF 2x APO II',
-            136 => 'Minolta AF 1.4x APO (D)',
-            144 => 'Minolta AF 1.4x APO II',
-        },
+        PrintConv => \%Image::ExifTool::Minolta::minoltaTeleconverters,
     },
     0x0112 => { #JD
         Name => 'WhiteBalanceFineTune',
@@ -116,6 +128,14 @@ my %binaryDataAttrs = (
             Condition => '$$self{Model} =~ /DSLR-A(330|380)\b/',
             SubDirectory => {
                 TagTable => 'Image::ExifTool::Sony::CameraSettings2',
+                ByteOrder => 'BigEndian',
+            },
+        },
+        {
+            Name => 'CameraSettings3',
+            Condition => '$$self{Model} !~ /DSLR-A(290|390)\b/',
+            SubDirectory => {
+                TagTable => 'Image::ExifTool::Sony::CameraSettings3',
                 ByteOrder => 'BigEndian',
             },
         },
@@ -173,6 +193,7 @@ my %binaryDataAttrs = (
         Name => 'Panorama',
         SubDirectory => { TagTable => 'Image::ExifTool::Sony::Panorama' },
     },
+    # 0x2000 - undef[1]
     0x2001 => { #PH (JPEG images from all DSLR's except the A100)
         Name => 'PreviewImage',
         Writable => 'undef',
@@ -196,7 +217,8 @@ my %binaryDataAttrs = (
             return Set32u(length $val) . $size . ("\0" x 8) . $size . ("\0" x 4) . $val;
         },
     },
-    # 0x2002 - probably Sharpness (PH guess)
+    # 0x2002 - int32u: probably Sharpness (PH guess)
+    # 0x2003 - string[256]
     0x2004 => { #PH (NEX-5)
         Name => 'Contrast',
         Writable => 'int32s',
@@ -227,9 +249,10 @@ my %binaryDataAttrs = (
         PrintHex => 1,
         PrintConv => {
             0 => 'Off',
-            1 => 'On',
-            0xffff0000 => 'Off 2',
-            0xffff0001 => 'On 2',
+            1 => 'On (unused)',
+            0x10001 => 'On (dark subtracted)', # (NEX-C3)
+            0xffff0000 => 'Off (65535)',
+            0xffff0001 => 'On (65535)',
             0xffffffff => 'n/a',
         },
     },
@@ -249,10 +272,11 @@ my %binaryDataAttrs = (
         Name => 'HDR',
         Writable => 'int32u',
         PrintHex => 1,
+        PrintConvColumns => 3,
         PrintConv => {
             0x0 => 'Off',
             0x10001 => 'Auto',
-            0x10010 => '1.0 EV', # (NEX_5)
+            0x10010 => '1.0 EV', # (NEX-5)
             0x10011 => '1.5 EV',
             0x10012 => '2.0 EV',
             0x10013 => '2.5 EV',
@@ -263,6 +287,31 @@ my %binaryDataAttrs = (
             0x10018 => '5.0 EV',
             0x10019 => '5.5 EV',
             0x1001a => '6.0 EV', # (SLT-A55V)
+            # not sure what the high word means; have seen 0x1, 0x2 and 0x3 (A77)
+            0x20001 => 'Auto (2)',
+            0x20010 => '1.0 EV (2)',
+            0x20011 => '1.5 EV (2)',
+            0x20012 => '2.0 EV (2)',
+            0x20013 => '2.5 EV (2)',
+            0x20014 => '3.0 EV (2)',
+            0x20015 => '3.5 EV (2)',
+            0x20016 => '4.0 EV (2)',
+            0x20017 => '4.5 EV (2)',
+            0x20018 => '5.0 EV (2)',
+            0x20019 => '5.5 EV (2)',
+            0x2001a => '6.0 EV (2)',
+            0x30001 => 'Auto (3)',
+            0x30010 => '1.0 EV (3)',
+            0x30011 => '1.5 EV (3)',
+            0x30012 => '2.0 EV (3)',
+            0x30013 => '2.5 EV (3)',
+            0x30014 => '3.0 EV (3)',
+            0x30015 => '3.5 EV (3)',
+            0x30016 => '4.0 EV (3)',
+            0x30017 => '4.5 EV (3)',
+            0x30018 => '5.0 EV (3)',
+            0x30019 => '5.5 EV (3)',
+            0x3001a => '6.0 EV (3)',
         },
     },
     0x200b => { #PH
@@ -274,6 +323,36 @@ my %binaryDataAttrs = (
             255 => 'n/a',
         },
     },
+    # 0x200c - int32u[3]: '0 0 0'
+    # 0x200d - rational64u: 10/10
+    # 0x200e - int16u: 0
+    # 0x200f - int32u: 0
+    0x2011 => { #PH (A77, NEX-5N)
+        Name => 'VignettingCorrection',
+        Writable => 'int32u',
+        PrintConv => {
+            0 => 'Off',
+            2 => 'Auto',
+        },
+    },
+    0x2012 => { #PH (A77, NEX-5N)
+        Name => 'LateralChromaticAberration',
+        Writable => 'int32u',
+        PrintConv => {
+            0 => 'Off',
+            2 => 'Auto',
+        },
+    },
+    0x2013 => { #PH (A77, NEX-5N)
+        Name => 'DistortionCorrection',
+        Writable => 'int32u',
+        PrintConv => {
+            0 => 'Off',
+            2 => 'Auto',
+        },
+    },
+    # 0x2014 - int32s[2]: '0 0', '0 -1', '0 -2'
+    # 0x2015 - int16u: 65535
     0x3000 => {
         Name => 'ShotInfo',
         SubDirectory => {
@@ -296,12 +375,13 @@ my %binaryDataAttrs = (
             '2 0 0 0' => 'ARW 1.0',
             '3 0 0 0' => 'ARW 2.0',
             '3 1 0 0' => 'ARW 2.1',
-            '3 2 0 0' => 'ARW 2.2', # (NEX-5)
+            '3 2 0 0' => 'ARW 2.2', #PH (NEX-5)
+            '3 3 0 0' => 'ARW 2.3', #PH (SLT-A65,SLT-A77)
             # what about cRAW images?
         },
     },
     0xb001 => { # ref http://forums.dpreview.com/forums/read.asp?forum=1037&message=33609644
-        # (ARW and SR2 images only)
+        # (ARW and SR2 images only until the SLT-A65V started writing them to JPEG too)
         Name => 'SonyModelID',
         Writable => 'int16u',
         PrintConvColumns => 2,
@@ -327,6 +407,11 @@ my %binaryDataAttrs = (
             281 => 'SLT-A55V', #PH
             282 => 'DSLR-A560', #PH
             283 => 'DSLR-A580', # (http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,2881.0.html)
+            284 => 'NEX-C3', #PH
+            286 => 'SLT-A65V', #PH
+            287 => 'SLT-A77V', #PH
+            288 => 'NEX-5N', #PH
+            289 => 'NEX-7', #PH
         },
     },
     0xb020 => { #2
@@ -349,6 +434,7 @@ my %binaryDataAttrs = (
     0xb023 => { #PH (A100) - (set by mode dial)
         Name => 'SceneMode',
         Writable => 'int32u',
+        PrintConvColumns => 2,
         PrintConv => \%Image::ExifTool::Minolta::minoltaSceneMode,
     },
     0xb024 => { #PH (A100)
@@ -373,7 +459,7 @@ my %binaryDataAttrs = (
             10 => 'Advanced Lv3', #JD
             11 => 'Advanced Lv4', #JD
             12 => 'Advanced Lv5', #JD
-            16 => 'Lv1', # (NEX_5)
+            16 => 'Lv1', # (NEX-5)
             17 => 'Lv2',
             18 => 'Lv3',
             19 => 'Lv4',
@@ -389,6 +475,7 @@ my %binaryDataAttrs = (
         Name => 'LensType',
         Writable => 'int32u',
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%sonyLensTypes,
     },
     0xb028 => { #2
@@ -406,7 +493,37 @@ my %binaryDataAttrs = (
     0xb029 => { #2 (set by creative style menu)
         Name => 'ColorMode',
         Writable => 'int32u',
+        PrintConvColumns => 2,
         PrintConv => \%Image::ExifTool::Minolta::sonyColorMode,
+    },
+    0xb02a => {
+        Name => 'LensSpec',
+        Format => 'undef',
+        Writable => 'int8u',
+        Count => 8,
+        Notes => q{
+            like LensInfo, but also specifies lens features: DT, E, ZA, G, SSM, SAM,
+            OSS, STF, Reflex, Macro and Fisheye
+        },
+        # unpack in format compatible with LensInfo, with extra flags word at end
+        ValueConv => sub {
+            my $val = shift;
+            return \$val unless length($val) == 8;
+            my @a = unpack("H2H4H4H2H2H2",$val);
+            $a[1] += 0;  $a[2] += 0;    # remove leading zeros from focal lengths
+            $a[3] /= 10; $a[4] /= 10;   # divide f-numbers by 10
+            return join ' ', @a;
+        },
+        ValueConvInv => sub {
+            my $val = shift;
+            my @a=split(" ", $val);
+            return $val unless @a == 6;
+            $a[3] *= 10; $a[4] *= 10;   # f-numbers are multiplied by 10
+            $_ = hex foreach @a;        # convert from hex
+            return pack 'CnnCCC', @a;
+        },
+        PrintConv => 'Image::ExifTool::Sony::PrintLensSpec($val)',
+        PrintConvInv => 'Image::ExifTool::Sony::PrintInvLensSpec($val)',
     },
     0xb02b => { #PH (A550 JPEG and A200, A230, A300, A350, A380, A700 and A900 ARW)
         Name => 'FullImageSize',
@@ -442,6 +559,7 @@ my %binaryDataAttrs = (
         Name => 'ExposureMode',
         Writable => 'int16u',
         RawConv => '$val == 65535 ? undef : $val',
+        PrintConvColumns => 2,
         PrintConv => {
             0 => 'Auto',
             1 => 'Portrait', #PH (HX1)
@@ -507,6 +625,8 @@ my %binaryDataAttrs = (
             65535 => 'n/a', #PH (A100)
         },
     },
+    # 0xb045 - int16u: 0
+    # 0xb046 - int16u: 0
     0xb047 => { #2
         Name => 'Quality',
         Writable => 'int16u',
@@ -520,11 +640,17 @@ my %binaryDataAttrs = (
     0xb048 => { #9
         Name => 'FlashLevel',
         Writable => 'int16s',
-        RawConv => '$val == -1 ? undef : $val',
+        RawConv => '($val == -1 and $$self{Model} =~ /DSLR-A100\b/) ? undef : $val',
         PrintConv => {
             -32768 => 'Low',
-            -1 => 'n/a', #PH (A100)
+            -3 => '-3/3',
+            -2 => '-2/3',
+            -1 => '-1/3', # (for the A100, -1 is effectively 'n/a' - PH)
             0 => 'Normal',
+            1 => '+1/3',
+            2 => '+2/3',
+            3 => '+3/3',
+            # 128 - have seen this
             32767 => 'High',
         },
     },
@@ -562,6 +688,10 @@ my %binaryDataAttrs = (
             65535 => 'n/a',
         },
     },
+    # 0xb04c - rational64u: 10/10
+    # 0xb04d - int16u: 0
+    # 0xb050 - int16u: 65535
+    # 0xb051/0xb053 - int16u: 0
     0xb04e => { #2
         Name => 'LongExposureNoiseReduction',
         Writable => 'int16u',
@@ -569,16 +699,20 @@ my %binaryDataAttrs = (
         PrintConv => {
             0 => 'Off',
             1 => 'On',
+            # 2 - seen this (TX10, TX100, WX9, WX10, etc
+            # 4 - seen this (CX360E, CX700E)
             65535 => 'n/a', #PH (A100)
         },
     },
     0xb04f => { #PH (TX1)
         Name => 'DynamicRangeOptimizer',
         Writable => 'int16u',
+        Priority => 0, # (unreliable for the A77)
         PrintConv => {
             0 => 'Off',
             1 => 'Standard',
             2 => 'Plus',
+            # 8 for HDR models - what does this mean?
         },
     },
     0xb052 => { #PH (TX1)
@@ -637,6 +771,80 @@ my %binaryDataAttrs = (
         DataTag => 'PreviewImage',
         Writable => 'int32u',
         Protected => 2,
+    },
+);
+
+# Camera information for the A55 (ref PH)
+%Image::ExifTool::Sony::CameraInfoA55 = (
+    %binaryDataAttrs,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    0x1c => {
+        Name => 'LocalAFAreaPoint',
+        PrintConv => {
+            0 => 'None', # (seen in Wide mode)
+            1 => 'Center',
+            2 => 'Top',
+            3 => 'Top-right',
+            4 => 'Right',
+            5 => 'Bottom-right',
+            6 => 'Bottom',
+            7 => 'Bottom-left',
+            8 => 'Left',
+            9 => 'Top-left',
+            10 => 'Far Right',
+            11 => 'Far Left',
+            12 => 'Upper-middle',
+            13 => 'Near Right',
+            14 => 'Lower-middle',
+            15 => 'Near Left',
+        },
+    },
+    0x1d => {
+        Name => 'FocusMode',
+        PrintConv => {
+            0 => 'Manual',
+            1 => 'AF-S',
+            2 => 'AF-C',
+            3 => 'AF-A',
+        },
+    },
+    # also seems to be related to af point:
+    #0x20 => {
+    #    Name => 'LocalAFAreaPoint2',
+    #    PrintConv => {
+    #        0 => 'None', # (seen in Wide mode)
+    #        0 => 'Upper-left',
+    #        1 => 'Mid-left',
+    #        2 => 'Lower-left',
+    #        3 => 'Far Left',
+    #        5 => 'Near Right',
+    #        7 => 'Bottom',
+    #        9 => 'Top',
+    #        11 => 'Lower-middle',
+    #        12 => 'Far Right',
+    #        13 => 'Upper-right',
+    #        14 => 'Mid-right',
+    #        15 => 'Lower-right',
+    #        16 => 'Upper-middle',
+    #        17 => 'Center',
+    #    },
+    #},
+);
+
+# unknown camera information
+%Image::ExifTool::Sony::CameraInfoUnknown = (
+    %binaryDataAttrs,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+);
+
+# focus information ("WBInfo" for the A100 in Minolta.pm) (ref PH)
+%Image::ExifTool::Sony::FocusInfo = (
+    %binaryDataAttrs,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    0x09bb => {
+        Condition => '$$self{Model} eq "DSLR-A850"',
+        Notes => 'A850 only',
+        Name => 'FocusPosition',  # 128 = infinity -- see Composite:FocusDistance below
     },
 );
 
@@ -976,9 +1184,7 @@ my %binaryDataAttrs = (
             3 => 'Advanced Level',
         },
     },
-    0x17 => {
-        Name => 'DynamicRangeOptimizerLevel',
-    },
+    0x17 => 'DynamicRangeOptimizerLevel',
     0x18 => { # A380
         Name => 'CreativeStyle',
         PrintConv => {
@@ -1045,6 +1251,84 @@ my %binaryDataAttrs = (
         },
     },
     # 0x56 - something to do with JPEG quality?
+);
+
+# more Camera settings (ref PH)
+# This was decoded for the A55, but it seems to apply to the following models:
+# A33, A35, A55, A450, A500, A550, A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-GV10E
+%Image::ExifTool::Sony::CameraSettings3 = (
+    %binaryDataAttrs,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    FORMAT => 'int8u',
+    NOTES => q{
+        Camera settings decoded for the SLT-A55, but they also seem to apply to some
+        other models
+    },
+    0x02 => {
+        Name => 'ISOSetting',
+        ValueConv => '($val and $val < 254) ? exp(($val/8-6)*log(2))*100 : $val',
+        ValueConvInv => '($val and $val != 254) ? 8*(log($val/100)/log(2)+6) : $val',
+        PrintConv => {
+            OTHER => sub {
+                my ($val, $inv) = @_;
+                return int($val + 0.5) unless $inv;
+                return Image::ExifTool::IsFloat($val) ? $val : undef;
+            },
+            0 => 'Auto',
+            254 => 'n/a', # get this for multi-shot noise reduction
+        },
+    },
+    # 0x05 - 1,2,56[hand-held twilight],80[sweep panorama]
+    # 0x06 - 17[sweep panorama],19
+    # 0x09 - 21,25[sweep panorama]
+    # 0x0a - 4,8[sweep panorama]
+    0x0c => {
+        Name => 'DynamicRangeOptimizerSetting',
+        PrintConv => {
+            1 => 'Off',
+            16 => 'On (Auto)',
+            17 => 'On (Manual)',
+        },
+    },
+    0x0d => 'DynamicRangeOptimizerLevel',
+    0x24 => {
+        Name => 'AFAreaMode',
+        PrintConv => {
+            1 => 'Wide',
+            2 => 'Spot',
+            3 => 'Local',
+            # see values of 1,2,4 for NEX-C3/5/7 which have Multi/Center/Flexible Spot modes
+            # (Flexible Spot is a grid of 17x11 points for the NEX-5)
+        },
+    },
+    0x2d => {
+        Name => 'AutoHDR',
+        PrintConv => {
+            1 => 'Off',
+            16 => 'On (Auto)',
+            17 => 'On (Manual)',
+        },
+    },
+    0x2e => {
+        Name => 'AutoHDRLevel',
+        PrintConv => {
+            33 => '1 EV',
+            35 => '2 EV',
+            37 => '3 EV',
+            39 => '4 EV',
+            40 => '5 EV',
+            41 => '6 EV',
+        },
+    },
+    0x35 => {
+        Name => 'MultiFrameNoiseReduction',
+        PrintConv => {
+            0 => 'None', # seen for A450/A500/A550
+            1 => 'Off',
+            16 => 'On',
+            255 => 'n/a',
+        },
+    },
 );
 
 # Camera settings for other models
@@ -1495,15 +1779,32 @@ my %binaryDataAttrs = (
     },
 );
 
+# Composite Sony tags
+%Image::ExifTool::Sony::Composite = (
+    GROUPS => { 2 => 'Camera' },
+    FocusDistance => {
+        Require => {
+            0 => 'Sony:FocusPosition',
+            1 => 'FocalLength',
+        },
+        Notes => 'distance in metres = FocusPosition * FocalLength / 1000',
+        ValueConv => '$val >= 128 ? "inf" : $val * $val[1] / 1000',
+        PrintConv => '$val eq "inf" ? $val : "$val m"',
+    },
+);
+
+# add our composite tags
+Image::ExifTool::AddCompositeTags('Image::ExifTool::Sony');
+
 # fill in Sony LensType lookup based on Minolta values
 {
     my $minoltaTypes = \%Image::ExifTool::Minolta::minoltaLensTypes;
     %sonyLensTypes = %$minoltaTypes;
-    my $notes = $$minoltaTypes{Notes};
-    delete $$minoltaTypes{Notes};
+    delete $$minoltaTypes{Notes};   # (temporarily)
     my $id;
+    # 5-digit lens ID's are missing the last digit (usually "1") in the metadata for
+    # some Sony models, so generate corresponding 4-digit entries for these cameras
     foreach $id (sort { $a <=> $b } keys %$minoltaTypes) {
-        # higher numbered lenses are missing last digit of ID for some Sony models
         next if $id < 10000;
         my $sid = int($id/10);
         my $i;
@@ -1523,7 +1824,73 @@ my %binaryDataAttrs = (
         }
         $sonyLensTypes{$sid} = $lens;
     }
-    $$minoltaTypes{Notes} = $sonyLensTypes{Notes} = $notes;
+    $$minoltaTypes{Notes} = $sonyLensTypes{Notes}; # (restore original Notes)
+}
+
+#------------------------------------------------------------------------------
+# Print Sony LensSpec value
+# Inputs: 0) LensSpec numerical value
+# Returns: converted LensSpec string (ie. "DT 18-55mm F3.5-5.6 SAM")
+# Refs: http://equational.org/importphotos/alphalensinfo.html
+#       http://www.dyxum.com/dforum/the-lens-information-different-from-lensid_topic37682.html
+my @lensFeatures = (
+    # lens features in the order they are added to the LensSpec string
+    # (high byte of Mask/Bits represents byte 0 of LensSpec, low byte is byte 7)
+    #  Mask   {  Bits     Name    Bits     Name  } Prefix flag
+    # ------    ------    -----  ------    -----   -----------
+    [ 0x0300, { 0x0100 => 'DT',  0x0300 => 'E'   }, 1 ],
+    [ 0x000c, { 0x0004 => 'ZA',  0x0008 => 'G'   } ],
+    [ 0x00e0, { 0x0020 => 'STF', 0x0040 => 'Reflex', 0x0060 => 'Macro', 0x0080 => 'Fisheye' } ],
+    [ 0x0003, { 0x0001 => 'SSM', 0x0002 => 'SAM' } ],
+    [ 0x8000, { 0x8000 => 'OSS' } ],
+);
+sub PrintLensSpec($)
+{
+    my $val = shift;
+    # 0=flags1, 1=short focal, 2=long focal, 3=max aperture at short focal,
+    # 4=max aperture at long focal, 5=flags2
+    my ($f1, $sf, $lf, $sa, $la, $f2) = split ' ', $val;
+    my ($rtnVal, $feature);
+    # crude validation of focal length and aperture values
+    if ($sf != 0 and $sa != 0 and ($lf == 0 or $lf >= $sf) and ($la == 0 or $la >= $sa)) {
+        # use focal and aperture range if this is a zoom lens
+        $sf .= '-' . $lf if $lf != $sf and $lf != 0;
+        $sa .= '-' . $la if $sa != $la and $la != 0;
+        $rtnVal = "${sf}mm F$sa";     # heart of LensSpec is a LensInfo string
+        # loop through available lens features
+        my $flags = hex($f1 . $f2);
+        foreach $feature (@lensFeatures) {
+            my $bits = $$feature[0] & $flags;
+            next unless $bits or $$feature[1]{$bits};
+            # add feature name as a prefix or suffix to the LensSpec
+            my $str = $$feature[1]{$bits} || sprintf('Unknown(%.4x)',$bits);
+            $rtnVal = $$feature[2] ? "$str $rtnVal" : "$rtnVal $str";
+        }
+    } else {
+        $rtnVal = "Unknown ($val)";
+    }
+    return $rtnVal;
+}
+# inverse conversion
+sub PrintInvLensSpec($)
+{
+    my $val = shift;
+    return $1 if $val =~ /Unknown ?\((.*)\)/i;
+    my ($sf, $lf, $sa, $la) = Image::ExifTool::Exif::GetLensInfo($val);
+    $sf or return undef;
+    # fixed focal length and aperture have zero for 2nd number
+    $lf = 0 if $lf == $sf;
+    $la = 0 if $la == $sa;
+    my $flags = 0;
+    my ($feature, $bits);
+    foreach $feature (@lensFeatures) {
+        foreach $bits (keys %{$$feature[1]}) {
+            # set corresponding flag bits for each feature name found
+            my $name = $$feature[1]{$bits};
+            $val =~ /\b$name\b/i and $flags |= $bits;
+        }
+    }
+    return sprintf "%.2x $sf $lf $sa $la %.2x", $flags>>8, $flags&0xff;
 }
 
 #------------------------------------------------------------------------------
@@ -1554,7 +1921,7 @@ sub ProcessPMP($$)
 }
 
 #------------------------------------------------------------------------------
-# Decrypt Sony data (ref 1)
+# Decrypt/Encrypt Sony data (ref 1) (reversible encryption)
 # Inputs: 0) data reference, 1) start offset, 2) data length, 3) decryption key
 # Returns: nothing (original data buffer is updated with decrypted data)
 # Notes: data length should be a multiple of 4
@@ -1969,7 +2336,7 @@ Minolta.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

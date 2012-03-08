@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.59
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.79
 [File, System, Image] FileName - File Name: ExifTool.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 24 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2009:08:24 09:36:51-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:02:14 11:53:11-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -116,6 +116,15 @@
 [MakerNotes, CIFF, Image] 1 - Focal Length: 5 mm
 [MakerNotes, CIFF, Image] 2 - Focal Plane X Size: 5.05 mm
 [MakerNotes, CIFF, Image] 3 - Focal Plane Y Size: 3.71 mm
+[MakerNotes, Qualcomm, Camera] aec_current_sensor_luma - AEC Current Sensor Luma: 22
+[MakerNotes, Qualcomm, Camera] af_position - AF Position: 26
+[MakerNotes, Qualcomm, Camera] aec_current_exp_index - AEC Current Exp Index: 308
+[MakerNotes, Qualcomm, Camera] awb_sample_decision - AWB Sample Decision: 7
+[MakerNotes, Qualcomm, Camera] asf5_enable - ASF5 Enable: 1
+[MakerNotes, Qualcomm, Camera] asf5_filter_mode - ASF5 Filter Mode: 0
+[MakerNotes, Qualcomm, Camera] asf5_exposure_index_1 - ASF5 Exposure Index 1: 180
+[MakerNotes, Qualcomm, Camera] asf5_exposure_index_2 - ASF5 Exposure Index 2: 270
+[MakerNotes, Qualcomm, Camera] asf5_max_exposure_index - ASF5 Max Exposure Index: 290
 [APP0, AVI1, Image] 0 - Interleaved Field: Not Interleaved
 [XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 4.73
 [XMP, XMP-rdf, Document] about - About: uuid:80056b68-1045-fa97-3401-6f4ed84cd53d

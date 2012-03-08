@@ -9,9 +9,11 @@
 <h2 class=top>RSRC Tags</h2>
 <p>Tags extracted from Mac OS resource files and DFONT files.  These tags may
 also be extracted from the resource fork of any file in OS X, either by
-adding &quot;/rsrc&quot; to the filename to process the resource fork alone, or by
-using the ExtractEmbedded (-ee) option to process the resource fork as a
-sub-document of the main file.</p>
+adding &quot;/..namedfork/rsrc&quot; to the filename to process the resource fork
+alone, or by using the ExtractEmbedded (-ee) option to process the resource
+fork as a sub-document of the main file.  When writing, ExifTool preserves
+the Mac OS resource fork by default, but it may deleted with <code>-rsrc:all=</code>
+on the command line.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -61,7 +63,7 @@ sub-document of the main file.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised May 31, 2010</i>
+<br><i>Last revised Feb 11, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

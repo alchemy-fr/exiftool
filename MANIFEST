@@ -4,6 +4,7 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+exif2iptc.args
 exif2xmp.args
 exiftool
 gps2xmp.args
@@ -11,6 +12,7 @@ gpx.fmt
 gpx_wpt.fmt
 html/ExifTool.html
 html/MIE1.1-20070121.pdf
+html/Shift.html
 html/TagNames/AFCP.html
 html/TagNames/AIFF.html
 html/TagNames/APE.html
@@ -75,6 +77,7 @@ html/TagNames/NikonCustom.html
 html/TagNames/OOXML.html
 html/TagNames/Ogg.html
 html/TagNames/Olympus.html
+html/TagNames/OpenEXR.html
 html/TagNames/PDF.html
 html/TagNames/PGF.html
 html/TagNames/PICT.html
@@ -87,10 +90,12 @@ html/TagNames/PhotoMechanic.html
 html/TagNames/Photoshop.html
 html/TagNames/PostScript.html
 html/TagNames/PrintIM.html
+html/TagNames/Qualcomm.html
 html/TagNames/QuickTime.html
 html/TagNames/RIFF.html
 html/TagNames/RSRC.html
 html/TagNames/RTF.html
+html/TagNames/Radiance.html
 html/TagNames/Rawzor.html
 html/TagNames/Real.html
 html/TagNames/Reconyx.html
@@ -133,7 +138,9 @@ html/style.css
 html/under.html
 html/verbose.html
 html/writing.html
+iptc2exif.args
 iptc2xmp.args
+iptcCore.args
 kml.fmt
 lib/File/RandomAccess.pm
 lib/File/RandomAccess.pod
@@ -260,6 +267,7 @@ lib/Image/ExifTool/NikonCustom.pm
 lib/Image/ExifTool/OOXML.pm
 lib/Image/ExifTool/Ogg.pm
 lib/Image/ExifTool/Olympus.pm
+lib/Image/ExifTool/OpenEXR.pm
 lib/Image/ExifTool/PDF.pm
 lib/Image/ExifTool/PGF.pm
 lib/Image/ExifTool/PICT.pm
@@ -273,11 +281,13 @@ lib/Image/ExifTool/PhotoMechanic.pm
 lib/Image/ExifTool/Photoshop.pm
 lib/Image/ExifTool/PostScript.pm
 lib/Image/ExifTool/PrintIM.pm
+lib/Image/ExifTool/Qualcomm.pm
 lib/Image/ExifTool/QuickTime.pm
 lib/Image/ExifTool/README
 lib/Image/ExifTool/RIFF.pm
 lib/Image/ExifTool/RSRC.pm
 lib/Image/ExifTool/RTF.pm
+lib/Image/ExifTool/Radiance.pm
 lib/Image/ExifTool/Rawzor.pm
 lib/Image/ExifTool/Real.pm
 lib/Image/ExifTool/Reconyx.pm
@@ -426,6 +436,7 @@ t/Geotag_3.out
 t/Geotag_5.out
 t/Geotag_6.out
 t/Geotag_7.out
+t/Geotag_8.out
 t/HTML.t
 t/HTML_2.out
 t/IPTC.t
@@ -446,6 +457,7 @@ t/JVC_3.out
 t/Jpeg2000.t
 t/Jpeg2000_2.out
 t/Jpeg2000_3.out
+t/Jpeg2000_4.out
 t/Kodak.t
 t/Kodak_2.out
 t/Kodak_3.out
@@ -509,6 +521,8 @@ t/Olympus_4.out
 t/Olympus_5.out
 t/Olympus_6.out
 t/Olympus_7.out
+t/OpenEXR.t
+t/OpenEXR_2.out
 t/PDF.t
 t/PDF_10.out
 t/PDF_11.out
@@ -567,6 +581,8 @@ t/RIFF_2.out
 t/RIFF_3.out
 t/RTF.t
 t/RTF_2.out
+t/Radiance.t
+t/Radiance_2.out
 t/Real.t
 t/Real_2.out
 t/Real_3.out
@@ -627,6 +643,7 @@ t/Writer_41.out
 t/Writer_42.out
 t/Writer_43.out
 t/Writer_44.out
+t/Writer_45.out
 t/Writer_6.out
 t/Writer_7.out
 t/Writer_9.out
@@ -659,6 +676,7 @@ t/XMP_32.out
 t/XMP_34.out
 t/XMP_36.out
 t/XMP_37.out
+t/XMP_39.out
 t/XMP_5.out
 t/XMP_6.out
 t/XMP_7.out
@@ -720,12 +738,14 @@ t/images/Geotag.gpx
 t/images/Geotag.igc
 t/images/Geotag.log
 t/images/Geotag.xml
+t/images/Geotag2.log
 t/images/HTML.html
 t/images/IPTC.jpg
 t/images/ITC.itc
 t/images/InDesign.indd
 t/images/JVC.jpg
 t/images/JVC2.jpg
+t/images/Jpeg2000.j2c
 t/images/Jpeg2000.jp2
 t/images/Kodak.jpg
 t/images/KyoceraRaw.raw
@@ -748,6 +768,7 @@ t/images/Olympus.jpg
 t/images/Olympus2.jpg
 t/images/OlympusE1.jpg
 t/images/OpenDoc.ods
+t/images/OpenEXR.exr
 t/images/PDF.pdf
 t/images/PDF2.pdf
 t/images/PGF.pgf
@@ -767,6 +788,7 @@ t/images/QuickTime.mov
 t/images/RIFF.avi
 t/images/RIFF.wav
 t/images/RTF.rtf
+t/images/Radiance.hdr
 t/images/Real.ra
 t/images/Real.ram
 t/images/Real.rm
@@ -781,6 +803,7 @@ t/images/Sony.pmp
 t/images/Unknown.jpg
 t/images/Vorbis.ogg
 t/images/Writer.jpg
+t/images/XMP.inx
 t/images/XMP.jpg
 t/images/XMP.svg
 t/images/XMP.xml

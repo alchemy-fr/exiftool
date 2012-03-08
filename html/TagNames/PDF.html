@@ -164,45 +164,66 @@ when reading)</span></span></td></tr>
 <tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
+<td>'AcroForm'</td>
+<td>AcroForm</td>
+<td class=c>-</td>
+<td>--&gt; <a href='PDF.html#AcroForm'>PDF AcroForm Tags</a></td></tr>
+<tr class=b>
 <td>'Lang'</td>
 <td>Language</td>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td>'MarkInfo'</td>
 <td>MarkInfo</td>
 <td class=c>-</td>
 <td>--&gt; <a href='PDF.html#MarkInfo'>PDF MarkInfo Tags</a></td></tr>
-<tr>
+<tr class=b>
 <td>'Metadata'</td>
 <td>Metadata</td>
 <td class=c>-</td>
 <td>--&gt; <a href='PDF.html#Metadata'>PDF Metadata Tags</a></td></tr>
-<tr class=b>
+<tr>
 <td>'PageLayout'</td>
 <td>PageLayout</td>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>'PageMode'</td>
 <td>PageMode</td>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td>'Pages'</td>
 <td>Pages</td>
 <td class=c>-</td>
 <td>--&gt; <a href='PDF.html#Pages'>PDF Pages Tags</a></td></tr>
-<tr>
+<tr class=b>
 <td>'Perms'</td>
 <td>Perms</td>
 <td class=c>-</td>
 <td>--&gt; <a href='PDF.html#Perms'>PDF Perms Tags</a></td></tr>
-<tr class=b>
+<tr>
 <td>'Version'</td>
 <td>PDFVersion</td>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='AcroForm'>PDF AcroForm Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td>'_has_xfa'</td>
+<td>HasXFA</td>
+<td class=c>N</td>
+<td><span class=s><span class=n>(this tag is defined if a document contains form fields, and is true if it
+uses XML Forms Architecture; not a real Tag ID)</span>
+  <br>&#39;false&#39; = No
+  <br>&#39;true&#39; = Yes</span></td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='MarkInfo'>PDF MarkInfo Tags</a></h2>
@@ -547,17 +568,18 @@ PostScript documents in the AIPrivateData stream)</span></td></tr>
 <td>'Annots'</td>
 <td>AnnotationUsageRights</td>
 <td class=c title=' + = List'>N+</td>
-<td><span class=s><span class=n>(UR3 signatures only)</span></span></td></tr>
+<td><span class=s><span class=n>(possible values are Create, Delete, Modify, Copy, Import and Export;
+additional values for UR3 signatures are Online and SummaryView)</span></span></td></tr>
 <tr>
 <td>'Document'</td>
 <td>DocumentUsageRights</td>
 <td class=c title=' + = List'>N+</td>
-<td><span class=s><span class=n>(UR3 signatures only)</span></span></td></tr>
+<td><span class=s><span class=n>(only possible value is FullSave)</span></span></td></tr>
 <tr class=b>
 <td>'EF'</td>
 <td>EmbeddedFileUsageRights</td>
 <td class=c title=' + = List'>N+</td>
-<td><span class=s><span class=n>(UR3 signatures only)</span></span></td></tr>
+<td><span class=s><span class=n>(possible values are Create, Delete, Modify and Import)</span></span></td></tr>
 <tr>
 <td>'Fields'</td>
 <td>FormFields</td>
@@ -567,13 +589,20 @@ PostScript documents in the AIPrivateData stream)</span></td></tr>
 <td>'Form'</td>
 <td>FormUsageRights</td>
 <td class=c title=' + = List'>N+</td>
-<td><span class=s><span class=n>(UR3 signatures only)</span></span></td></tr>
+<td><span class=s><span class=n>(possible values are FillIn, Import, Export, SubmitStandalone and
+SpawnTemplate; additional values for UR3 signatures are BarcodePlaintext and
+Online)</span></span></td></tr>
 <tr>
+<td>'FormEX'</td>
+<td>FormExtraUsageRights</td>
+<td class=c title=' + = List'>N+</td>
+<td><span class=s><span class=n>(UR signatures only; only possible value is BarcodePlaintext)</span></span></td></tr>
+<tr class=b>
 <td>'Msg'</td>
 <td>UsageRightsMessage</td>
 <td class=c>N</td>
-<td><span class=s><span class=n>(UR3 signatures only)</span></span></td></tr>
-<tr class=b>
+<td>&nbsp;</td></tr>
+<tr>
 <td>'P'</td>
 <td>ModificationPermissions</td>
 <td class=c>N</td>
@@ -583,17 +612,17 @@ false)</span>
   <br>2 = Fill forms, Create page templates, Sign
   <br>3 = Fill forms, Create page templates, Sign, Create/Delete/Edit annotations
   <br>&#39;false&#39; = Do not restrict applications to reader permissions
-  <br>&#39;true&#39; = Restrict al applications to reader permissions</span></td></tr>
-<tr>
+  <br>&#39;true&#39; = Restrict all applications to reader permissions</span></td></tr>
+<tr class=b>
 <td>'Signature'</td>
 <td>SignatureUsageRights</td>
 <td class=c title=' + = List'>N+</td>
-<td><span class=s><span class=n>(UR3 signatures only)</span></span></td></tr>
+<td><span class=s><span class=n>(only possible value is Modify)</span></span></td></tr>
 </table></td></tr></table></blockquote>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Mar 10, 2011</i>
+<br><i>Last revised Dec 1, 2011</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

@@ -13,8 +13,9 @@ package Image::ExifTool::IPTC;
 
 use strict;
 use vars qw($VERSION $AUTOLOAD %iptcCharset);
+use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.42';
+$VERSION = '1.44';
 
 %iptcCharset = (
     "\x1b%G"  => 'UTF8',
@@ -181,6 +182,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifDate($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcDate($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     80 => {
         Name => 'TimeSent',
@@ -189,6 +191,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifTime($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcTime($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     90 => {
         Name => 'CodedCharacterSet',
@@ -316,6 +319,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifDate($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcDate($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     35 => {
         Name => 'ReleaseTime',
@@ -324,6 +328,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifTime($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcTime($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     37 => {
         Name => 'ExpirationDate',
@@ -332,6 +337,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifDate($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcDate($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     38 => {
         Name => 'ExpirationTime',
@@ -340,6 +346,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifTime($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcTime($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     40 => {
         Name => 'SpecialInstructions',
@@ -369,6 +376,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifDate($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcDate($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     50 => {
         Name => 'ReferenceNumber',
@@ -382,6 +390,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifDate($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcDate($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     60 => {
         Name => 'TimeCreated',
@@ -390,6 +399,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifTime($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcTime($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     62 => {
         Name => 'DigitalCreationDate',
@@ -398,6 +408,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifDate($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcDate($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     63 => {
         Name => 'DigitalCreationTime',
@@ -406,6 +417,7 @@ my %fileFormat = (
         Shift => 'Time',
         ValueConv => 'Image::ExifTool::Exif::ExifTime($val)',
         ValueConvInv => 'Image::ExifTool::IPTC::IptcTime($val)',
+        PrintConvInv => 'Image::ExifTool::IPTC::InverseDateOrTime($val)',
     },
     65 => {
         Name => 'OriginatingProgram',
@@ -1071,11 +1083,31 @@ sub ProcessIPTC($$$)
             $exifTool->Warn(sprintf('Bad IPTC data tag (marker 0x%x)',$id));
             last;
         }
+        $pos += 5;      # step to after field header
+        # handle extended IPTC entry if necessary
+        if ($len & 0x8000) {
+            my $n = $len & 0x7fff; # get num bytes in length field
+            if ($pos + $n > $dirEnd or $n > 8) {
+                $exifTool->VPrint(0, "Invalid extended IPTC entry (dataset $rec:$tag, len $len)\n");
+                $success = 0;
+                last;
+            }
+            # determine length (a big-endian, variable sized int)
+            for ($len = 0; $n; ++$pos, --$n) {
+                $len = $len * 256 + ord(substr($$dataPt, $pos, 1));
+            }
+        }
+        if ($pos + $len > $dirEnd) {
+            $exifTool->VPrint(0, "Invalid IPTC entry (dataset $rec:$tag, len $len)\n");
+            $success = 0;
+            last;
+        }
         if (not defined $lastRec or $lastRec != $rec) {
             my $tableInfo = $tagTablePtr->{$rec};
             unless ($tableInfo) {
-                $exifTool->Warn("Unrecognized IPTC record $rec, subsequent records ignored");
-                last;   # stop now because we're probably reading garbage
+                $exifTool->WarnOnce("Unrecognized IPTC record $rec (ignored)");
+                $pos += $len;
+                next;   # ignore this entry
             }
             my $tableName = $tableInfo->{SubDirectory}->{TagTable};
             unless ($tableName) {
@@ -1087,32 +1119,13 @@ sub ProcessIPTC($$$)
             $exifTool->VPrint(0,$$exifTool{INDENT},"-- $recordName record --\n");
             $lastRec = $rec;
         }
-        $pos += 5;      # step to after field header
-        # handle extended IPTC entry if necessary
-        if ($len & 0x8000) {
-            my $n = $len & 0x7fff; # get num bytes in length field
-            if ($pos + $n > $dirEnd or $n > 8) {
-                $exifTool->VPrint(0, "Invalid extended IPTC entry (tag $tag)\n");
-                $success = 0;
-                last;
-            }
-            # determine length (a big-endian, variable sized int)
-            for ($len = 0; $n; ++$pos, --$n) {
-                $len = $len * 256 + ord(substr($$dataPt, $pos, 1));
-            }
-        }
-        if ($pos + $len > $dirEnd) {
-            $exifTool->VPrint(0, "Invalid IPTC entry (tag $tag, len $len)\n");
-            $success = 0;
-            last;
-        }
         my $val = substr($$dataPt, $pos, $len);
 
         # add tagInfo for all unknown tags:
         unless ($$recordPtr{$tag}) {
             # - no Format so format is auto-detected
             # - no Name so name is generated automatically with decimal tag number
-            Image::ExifTool::AddTagToTable($recordPtr, $tag, { Unknown => 1 });
+            AddTagToTable($recordPtr, $tag, { Unknown => 1 });
         }
 
         my $tagInfo = $exifTool->GetTagInfo($recordPtr, $tag);
@@ -1189,7 +1202,7 @@ image files.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

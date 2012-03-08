@@ -270,7 +270,7 @@ my %languageCode = (
             1 => 'Native',
             2 => 'Windows GUI',
             3 => 'Windows command line',
-            5 => 'OS/2 Command line', #5
+            5 => 'OS/2 command line', #5
             7 => 'POSIX command line',
             9 => 'Windows CE GUI',
             10 => 'EFI application',
@@ -824,7 +824,7 @@ sub ProcessPEVersion($$)
                     my $name = $tag;
                     $name =~ tr/-_a-zA-Z0-9//dc; # remove illegal characters
                     next unless length $name;
-                    Image::ExifTool::AddTagToTable($tagTablePtr, $tag, { Name => $name });
+                    AddTagToTable($tagTablePtr, $tag, { Name => $name });
                 }
                 # get tag value (converted to current Charset)
                 if ($valLen) {
@@ -1194,7 +1194,7 @@ library files.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

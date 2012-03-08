@@ -37,7 +37,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 sub ProcessPrimer($$$);
 sub ProcessLocalSet($$$);
@@ -117,8 +117,7 @@ my %componentDataDef = (
 # Note: The Binary flag is automatically set for all Unknown tags with unknown Type
 %Image::ExifTool::MXF::Main = (
     GROUPS => { 2 => 'Video' },
-    PROCESS_PROC => 0,  # set this to zero to omit tags from lookup (way too many!)
-    VARS => { NO_ID => 1 }, # tag ID's are too bulky for documentation
+    VARS => { NO_LOOKUP => 1, NO_ID => 1 }, # tag ID's are too bulky
     NOTES => q{
         Tags extracted from Material Exchange Format files.  Tag ID's are not listed
         because they are bulky 16-byte binary values.
@@ -2877,7 +2876,7 @@ sub ProcessMXF($$)
             # generate some unknown set tags automatically
             my $name = $1 eq '0d' ? 'UserOrganizationPublicUse' : 'Experimental';
             $tagInfo = { Name => $name, %localSet };
-            Image::ExifTool::AddTagToTable($tagTablePtr, $ul, $tagInfo);
+            AddTagToTable($tagTablePtr, $ul, $tagInfo);
         }
         my ($val, $dataPt);
         if ($tagInfo and not $$tagInfo{Unknown} and $len < 10000000) {
@@ -2989,7 +2988,7 @@ information from MXF (Material Exchange Format) files.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

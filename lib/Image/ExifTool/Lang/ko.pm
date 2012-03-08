@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::ko;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 %Image::ExifTool::Lang::ko::Translate = (
    'AELock' => {
@@ -335,41 +335,6 @@ $VERSION = '1.04';
    'By-line' => '제작자',
    'CFAPattern' => 'CFA 패턴',
    'CLModeShootingSpeed' => 'CL 모드 촬영 속도',
-   'CanonExposureMode' => {
-      PrintConv => {
-        'Manual' => '수동',
-      },
-    },
-   'CanonFlashMode' => {
-      PrintConv => {
-        'Auto' => '자동',
-        'Off' => '꺼짐',
-        'On' => '켜짐',
-      },
-    },
-   'Caption-Abstract' => '제목/설명',
-   'CaptionWriter' => '캡션 작성자',
-   'Categories' => '범주',
-   'Category' => '범주',
-   'CenterAFArea' => {
-      Description => '중앙 초점 영역',
-      PrintConv => {
-        'Normal Zone' => '일반 영역',
-        'Wide Zone' => '와이드 영역',
-      },
-    },
-   'CenterWeightedAreaSize' => '중앙 중점 영역',
-   'ChrominanceNR_TIFF_JPEG' => {
-      PrintConv => {
-        'Off' => '꺼짐',
-      },
-    },
-   'ChrominanceNoiseReduction' => {
-      PrintConv => {
-        'Off' => '꺼짐',
-      },
-    },
-   'City' => '도시',
    'CalibrationIlluminant1' => {
       PrintConv => {
         'Cloudy' => '흐린 날씨',
@@ -414,6 +379,41 @@ $VERSION = '1.04';
         'White Fluorescent' => '백색 형광등 (WW 3250 - 3800K)',
       },
     },
+   'CanonExposureMode' => {
+      PrintConv => {
+        'Manual' => '수동',
+      },
+    },
+   'CanonFlashMode' => {
+      PrintConv => {
+        'Auto' => '자동',
+        'Off' => '꺼짐',
+        'On' => '켜짐',
+      },
+    },
+   'Caption-Abstract' => '제목/설명',
+   'CaptionWriter' => '캡션 작성자',
+   'Categories' => '범주',
+   'Category' => '범주',
+   'CenterAFArea' => {
+      Description => '중앙 초점 영역',
+      PrintConv => {
+        'Normal Zone' => '일반 영역',
+        'Wide Zone' => '와이드 영역',
+      },
+    },
+   'CenterWeightedAreaSize' => '중앙 중점 영역',
+   'ChrominanceNR_TIFF_JPEG' => {
+      PrintConv => {
+        'Off' => '꺼짐',
+      },
+    },
+   'ChrominanceNoiseReduction' => {
+      PrintConv => {
+        'Off' => '꺼짐',
+      },
+    },
+   'City' => '도시',
    'CodedCharacterSet' => '코드된 캐릭터 세트',
    'ColorAberrationControl' => {
       PrintConv => {
@@ -804,6 +804,14 @@ $VERSION = '1.04';
       },
     },
    'FNumber' => 'F 숫자',
+   'FaceOrientation' => {
+      PrintConv => {
+        'Horizontal (normal)' => '0° (위쪽/좌측)',
+        'Rotate 180' => '180° (아래/우측)',
+        'Rotate 270 CW' => '90° 시계방향 (좌측/아래)',
+        'Rotate 90 CW' => '90° 반시계방향 (우측/위쪽)',
+      },
+    },
    'FileFormat' => '형식',
    'FileInfo' => '파일 정보',
    'FileInfoVersion' => '파일 정보 버전',
@@ -2290,7 +2298,7 @@ and values.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

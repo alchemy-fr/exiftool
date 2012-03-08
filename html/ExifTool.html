@@ -26,13 +26,12 @@ document files.</p>
 interface listed below.  Other Image::ExifTool methods and modules should not be
 accessed directly because their interface may change with future versions.</p>
 
-<p>The ExifTool methods should never die or issue a warning to STDERR if
-called with the proper arguments (with the exception of
-<a href="#SetNewValue">SetNewValue</a> which returns an error string when
-called in list context, or sends the error to STDERR otherwise).  Error and
-warning messages that occur during processing are stored in the values of the
-Error and Warning tags, and are accessible via
-<a href="#GetValue">GetValue</a>.</p>
+<p>The ExifTool methods should never die or issue a warning to STDERR if called
+with the proper arguments (with the exception of
+<a href="#SetNewValue">SetNewValue</a> which may send an error message to
+STDERR, but only when called in scalar context).  Error and warning messages
+that occur during processing are stored in the values of the Error and Warning
+tags, and are accessible via <a href="#GetValue">GetValue</a>.</p>
 
 <table><tr><td>
 <ul>
@@ -225,10 +224,9 @@ function arguments are interpreted.</p>
 <blockquote><table class='norm'>
 <tr><td valign='top'><b>ExifTool&nbsp;ref</b></td><td>
 <a href="#ImageInfo">ImageInfo</a> may be called with an ExifTool object if
-desired.  The advantage of using the object-oriented form of this function is
-that after <a href="#ImageInfo">ImageInfo</a> returns, you may use the
-object-oriented functions below to obtain additional information if required.
-Must be the first argument if used.
+desired.  Advantages of using the object-oriented form are that options may be
+set before calling <a href="#ImageInfo">ImageInfo</a>, and the object may be
+used afterward to access member functions.  Must be the first argument if used.
 
 </td></tr><tr><td valign='top'><b>SCALAR</b></td><td>
 The first scalar argument is taken to be the file name unless an earlier
@@ -313,9 +311,9 @@ indicate a list.  Also, a hash reference may be returned if the
 <a href="#Struct">Struct</a> option is used.  Lists of values are joined by
 commas into a single string only if the PrintConv option is enabled and the List
 option is disabled (which are the defaults).  Note that binary values are not
-necessarily extracted unless specifically requested or the Binary option is set.
-If not extracted the value is a reference to a string of the form "<code>Binary
-data ##### bytes</code>".</p>
+necessarily extracted unless specifically requested, or the Binary option is
+enabled and the tag is not specifically excluded. If not extracted the value is
+a reference to a string of the form "<code>Binary data ##### bytes</code>".</p>
 
 <p>Here is a simple example to print out the information returned by
 <a href="#ImageInfo">ImageInfo</a>:</p>
@@ -392,9 +390,10 @@ The following functions require an ExifTool object as the first argument
 options for an ExifTool object.  Options set this way are in effect for
 all function calls but may be overridden by options passed as arguments
 to some functions.</p>
-<p>The initial default options are obtained from values in the
-%Image::ExifTool::UserDefined::Options hash if it exists.  See the
-.ExifTool_config file in the full ExifTool distribution for details.</p>
+<p>The default option values may be changed by defining a
+%Image::ExifTool::UserDefined::Options hash.  See the
+<a href="config.html">ExifTool_config file</a> in the full ExifTool
+distribution for examples.</p>
 <blockquote><table class='norm'>
 <tr><td><b>Prototype</b></td><td>Options($$;@)</td></tr>
 <tr><td valign='top'><b>Inputs</b></td><td><b>0)</b> ExifTool object reference
@@ -406,7 +405,6 @@ to some functions.</p>
 </table></blockquote>
 
 <p><b>Available options:</b></p>
-
 <blockquote>
 <table class='norm'>
 <tr><th colspan=4 bgcolor='#dddddd'><font size='+1'>ExifTool Options</font></th></tr>
@@ -450,29 +448,40 @@ to some functions.</p>
     <tr><td valign='top' align=right>MacIceland</td><td>(cp10079)</td></tr>
     <tr><td valign='top' align=right>MacCroatian</td><td>(cp10082)</td></tr>
     </table></td><td align=center>'UTF8'</td></tr>
-<tr><td>CharsetID3</td><td><a name="CharsetID3"></a>Character encoding to assume for ID3v1 strings.  By
+<tr><td>CharsetEXIF</td><td><a name="CharsetEXIF"></a>Internal encoding to use for stored
+    EXIF "ASCII" string values.  Unlike other Charset options, CharsetEXIF may also be set
+    to undef to pass through all string values without recoding.</td>
+    <td align=center><i>(see <a href="#Charset">Charset</a> option)</i><br>or undef</td><td align=center>undef</td></tr>
+<tr><td>CharsetID3</td><td><a name="CharsetID3"></a>Internal encoding to assume for ID3v1 strings.  By
     the specification ID3v1 strings should be encoded in ISO 8859-1 (essentially
     'Latin'), but some applications may use local encoding instead.  This option
     allows different encodings to be specified.</td>
     <td align=center><i>(see <a href="#Charset">Charset</a> option)</i></td><td align=center>'Latin'</td></tr>
-<tr><td>CharsetIPTC</td><td><a name="CharsetIPTC"></a>Fallback IPTC character set to assume if IPTC information
+<tr><td>CharsetIPTC</td><td><a name="CharsetIPTC"></a>Fallback internal IPTC character set to assume if IPTC information
     contains no CodedCharacterSet tag.</td>
     <td align=center><i>(see <a href="#Charset">Charset</a> option)</i></td><td align=center>'Latin'</td></tr>
-<tr><td>CharsetPhotoshop</td><td><a name="CharsetPhotoshop"></a>Character encoding to assume for Photoshop IRB resource names.</td>
+<tr><td>CharsetPhotoshop</td><td><a name="CharsetPhotoshop"></a>Internal encoding to assume for Photoshop IRB resource names.</td>
     <td align=center><i>(see <a href="#Charset">Charset</a> option)</i></td><td align=center>'Latin'</td></tr>
+<tr><td>CharsetQuickTime</td><td><a name="CharsetQuickTime"></a>Internal encoding to assume for QuickTime
+    strings stored with an unspecified encoding.</td>
+    <td align=center><i>(see <a href="#Charset">Charset</a> option)</i></td><td align=center>'MacRoman'</td></tr>
 <tr><td>Compact</td><td><a name="Compact"></a>Flag to write compact output.  The XMP specification suggests
     that the data be padded with blanks to allow in-place editing.  With this
     flag set the 2kB of padding is not written.  Note that this only effects
     embedded XMP since padding is never written for stand-alone XMP files.</td>
     <td align='center'>0 or 1</td><td align=center>0</td></tr>
-<tr><td>Composite</td><td><a name="Composite"></a>Flag to calculate Composite tags</td><td align='center'>0 or 1</td><td align=center>1</td></tr>
+<tr><td>Composite</td><td><a name="Composite"></a>Flag to generate Composite tags when extracting information.</td>
+    <td align='center'>0 or 1</td><td align=center>1</td></tr>
 <tr><td>Compress</td><td><a name="Compress"></a>Flag to write new values in compressed format if possible.
     Has no effect unless Compress::Zlib is installed.</td>
     <td align='center'>0 or 1</td><td align=center>0</td></tr>
-<tr><td>CoordFormat</td><td><a name="CoordFormat"></a>Output format for GPS coordinates</td>
+<tr><td>CoordFormat</td><td><a name="CoordFormat"></a>Specify output format for GPS coordinates.</td>
     <td>A printf-style format string with specifiers for degrees, minutes and
-    seconds in that order, however minutes and seconds may be omitted. The
-    default for reading is equivalent to a format string of
+    seconds in that order, however minutes and seconds may be omitted.  If the
+    hemisphere is known, a reference direction (N, S, E or W) is appended to
+    each printed coordinate, but adding a '<code>+</code>' to the format
+    specifier (ie. <code>'%+.6f'</code>) prints a signed coordinate instead.
+    The default for reading is equivalent to a format string of
     <code>q{%d&nbsp;deg&nbsp;%d'&nbsp;%.2f"}</code>, but to avoid a loss
     of precision the default for copying tags with
     <a href="#SetNewValuesFromFile">SetNewValuesFromFile</a> is
@@ -484,7 +493,7 @@ to some functions.</p>
     is similar to a format string of <code>"%Y:%m:%d %H:%M:%S"</code>.</td>
     <td align=center>undef</td></tr>
 <tr><td>Duplicates</td><td><a name="Duplicates"></a>Flag to return values from
-    tags with duplicate names when extracting information</td>
+    tags with duplicate names when extracting information.</td>
     <td align='center'>0 or 1</td><td align=center>1</td></tr>
 <tr><td>Escape</td>
     <td><a name="Escape"></a>Escape special characters in extracted values for
@@ -493,7 +502,7 @@ to some functions.</p>
     align='center'>HTML, XML or undef</td>
     <td align='center'>undef</td></tr>
 <tr><td>Exclude</td>
-    <td>Exclude specified tags</td>
+    <td>Exclude specified tags when extracting information.</td>
     <td><a name="Exclude"></a>Tag name or reference to a list of tag names to
     exclude.  Case is not significant. Tags may also be excluded by preceding
     their name with a '-' in the arguments to ImageInfo.</td>
@@ -501,7 +510,7 @@ to some functions.</p>
 <tr><td>ExtractEmbedded</td>
     <td><a name="Embedded"></a>Flag to extract information from embedded documents
     in EPS and PDF files, embedded MPF images in JPEG and MPO files, streaming
-    metadata in AVCHD videos, and the resource fork of Mac OS files</td>
+    metadata in AVCHD videos, and the resource fork of Mac OS files.</td>
     <td align='center'>0 or 1</td><td align=center>0</td></tr>
 <tr><td>FastScan</td>
     <td><a name="FastScan"></a>Flag to increase speed of extracting information
@@ -548,7 +557,7 @@ to some functions.</p>
     GPS fixes are ignored if the number of acquired satellites is less than this.</td>
     <td align='center'>A positive integer, or undef</td>
     <td align='center'>undef</td></tr>
-<tr><td>Group#</td><td>Extract tags for specified groups</td>
+<tr><td>Group#</td><td>Extract tags for specified groups.</td>
     <td><a name="Group"></a>Group name or reference to list of group names.
     Group name may begin with '-' to exclude a group.  Case IS significant.
     See <a href="#GetGroup">GetGroup</a> for a description of group families,
@@ -583,7 +592,7 @@ to some functions.</p>
     undef to select the built-in default language.</td>
     <td align='left'>Image::ExifTool::Lang module name (ie. 'fr'), or 'en' or undef for the default language.</td>
     <td align='center'>'en'</td></tr>
-<tr><td>LargeFileSupport</td><td><a name="LargeFileSupport"></a>Flag to indicate that 64-bit file offsets are supported on this system</td>
+<tr><td>LargeFileSupport</td><td><a name="LargeFileSupport"></a>Flag to indicate that 64-bit file offsets are supported on this system.</td>
     <td align='center'>0 or 1</td><td align='center'>0</td></tr>
 <tr><td>List</td><td><a name="List"></a>Flag to extract lists of PrintConv values into arrays instead of combining
     them into a string of values.</td><td align='center'>0 or 1</td><td align='center'>0</td></tr>
@@ -606,26 +615,38 @@ to some functions.</p>
     If not set, a minor error is issued for missing values, or the value
     is set to '' if IgnoreMinorErrors is set.</td>
     <td align='center'>Any string, or undef</td><td align='center'>undef</td></tr>
-<tr><td>Password</td><td><a name="Password"></a><a name="Passwd"></a>Password for processing password-protected
-    PDF documents. Ignored if a password is not required. Character encoding of the
-    password is determined by the value of the Charset option at processing time.</td>
+<tr><td>Password</td><td><a name="Password"></a><a name="Passwd"></a>Password for reading/writing
+    password-protected PDF documents. Ignored if a password is not required. Character encoding of
+    the password is determined by the value of the Charset option at processing time.</td>
     <td align='center'>Any string</td><td align=center>undef</td></tr>
 <tr><td>PrintConv</td><td><a name="PrintConv"></a>Flag to enable print conversion.  Also enables inverse print
     conversion for writing.</td><td align='center'>0 or 1</td><td align=center>1</td></tr>
+<tr><td>QuickTimeUTC</td><td><a name="QuickTimeUTC"></a>Flag set to assume that QuickTime
+    date/time values are stored as UTC, causing conversion to local time when they are
+    extracted. According to the QuickTime specification date/time values should be UTC,
+    but many digital cameras store local time instead (presumably because they don't know
+    the time zone).</td><td align='center'>0 or 1</td><td align=center>0</td></tr>
 <tr><td>ScanForXMP</td><td><a name="ScanForXMP"></a>Flag for scan all files (even unrecognized
     formats) for XMP information unless XMP was already found in the file.  When combined with
     the FastScan option, only unrecognized file types are scanned for XMP.  
     </td><td align='center'>0 or 1</td><td align=center>0</td></tr>
-<tr><td>Sort</td><td>Specifies order to sort tags in the returned tag list</td>
+<tr><td>Sort</td><td>Specifies order to sort tags in the returned tag list.</td>
     <td><a name="Sort"></a><table class='clear'>
-    <tr><td valign='top' align=center><b>Input</b></td><td>Sort in same order as input tag arguments</td></tr>
-    <tr><td valign='top' align=center><b>Alpha</b></td><td>Sort alphabetically</td></tr>
-    <tr><td valign='top' align=center><b>File</b></td><td>Sort in order that tags were found in the file</td></tr>
-    <tr valign=top><td valign='top' align=center><b>Group#</b></td><td>Sort by tag group,
+    <tr><td valign=top align=right><b>Input</b>&nbsp;=</td><td>Sort in same order as input tag arguments</td></tr>
+    <tr><td valign=top align=right><b>File</b>&nbsp;=</td><td>Sort in order that tags were found in the file</td></tr>
+    <tr><td valign=top align=right><b>Tag</b>&nbsp;=</td><td>Sort alphabetically by tag name</td></tr>
+    <tr><td valign=top align=right><b>Descr</b>&nbsp;=</td><td>Sort by tag description (with current Lang setting)</td></tr>
+    <tr valign=top><td valign=top align=right><b>Group#</b>&nbsp;=</td><td>Sort by tag group,
         where # is zero or more family numbers separated by colons. If # is not specified,
         Group0 is assumed.  See <a href="#GetGroup">GetGroup</a> for a description of group
         families.</td></tr>
     </table></td><td align=center>'Input'</td></tr>
+<tr><td>Sort2</td><td>Secondary sort order used for tags within each group when Sort is 'Group'.</td>
+    <td><a name="Sort2"></a><table class='clear'>
+    <tr><td valign=top align=right><b>File</b>&nbsp;=</td><td>Sort in order that tags were found in the file</td></tr>
+    <tr><td valign=top align=right><b>Tag</b>&nbsp;=</td><td>Sort alphabetically by tag name</td></tr>
+    <tr><td valign=top align=right><b>Descr</b>&nbsp;=</td><td>Sort by tag description (with current Lang setting)</td></tr>
+    </table></td><td align=center>'File'</td></tr>
 <tr><td>StrictDate</td><td><a name="StrictDate"></a>Flag to return undefined value for any date which can't be
     converted when the DateFormat option is used.</td>
     <td align='center'>0 or 1</td><td align=center>0</td></tr>
@@ -643,7 +664,7 @@ to some functions.</p>
     </table></td><td align=center>undef</td></tr>
 <tr><td>TextOut</td><td><a name="TextOut"></a>Output file for Verbose and HtmlDump options.</td>
     <td align='center'>File reference</td><td align=center>\*STDOUT</td></tr>
-<tr><td>Unknown</td><td><a name="Unknown"></a>Control extraction of unknown tags</td>
+<tr><td>Unknown</td><td><a name="Unknown"></a>Control extraction of unknown tags.</td>
     <td><table class='clear'>
     <tr><td valign='top' align=center><b>0</b>&nbsp;=</td><td>Unknown tags not extracted</td></tr>
     <tr><td valign='top' align=center><b>1</b>&nbsp;=</td><td>Unknown tags are extracted from EXIF
@@ -660,6 +681,10 @@ to some functions.</p>
     <tr><td valign='top' align=center><b>4</b>&nbsp;=</td><td>Remove length limit on dump of tag values</td></tr>
     <tr><td valign='top' align=center><b>5</b>&nbsp;=</td><td>Remove length limit on dump of JPEG segments</td></tr>
     </table></td><td align=center>0</td></tr>
+<tr><td>XMPAutoConv</td><td><a name="DisableXMPAutoConv"></a>Flag to enable automatic
+    conversion for unknown XMP tags with values that look like rational numbers or dates.</td>
+    <td align=center>0 or 1</td>
+    <td align=center>1</td></tr>
 </table></blockquote>
 
 <p><b>Examples:</b></p>
@@ -724,9 +749,10 @@ $success = $exifTool-&gt;<b>ExtractInfo</b>('image.jpg', \%options);
 </pre></td></tr></table></blockquote>
 <p>The following options are effective in the call to <a href="#ExtractInfo">ExtractInfo</a>:</p>
 <blockquote>
-Binary, Charset, CharsetID3, CharsetIPTC, Composite, ExtractEmbedded, FastScan,
-FixBase, HtmlDump, HtmlDumpBase, IgnoreMinorErrors, Lang, LargeFileSupport,
-MakerNotes, ScanForXMP, Struct, TextOut, Unknown and Verbose.
+Binary, Charset, CharsetEXIF, CharsetID3, CharsetIPTC, CharsetQuickTime,
+Composite, ExtractEmbedded, FastScan, FixBase, HtmlDump, HtmlDumpBase,
+IgnoreMinorErrors, Lang, LargeFileSupport, MakerNotes, ScanForXMP, Struct,
+TextOut, Unknown and Verbose.
 </blockquote>
 
 <hr><h2><a name="GetInfo">GetInfo</a></h2>
@@ -828,7 +854,7 @@ and Warning tags.</p>
 <p>The following ExifTool options are effective in the call to
 <a href="#WriteInfo">WriteInfo</a>:</p>
 <blockquote>
-ByteOrder, Charset, CharsetID3, CharsetIPTC, Compact, Compress, FixBase,
+ByteOrder, Charset, CharsetEXIF, CharsetIPTC, Compact, Compress, FixBase,
 IgnoreMinorErrors and Verbose.
 </blockquote>
 
@@ -853,10 +879,11 @@ is the only option that is in effect for this function.</p>
 <hr><h2><a name="GetTagList">GetTagList</a></h2>
 <p>Get a sorted list of tags from the specified information hash or tag list.</p>
 <blockquote><table class='norm'>
-<tr><td><b>Prototype</b></td><td>GetTagList($;$$)</td></tr>
+<tr><td><b>Prototype</b></td><td>GetTagList($;$$$)</td></tr>
 <tr><td valign='top'><b>Inputs</b></td><td><b>0)</b> ExifTool object reference
     <br><b>1)</b> [<i>optional</i>] Reference to info hash or tag list
-    <br><b>2)</b> [<i>optional</i>] Sort order ('File', 'Input', 'Alpha' or 'Group#')
+    <br><b>2)</b> [<i>optional</i>] Sort order ('Input', 'File', 'Tag', 'Descr' or 'Group#')
+    <br><b>3)</b> [<i>optional</i>] Secondary sort order ('File', 'Tag' or 'Descr')
 </td></tr>
 <tr><td><b>Returns</b></td><td>List of tag keys in specified order</td></tr>
 </table></blockquote>
@@ -877,9 +904,10 @@ tags for the information obtained from the most recent call to
 <a href="#ImageInfo">ImageInfo</a>, <a href="#ExtractInfo">ExtractInfo</a>
 or <a href="#GetInfo">GetInfo</a> for this object.</p>
 <blockquote><table class='norm'>
-<tr><td><b>Prototype</b></td><td>GetFoundTags($;$)</td></tr>
+<tr><td><b>Prototype</b></td><td>GetFoundTags($;$$)</td></tr>
 <tr><td valign='top'><b>Inputs</b></td><td><b>0)</b> ExifTool object reference
-    <br><b>1)</b> [<i>optional</i>] Sort order ('File', 'Input', 'Alpha' or 'Group#')
+    <br><b>1)</b> [<i>optional</i>] Sort order ('Input', 'File', 'Tag', 'Descr' or 'Group#')
+    <br><b>2)</b> [<i>optional</i>] Secondary sort order ('File', 'Tag' or 'Descr')
 </td></tr>
 <tr><td><b>Returns</b></td><td>List of tag keys in the specified order</td></tr>
 </table></blockquote>
@@ -939,11 +967,11 @@ The value of the specified tag.  If the tag represents a list of values and
 the List option is disabled then PrintConv returns a string of values,
 otherwise a reference to the list is returned in scalar context.  The list
 itself is returned in list context.  Values may also be scalar references to
-binary data, or hash references if the Struct option is set.<br>&nbsp;<br>
-Note: It is possible for <a href="#GetValue">GetValue</a> to return an
-undefined ValueConv or PrintConv value (or an empty list in list context)
-even if the tag exists, since it is possible for these conversions to yield
-undefined values.
+binary data, or hash references if the <a href="#Struct">Struct</a> option is
+set.<br>&nbsp;<br> Note: It is possible for <a href="#GetValue">GetValue</a> to
+return an undefined ValueConv or PrintConv value (or an empty list in list
+context) even if the tag exists, since it is possible for these conversions to
+yield undefined values.
 </td></tr>
 </table></blockquote>
 <p><b>Examples:</b></p>
@@ -1007,14 +1035,18 @@ the same tag name for each value, or call with a reference to the list of values
 </td></tr>
 <tr><td><b>Returns</b></td><td>Scalar context: The number of tags set, and
 errors are printed to STDERR.
-<br>List context: The number of tags set and the error string.
+<br>List context: The number of tags set, and the error string (undefined if no error).
 </td></tr>
 </table></blockquote>
 <blockquote><table class='norm'>
 <tr><th colspan=4 bgcolor='#dddddd'>SetNewValue Options</th></tr>
 <tr><th>Option</th><th>Description</th><th width='30%'>Values</th><th>Default</th></tr>
-<tr><td>AddValue</td><td>Add value to existing list rather than
-    replacing the list</td><td align=center>0 or 1</td><td align=center>0</td></tr>
+<tr><td>AddValue</td><td>Add value to existing list rather than overwriting</td>
+    <td><table class='clear'>
+    <tr><td valign='top' align=center><b>0</b>&nbsp;=</td><td>Overwrite existing value(s)</td></tr>
+    <tr><td valign='top' align=center><b>1</b>&nbsp;=</td><td>Add to existing list, or warn for non-list tags</td></tr>
+    <tr><td valign='top' align=center><b>2</b>&nbsp;=</td><td>Add to existing list, or overwrite non-list tags</td></tr>
+    </table></td><td align=center>0</td></tr>
 <tr><td>DelValue</td><td>Delete an existing tag if it has the specified value</td>
     <td align=center>0 or 1</td><td align=center>0</td></tr>
 <tr><td>EditGroup</td><td>Create tags in existing groups only. Don't create new group</td>
@@ -1036,9 +1068,12 @@ errors are printed to STDERR.
     <tr><td valign='top' align=center><b>0x02</b>&nbsp;=</td>
     <td>Write '<a href="TagNames/index.html">protected</a>' tags (internal use only)</td></tr>
     </table></td><td align=center>0</td></tr>
+<tr><td>ProtectSaved</td><td>Avoid setting new values which were saved after the Nth
+    call to <a href="#SaveNewValues">SaveNewValues</a>.  Has no effect on unsaved values,
+    or values saved before the Nth call.</td><td align=center>N</td><td align=center>undef</td></tr>
 <tr><td>Replace</td><td>Replace previous new values for this tag (ie. replace the values
     set in previous calls to <a href="#SetNewValue">SetNewValue</a>). This option
-    is most commonly used to replace previously-set new values for List-type tags.</td>
+    is most commonly used to replace previously-set new values for list-type tags.</td>
     <td><table class='clear'>
     <tr><td valign='top' align=center><b>0</b>&nbsp;=</td><td>Set new value normally</td></tr>
     <tr><td valign='top' align=center><b>1</b>&nbsp;=</td><td>Reset previous new values and replace with the specifed new value</td></tr>
@@ -1046,7 +1081,7 @@ errors are printed to STDERR.
     </table></td><td align=center>0</td></tr>
 <tr><td>Shift</td><td>Shift the tag by the specified value.  Currently only date/time tags
     and tags with numerical values may be shifted.  Value is added if Shift is 1, or subtracted
-    if Shift is -1.  See Image::ExifTool::Shift.pl for details time shift formats.</td>
+    if Shift is -1.  See <a href="Shift.html">Image::ExifTool::Shift.pl</a> for details time shift formats.</td>
     <td><table class='clear'>
     <tr><td valign='top' align=left colspan=2><b>undef</b>&nbsp;= No shift</td></tr>
     <tr><td valign='top' align=right><b>0</b>&nbsp;=</td><td>Shift if shiftable:<br>
@@ -1088,7 +1123,7 @@ $exifTool-&gt;<b>SetNewValue</b>('Keywords', $word, DelValue =&gt; 1);
 </pre></td></tr></table></blockquote>
 
 <blockquote><table class='box'><tr><td><pre>
-<span class=com># set keywords (a List-type tag) with two new values</span>
+<span class=com># set keywords (a list-type tag) with two new values</span>
 $exifTool-&gt;<b>SetNewValue</b>(Keywords =&gt; 'word1');
 $exifTool-&gt;<b>SetNewValue</b>(Keywords =&gt; 'word2');
 <span class=com># equivalent, but set both in one call using an array reference</span>
@@ -1147,11 +1182,6 @@ example above to exclude specific groups from a mass delete. However, this
 technique may not be used to exclude individual tags.  Instead, use
 <a href="#SetNewValuesFromFile">SetNewValuesFromFile</a> to recover the values
 of individual tags after deleting a group.</p>
-<p>Setting a new value generates a cyclical reference which will prevent memory
-from being reclaimed when the ExifTool object goes out of scope (due to Perl's
-garbage collection technique).  To avoid this problem, call
-<a href="#SetNewValue">SetNewValue</a> with no additional arguments to clear new
-values before the ExifTool object goes out of scope.</p>
 <p>The following ExifTool options are effective in the call to
 <a href="#SetNewValue">SetNewValue</a>:</p>
 <blockquote>
@@ -1180,7 +1210,8 @@ in a specified file.</p>
  specified to copy information to a tag with a different name or a specified
  group.  Both '<code>SRCTAG</code>' and '<code>DSTTAG</code>' may use
  '<code>*</code>' and/or be prefixed by a group name (ie.
- '<code>modifyDate&gt;fileModifyDate</code>' or '<code>*&gt;xmp:*</code>').
+ '<code>modifyDate&gt;fileModifyDate</code>' or '<code>*&gt;xmp:*</code>'),
+ and/or suffixed by a '<code>#</code>' to disable print conversion.
  Copied tags may also be added or deleted from a list with arguments of the form
  '<code>SRCTAG+&gt;DSTTAG</code>' or '<code>SRCTAG-&gt;DSTTAG</code>'.  Tags are
  evaluated in order, so exclusions apply only to tags included earlier in the
@@ -1703,41 +1734,41 @@ the specific IFD).
 ASF, CanonVRD, Composite, DICOM, DNG, DV, DjVu, Ducky, EXE, EXIF, ExifTool,
 FLAC, File, Flash, FlashPix, Font, FotoStation, GIF, GIMP, GeoTiff, H264,
 HTML, ICC_Profile, ID3, IPTC, ITC, JFIF, JPEG, Jpeg2000, LNK, Leaf, M2TS,
-MIE, MIFF, MNG, MPC, MPEG, MPF, MXF, MakerNotes, Matroska, Meta, Ogg, PDF,
-PICT, PNG, PSP, PhotoMechanic, Photoshop, PostScript, PrintIM, QuickTime,
-RAF, RIFF, RSRC, RTF, Rawzor, Real, SVG, SigmaRaw, Stim, Theora, Vorbis,
-XML, XMP, ZIP
+MIE, MIFF, MNG, MPC, MPEG, MPF, MXF, MakerNotes, Matroska, Meta, Ogg,
+OpenEXR, PDF, PICT, PNG, PSP, PhotoMechanic, Photoshop, PostScript, PrintIM,
+QuickTime, RAF, RIFF, RSRC, RTF, Radiance, Rawzor, Real, SVG, SigmaRaw,
+Stim, Theora, Vorbis, XML, XMP, ZIP
 </td></tr>
 <tr><td><b>1&nbsp;(Specific&nbsp;Location)</b></td>
-<td>AC3, AFCP, AIFF, APE, ASF, AVI1, Adobe, AdobeCM, CIFF, Canon, CanonCustom,
-CanonRaw, CanonVRD, Casio, Chapter#, Composite, DICOM, DNG, DV, DjVu,
-DjVu-Meta, Ducky, EPPIM, EXE, EXIF, ExifIFD, ExifTool, FLAC, File, Flash,
-FlashPix, Font, FotoStation, FujiFilm, GE, GIF, GIMP, GPS, GeoTiff,
-GlobParamIFD, GraphConv, H264, HP, HTML, HTML-dc, HTML-ncc, HTML-office,
-HTML-prod, HTML-vw96, HTTP-equiv, ICC-chrm, ICC-clrt, ICC-header, ICC-meas,
-ICC-meta, ICC-view, ICC_Profile, ICC_Profile#, ID3, ID3v1, ID3v1_Enh,
-ID3v2_2, ID3v2_3, ID3v2_4, IFD0, IFD1, IPTC, IPTC#, ITC, InteropIFD, JFIF,
-JPEG, JVC, Jpeg2000, KDC_IFD, Kodak, KodakBordersIFD, KodakEffectsIFD,
-KodakIFD, KyoceraRaw, LNK, Leaf, LeafSubIFD, Leica, M2TS, MAC, MIE-Audio,
-MIE-Camera, MIE-Canon, MIE-Doc, MIE-Extender, MIE-Flash, MIE-GPS, MIE-Geo,
-MIE-Image, MIE-Lens, MIE-Main, MIE-MakerNotes, MIE-Meta, MIE-Orient,
-MIE-Preview, MIE-Thumbnail, MIE-UTM, MIE-Unknown, MIE-Video, MIFF, MNG, MPC,
-MPEG, MPF0, MPImage, MXF, MakerNotes, MakerUnknown, Matroska, MetaIFD,
-Microsoft, Minolta, MinoltaRaw, NITF, Nikon, NikonCapture, NikonCustom,
-NikonScan, Ocad, Ogg, Olympus, PDF, PICT, PNG, PSP, Panasonic, Pentax,
-PhotoMechanic, Photoshop, PictureInfo, PostScript, PreviewIFD, PrintIM,
-ProfileIFD, QuickTime, RAF, RAF2, RIFF, RMETA, RSRC, RTF, Rawzor, Real,
-Real-CONT, Real-MDPR, Real-PROP, Real-RA3, Real-RA4, Real-RA5, Real-RJMD,
-Reconyx, Ricoh, SPIFF, SR2, SR2DataIFD, SR2SubIFD, SRF#, SVG, Samsung,
-Sanyo, Scalado, Sigma, SigmaRaw, Sony, SonyIDC, Stim, SubIFD, System,
-Theora, Track#, Version0, Vorbis, XML, XMP, XMP-DICOM, XMP-MP, XMP-MP1,
-XMP-PixelLive, XMP-acdsee, XMP-album, XMP-aux, XMP-cc, XMP-cell, XMP-crs,
-XMP-dc, XMP-dex, XMP-digiKam, XMP-exif, XMP-extensis, XMP-iptcCore,
-XMP-iptcExt, XMP-lr, XMP-mediapro, XMP-microsoft, XMP-mwg-coll, XMP-mwg-kw,
-XMP-mwg-rs, XMP-pdf, XMP-pdfx, XMP-photomech, XMP-photoshop, XMP-plus,
-XMP-prism, XMP-prl, XMP-pur, XMP-rdf, XMP-swf, XMP-tiff, XMP-x, XMP-xmp,
-XMP-xmpBJ, XMP-xmpDM, XMP-xmpMM, XMP-xmpNote, XMP-xmpPLUS, XMP-xmpRights,
-XMP-xmpTPg, ZIP
+<td>AC3, AFCP, AIFF, APE, ASF, AVI1, Adobe, AdobeCM, AdobeDNG, CIFF, Canon,
+CanonCustom, CanonRaw, CanonVRD, Casio, Chapter#, Composite, DICOM, DNG, DV,
+DjVu, DjVu-Meta, Ducky, EPPIM, EXE, EXIF, ExifIFD, ExifTool, FLAC, File,
+Flash, FlashPix, Font, FotoStation, FujiFilm, FujiIFD, GE, GIF, GIMP, GPS,
+GeoTiff, GlobParamIFD, GraphConv, H264, HP, HTML, HTML-dc, HTML-ncc,
+HTML-office, HTML-prod, HTML-vw96, HTTP-equiv, ICC-chrm, ICC-clrt,
+ICC-header, ICC-meas, ICC-meta, ICC-view, ICC_Profile, ICC_Profile#, ID3,
+ID3v1, ID3v1_Enh, ID3v2_2, ID3v2_3, ID3v2_4, IFD0, IFD1, IPTC, IPTC#, ITC,
+InteropIFD, JFIF, JPEG, JVC, Jpeg2000, KDC_IFD, Kodak, KodakBordersIFD,
+KodakEffectsIFD, KodakIFD, KyoceraRaw, LNK, Leaf, LeafSubIFD, Leica, M2TS,
+MAC, MIE-Audio, MIE-Camera, MIE-Canon, MIE-Doc, MIE-Extender, MIE-Flash,
+MIE-GPS, MIE-Geo, MIE-Image, MIE-Lens, MIE-Main, MIE-MakerNotes, MIE-Meta,
+MIE-Orient, MIE-Preview, MIE-Thumbnail, MIE-UTM, MIE-Unknown, MIE-Video,
+MIFF, MNG, MPC, MPEG, MPF0, MPImage, MXF, MakerNotes, MakerUnknown,
+Matroska, MetaIFD, Microsoft, Minolta, MinoltaRaw, NITF, Nikon,
+NikonCapture, NikonCustom, NikonScan, Ocad, Ogg, Olympus, OpenEXR, PDF,
+PICT, PNG, PSP, Panasonic, Pentax, PhotoMechanic, Photoshop, PictureInfo,
+PostScript, PreviewIFD, PrintIM, ProfileIFD, Qualcomm, QuickTime, RAF, RAF2,
+RIFF, RMETA, RSRC, RTF, Radiance, Rawzor, Real, Real-CONT, Real-MDPR,
+Real-PROP, Real-RA3, Real-RA4, Real-RA5, Real-RJMD, Reconyx, Ricoh, SPIFF,
+SR2, SR2DataIFD, SR2SubIFD, SRF#, SVG, Samsung, Sanyo, Scalado, Sigma,
+SigmaRaw, Sony, SonyIDC, Stim, SubIFD, System, Theora, Track#, Version0,
+Vorbis, XML, XMP, XMP-DICOM, XMP-MP, XMP-MP1, XMP-PixelLive, XMP-acdsee,
+XMP-album, XMP-aux, XMP-cc, XMP-cell, XMP-crs, XMP-dc, XMP-dex, XMP-digiKam,
+XMP-exif, XMP-extensis, XMP-iptcCore, XMP-iptcExt, XMP-lr, XMP-mediapro,
+XMP-microsoft, XMP-mwg-coll, XMP-mwg-kw, XMP-mwg-rs, XMP-pdf, XMP-pdfx,
+XMP-photomech, XMP-photoshop, XMP-plus, XMP-prism, XMP-prl, XMP-pur,
+XMP-rdf, XMP-swf, XMP-tiff, XMP-x, XMP-xmp, XMP-xmpBJ, XMP-xmpDM, XMP-xmpMM,
+XMP-xmpNote, XMP-xmpPLUS, XMP-xmpRights, XMP-xmpTPg, ZIP
 </td></tr>
 <tr><td><b>2&nbsp;(Category)</b></td>
 <td>Audio, Author, Camera, Document, ExifTool, Image, Location, Other, Printing,

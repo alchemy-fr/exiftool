@@ -11,9 +11,10 @@
 XMP stands for &quot;Extensible Metadata Platform&quot;, an XML/RDF-based metadata
 format which is being pushed by Adobe.  Information in this format can be
 embedded in many different image file types including JPG, JP2, TIFF, GIF,
-EPS, PDF, PSD, IND, PNG, DJVU, SVG, PGF, MIFF, XCF, CRW, DNG and a variety
-of proprietary TIFF-based RAW images, as well as MOV, AVI, ASF, WMV, FLV,
-SWF and MP4 videos, and WMA and audio formats supporting ID3v2 information.</p>
+EPS, PDF, PSD, IND, INX, PNG, DJVU, SVG, PGF, MIFF, XCF, CRW, DNG and a
+variety of proprietary TIFF-based RAW images, as well as MOV, AVI, ASF, WMV,
+FLV, SWF and MP4 videos, and WMA and audio formats supporting ID3v2
+information.</p>
 
 <p>The XMP <b>Tag ID</b>&#39;s aren&#39;t listed because in most cases they are identical
 to the <b>Tag Name</b> (aside from differences in case).  Tags with different
@@ -26,15 +27,19 @@ specifies the information format:  <code>string</code> is an unformatted string,
 <code>real</code> is a floating point number, <code>rational</code> is entered as a floating
 point number but stored as two <code>integer</code> strings separated by a &#39;/&#39;
 character, <code>date</code> is a date/time string entered in the format &quot;YYYY:mm:dd
-HH:MM:SS[.ss][+/-HH:MM]&quot;, <code>boolean</code> is either &quot;True&quot; or &quot;False&quot;,
-<code>lang-alt</code> indicates that the tag supports alternate languages (see below),
-and <code>struct</code> is an XMP structure.  When reading, structures are extracted
-only if the Struct (-struct) option is used.  Otherwise the corresponding
-&quot;flattened&quot; tags, indicated by an underline (<code>_</code>) after the <b>Writable</b>
-type, are extracted.  When copying information, the Struct option is in
-effect by default.  When writing, the Struct option has no effect, and both
-structured and flattened tags may be written.  See
-<a href="../struct.html">struct.html</a> for more details.</p>
+HH:MM:SS[.ss][+/-HH:MM]&quot;, <code>boolean</code> is either &quot;True&quot; or &quot;False&quot;, <code>struct</code>
+indicates a structured tag, and <code>lang-alt</code> is a tag that supports alternate
+languages.</p>
+
+<p>When reading, <code>struct</code> tags are extracted only if the Struct (-struct)
+option is used.  Otherwise the corresponding &quot;flattened&quot; tags, indicated by
+an underline (<code>_</code>) after the <b>Writable</b> type, are extracted.  When
+copying, the Struct option is in effect by default, so flattened tag names
+may not be copied unless the Struct option is disabled (by setting Struct to
+0 via the API or with --struct on the command line).  When writing, the
+Struct option has no effect, and both structured and flattened tags may be
+written.  See <a href="../struct.html">struct.html</a> for
+more details.</p>
 
 <p>Individual languages for <code>lang-alt</code> tags are accessed by suffixing the tag
 name with a &#39;-&#39;, followed by an RFC 3066 language code (ie. &quot;XMP:Title-fr&quot;,
@@ -67,7 +72,9 @@ tables.  For example, the <code>pdfx</code> namespace doesn&#39;t have a predefi
 tag names because it is used to store application-defined PDF information,
 but this information is extracted by ExifTool.</p>
 
-<p>See <a href="http://www.adobe.com/devnet/xmp/">http://www.adobe.com/devnet/xmp/</a> for the official XMP specification.
+<p>The tables below list tags from the official XMP specification as well as
+extensions from various other sources.  See
+<a href="http://www.adobe.com/devnet/xmp/">http://www.adobe.com/devnet/xmp/</a> for the official XMP specification.
 </p>
 <blockquote>
 <table class=frame><tr><td>
@@ -277,17 +284,25 @@ to themselves instead of speaking out for the rest of the world to hear.)</p>
 <td class=c title=' / = Avoided'>date/</td>
 <td>&nbsp;</td></tr>
 <tr>
+<td>DPP</td>
+<td class=c>lang-alt</td>
+<td><span class=s><span class=n>(newer version of XML raw processing settings)</span></span></td></tr>
+<tr class=b>
 <td>Keywords</td>
 <td class=c title=' / = Avoided
  + = List'>string/+</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td>Notes</td>
 <td class=c title=' / = Avoided'>string/</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>Rating</td>
 <td class=c title=' / = Avoided'>real/</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>Rawrppused</td>
+<td class=c>boolean</td>
 <td>&nbsp;</td></tr>
 <tr class=b>
 <td>RPP</td>
@@ -1453,6 +1468,14 @@ other XMP tags.  (see <a href="http://www.optimasc.com/products/fileid/">http://
 <td class=c>lang-alt</td>
 <td>&nbsp;</td></tr>
 <tr>
+<td>ColorLabel</td>
+<td class=c>string</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>PickLabel</td>
+<td class=c>string</td>
+<td>&nbsp;</td></tr>
+<tr>
 <td>TagsList</td>
 <td class=c title=' + = List'>string+</td>
 <td>&nbsp;</td></tr>
@@ -2257,7 +2280,7 @@ but ExifTool shortens this for the &quot;XMP-iptcExt&quot; family 1 group name.
 <td class=c>lang-alt</td>
 <td>&nbsp;</td></tr>
 <tr class=b>
-<td>IptcLastEdited</td>
+<td>IPTCLastEdited</td>
 <td class=c>date</td>
 <td>&nbsp;</td></tr>
 <tr>
@@ -2353,7 +2376,7 @@ but ExifTool shortens this for the &quot;XMP-iptcExt&quot; family 1 group name.
 <td class=c title=' + = List'>string+</td>
 <td>&nbsp;</td></tr>
 <tr>
-<td>RegistryId</td>
+<td>RegistryID</td>
 <td class=c title=' + = List'>struct+</td>
 <td>--&gt; <a href='XMP.html#RegistryEntryDetails'>RegistryEntryDetails Struct</a></td></tr>
 <tr class=b>
@@ -2935,8 +2958,8 @@ official specification.</p>
 
 <h2><a name='Extensions'>XMP Extensions Struct</a></h2>
 <p>This structure may contain any top-level XMP tags, but none have been
-pre-defined in ExifTool.  Without pre-defined flattened tag names,
-RegionExtensions may be written only as a structure (ie.
+pre-defined in ExifTool.  Since no flattened tags have been pre-defined,
+RegionExtensions is writable only as a structure (ie.
 <code>{xmp-dc:creator=me,rating=5}</code>).  Fields for this structure are identified
 using the standard ExifTool tag name (with optional leading group name,
 and/or trailing language code, and/or trailing <code>#</code> symbol to disable print
@@ -4338,8 +4361,10 @@ treated specially to allow it to be set to a specific value if required.</p>
   <br>2 = Co-sited</span></td></tr>
 <tr>
 <td>YCbCrSubSampling</td>
-<td class=c>string</td>
-<td><span class=s>&#39;1 1&#39; = YCbCr4:4:4 (1 1)
+<td class=c title=' + = List'>integer+</td>
+<td><span class=s><span class=n>(while technically this is  a list-type tag, for compatibility with its EXIF
+counterpart it is written and read as a simple string)</span>
+  <br>&#39;1 1&#39; = YCbCr4:4:4 (1 1)
   <br>&#39;1 2&#39; = YCbCr4:4:0 (1 2)
   <br>&#39;1 4&#39; = YCbCr4:4:1 (1 4)
   <br>&#39;2 1&#39; = YCbCr4:2:2 (2 1)
@@ -5281,62 +5306,66 @@ namespace prefixes are found, they are translated to the newer &quot;xmp&quot;,
 <td class=c title=' _ = Flattened'>string_</td>
 <td>&nbsp;</td></tr>
 <tr class=b>
+<td>VideoAlphaPremultipleColorTint</td>
+<td class=c title=' _ = Flattened'>integer_</td>
+<td><span class=s><span class=n>(not part of 2010 XMP specification)</span></span></td></tr>
+<tr>
 <td>VideoAlphaPremultipleColorType</td>
 <td class=c title=' _ = Flattened'>string_</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>VideoAlphaPremultipleColorYellow</td>
 <td class=c title=' _ = Flattened'>real_</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td>VideoAlphaUnityIsTransparent</td>
 <td class=c>boolean</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>VideoColorSpace</td>
 <td class=c>string</td>
 <td><span class=s>&#39;CCIR-601&#39; = CCIR-601
   <br>&#39;CCIR-709&#39; = CCIR-709
   <br>&#39;sRGB&#39; = sRGB</span></td></tr>
-<tr class=b>
+<tr>
 <td>VideoCompressor</td>
 <td class=c>string</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>VideoFieldOrder</td>
 <td class=c>string</td>
 <td><span class=s>&#39;Lower&#39; = Lower
   <br>&#39;Progressive&#39; = Progressive
   <br>&#39;Upper&#39; = Upper</span></td></tr>
-<tr class=b>
+<tr>
 <td>VideoFrameRate</td>
 <td class=c>string</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>VideoFrameSize</td>
 <td class=c>struct</td>
 <td>--&gt; <a href='XMP.html#Dimensions'>Dimensions Struct</a></td></tr>
-<tr class=b>
+<tr>
 <td>VideoFrameSizeH</td>
 <td class=c title=' _ = Flattened'>real_</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>VideoFrameSizeUnit</td>
 <td class=c title=' _ = Flattened'>string_</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td>VideoFrameSizeW</td>
 <td class=c title=' _ = Flattened'>real_</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>VideoModDate</td>
 <td class=c>date</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td>VideoPixelAspectRatio</td>
 <td class=c>rational</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>VideoPixelDepth</td>
 <td class=c>string</td>
 <td><span class=s>&#39;16Int&#39; = 16-bit integer
@@ -5626,10 +5655,14 @@ namespace prefixes are found, they are translated to the newer &quot;xmp&quot;,
 <td class=c>string</td>
 <td>&nbsp;</td></tr>
 <tr class=b>
+<td>Tint</td>
+<td class=c>integer</td>
+<td>&nbsp;</td></tr>
+<tr>
 <td>Type</td>
 <td class=c>string</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>Yellow</td>
 <td class=c>real</td>
 <td>&nbsp;</td></tr>
@@ -6532,80 +6565,85 @@ XMP properties.</p>
  + = List'>string_+</td>
 <td><span class=s><span class=n>(ColorantsSwatchName)</span></span></td></tr>
 <tr>
+<td>ColorantTint</td>
+<td class=c title=' _ = Flattened
+ + = List'>integer_+</td>
+<td><span class=s><span class=n>(not part of 2010 XMP specification)</span></span></td></tr>
+<tr class=b>
 <td>ColorantType</td>
 <td class=c title=' _ = Flattened
  + = List'>string_+</td>
 <td><span class=s><span class=n>(ColorantsType)</span></span></td></tr>
-<tr class=b>
+<tr>
 <td>ColorantYellow</td>
 <td class=c title=' _ = Flattened
  + = List'>real_+</td>
 <td><span class=s><span class=n>(ColorantsYellow)</span></span></td></tr>
-<tr>
+<tr class=b>
 <td>Fonts</td>
 <td class=c title=' + = List'>struct+</td>
 <td>--&gt; <a href='XMP.html#Font'>Font Struct</a></td></tr>
-<tr class=b>
+<tr>
 <td>ChildFontFiles</td>
 <td class=c title=' _ = Flattened
  + = List'>string_+</td>
 <td><span class=s><span class=n>(FontsChildFontFiles)</span></span></td></tr>
-<tr>
+<tr class=b>
 <td>FontComposite</td>
 <td class=c title=' _ = Flattened
  + = List'>boolean_+</td>
 <td><span class=s><span class=n>(FontsComposite)</span></span></td></tr>
-<tr class=b>
+<tr>
 <td>FontFace</td>
 <td class=c title=' _ = Flattened
  + = List'>string_+</td>
 <td><span class=s><span class=n>(FontsFontFace)</span></span></td></tr>
-<tr>
+<tr class=b>
 <td>FontFamily</td>
 <td class=c title=' _ = Flattened
  + = List'>string_+</td>
 <td><span class=s><span class=n>(FontsFontFamily)</span></span></td></tr>
-<tr class=b>
+<tr>
 <td>FontFileName</td>
 <td class=c title=' _ = Flattened
  + = List'>string_+</td>
 <td><span class=s><span class=n>(FontsFontFileName)</span></span></td></tr>
-<tr>
+<tr class=b>
 <td>FontName</td>
 <td class=c title=' _ = Flattened
  + = List'>string_+</td>
 <td><span class=s><span class=n>(FontsFontName)</span></span></td></tr>
-<tr class=b>
+<tr>
 <td>FontType</td>
 <td class=c title=' _ = Flattened
  + = List'>string_+</td>
 <td><span class=s><span class=n>(FontsFontType)</span></span></td></tr>
-<tr>
+<tr class=b>
 <td>FontVersion</td>
 <td class=c title=' _ = Flattened
  + = List'>string_+</td>
 <td><span class=s><span class=n>(FontsVersionString)</span></span></td></tr>
-<tr class=b>
+<tr>
 <td>MaxPageSize</td>
 <td class=c>struct</td>
 <td>--&gt; <a href='XMP.html#Dimensions'>Dimensions Struct</a></td></tr>
-<tr>
+<tr class=b>
 <td>MaxPageSizeH</td>
 <td class=c title=' _ = Flattened'>real_</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td>MaxPageSizeUnit</td>
 <td class=c title=' _ = Flattened'>string_</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>MaxPageSizeW</td>
 <td class=c title=' _ = Flattened'>real_</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td>NPages</td>
 <td class=c>integer</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>PlateNames</td>
 <td class=c title=' + = List'>string+</td>
 <td>&nbsp;</td></tr>
@@ -6691,7 +6729,7 @@ XMP module for convenience.  (see <a href="http://www.w3.org/TR/SVG11/">http://w
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Jul 11, 2011</i>
+<br><i>Last revised Feb 8, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

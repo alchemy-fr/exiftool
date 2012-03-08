@@ -5,6 +5,8 @@
 #
 # Usage:        exiftool -tagsFromFile SRCFILE -@ gps2xmp.args DSTFILE
 #
+# Requires:     ExifTool version 6.75 or later
+#
 # Revisions:    2009/01/09 - P. Harvey Created
 #
 # Notes:        Most of the GPS tags are copied by the first argument, but

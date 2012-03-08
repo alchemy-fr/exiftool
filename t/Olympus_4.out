@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.16
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.72
 [File, System, Image] FileName - File Name: OlympusE1.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 7.2 kB
@@ -20,7 +20,7 @@
 [EXIF, IFD0, Image] 282 - X Resolution: 314
 [EXIF, IFD0, Image] 283 - Y Resolution: 314
 [EXIF, IFD0, Image] 296 - Resolution Unit: inches
-[EXIF, IFD0, Image] 305 - Software: Version 1.3                    
+[EXIF, IFD0, Image] 305 - Software: Version 1.3
 [EXIF, IFD0, Time] 306 - Modify Date: 2005:01:05 10:53:41
 [EXIF, IFD0, Image] 531 - Y Cb Cr Positioning: Co-sited
 [EXIF, ExifIFD, Image] 33434 - Exposure Time: 1/100
@@ -67,7 +67,7 @@
 [MakerNotes, Olympus, Camera] 516 - Digital Zoom: 0.0
 [MakerNotes, Olympus, Camera] 517 - Focal Plane Diagonal: 21.6 mm
 [MakerNotes, Olympus, Camera] 518 - Lens Distortion Params: 0 0 0 0 0 0
-[MakerNotes, Olympus, Camera] 519 - Camera Type: D4040
+[MakerNotes, Olympus, Camera] 519 - Camera Type: E-1
 [MakerNotes, Olympus, Camera] 521 - Camera ID: OLYMPUS DIGITAL CAMERA         
 [MakerNotes, Olympus, Camera] 4111 - Sharpness: Hard
 [MakerNotes, Olympus, Camera] 4113 - Color Matrix: 356 -34 -66 -22 308 -30 6 -126 376
@@ -82,7 +82,7 @@
 [MakerNotes, Olympus, Camera] 4142 - Olympus Image Width: 2560
 [MakerNotes, Olympus, Camera] 4143 - Olympus Image Height: 1920
 [MakerNotes, Olympus, Camera] 0 - Equipment Version: 010
-[MakerNotes, Olympus, Camera] 256 - Camera Type 2: D4040
+[MakerNotes, Olympus, Camera] 256 - Camera Type 2: E-1
 [MakerNotes, Olympus, Camera] 257 - Serial Number: 143008611
 [MakerNotes, Olympus, Camera] 258 - Internal Serial Number: 4001310004375102               
 [MakerNotes, Olympus, Camera] 259 - Focal Plane Diagonal: 21.6 mm

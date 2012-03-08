@@ -3,7 +3,7 @@
 #
 # Description:  Buffer to support random access reading of sequential file
 #
-# Legal:        Copyright (c) 2003-2010 Phil Harvey (phil at owl.phy.queensu.ca)
+# Legal:        Copyright (c) 2003-2012 Phil Harvey (phil at owl.phy.queensu.ca)
 #               This library is free software; you can redistribute it and/or
 #               modify it under the same terms as Perl itself.
 #------------------------------------------------------------------------------
@@ -47,11 +47,11 @@ reference to data in memory.
 
 =item Inputs:
 
-0) Reference to RandomAccess object.
+0) Reference to RandomAccess object or RandomAccess class name.
 
 1) File reference or scalar reference.
 
-2) flag set if file is already random access (disables automatic SeekTest).
+2) Flag set if file is already random access (disables automatic SeekTest).
 
 =item Returns:
 
@@ -217,7 +217,7 @@ Nothing.
 
 =head1 AUTHOR
 
-Copyright 2003-2011 Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012 Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -177,7 +177,7 @@ Samsung and Yakumo models built by Skanhex.</p>
 <p><b>Toshiba:</b> The PDR-3310 writes all maker notes offsets relative to the
 start of the individual IFD entry.  (very similar to Konica KD-300Z)</p>
 
-<hr>
+<hr><a name="raw"></a>
 <h2>RAW file Idiosyncracies</h2>
 
 <p><b>Minolta MRW:</b> The A200 stores the thumbnail image offset in IFD0
@@ -230,13 +230,20 @@ in the TIFF structure of these images.  For instance, the IFD0 strip data
 actually exists within the MakerNotes data block.  This is a poor design, and
 leads to duplicated information when the image is rewritten.</p>
 
+<p><b>Ricoh DNG:</b>  The GR Digital IV (firmware 1.14) stores an incorrect
+length for the JPEG preview in SubIFD1.</p>
+
 <p><b>Samsung SRW:</b> Yet another TIFF-based RAW image with no proper file
 identifier.  In these images the thumbnail is stored inside a SubIFD of IFD1
-instead of directly in IFD1 (dumb, dumb...).</p>
+instead of directly in IFD1 (dumb, dumb...).  Also, the NX200 (firmware
+NX200_011181) uses a base offset for the X/YResolution values that is different
+from the PreviewImageStart pointer, both in the MakerNotes PreviewIFD.  (Note
+that the NX100 uses the same base for both, so this is certainly a firmware bug
+for the NX200.)</p>
 
 <hr>
 <i>Created Mar. 25, 2005</i>
-<br><i>Last revised Jan. 27, 2011</i>
+<br><i>Last revised Feb. 6, 2012</i>
 <p class='lf'><a href="index.html">&lt;-- Back to ExifTool home page</a></p>
 </body>
 </html>

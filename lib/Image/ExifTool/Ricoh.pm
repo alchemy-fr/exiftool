@@ -16,7 +16,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.17';
+$VERSION = '1.19';
 
 sub ProcessRicohText($$$);
 sub ProcessRicohRMETA($$$);
@@ -33,6 +33,7 @@ my %ricohLensIDs = (
     'RL2' => 'Ricoh Lens S10 24-70mm F2.5-4.4 VC',
     'RL3' => 'Ricoh Lens P10 28-300mm F3.5-5.6 VC',
     'RL5' => 'GR Lens A12 28mm F2.5',
+    'RL8' => 'Mount A12',
 );
 
 %Image::ExifTool::Ricoh::Main = (
@@ -91,11 +92,24 @@ my %ricohLensIDs = (
     0x2001 => [
         {
             Name => 'RicohSubdir',
-            Condition => '$self->{Model} !~ /^Caplio RR1\b/',
+            Condition => q{
+                $self->{Model} !~ /^Caplio RR1\b/ and
+                ($format ne 'int32u' or $count != 1)
+            },
             SubDirectory => {
                 Validate => '$val =~ /^\[Ricoh Camera Info\]/',
                 TagTable => 'Image::ExifTool::Ricoh::Subdir',
                 Start => '$valuePtr + 20',
+                ByteOrder => 'BigEndian',
+            },
+        },
+        {
+            Name => 'RicohSubdirIFD',
+            # the CX6 and GR Digital 4 write an int32u pointer in AVI videos -- doh!
+            Condition => '$self->{Model} !~ /^Caplio RR1\b/',
+            SubDirectory => {
+                TagTable => 'Image::ExifTool::Ricoh::Subdir',
+                Start => '$val + 20', # (skip over "[Ricoh Camera Info]\0" header)
                 ByteOrder => 'BigEndian',
             },
         },
@@ -557,7 +571,7 @@ sub ProcessRicohText($$$)
                 PrintConv => 'length($val) > 60 ? substr($val,0,55) . "[...]" : $val',
             };
             # add tag information to table
-            Image::ExifTool::AddTagToTable($tagTablePtr, $tag, $tagInfo);
+            AddTagToTable($tagTablePtr, $tag, $tagInfo);
         }
         $exifTool->FoundTag($tagInfo, $val);
     }
@@ -634,7 +648,7 @@ sub ProcessRicohRMETA($$$)
             } else {
                 # create tagInfo hash
                 $tagInfo = { Name => $name, PrintConv => { } };
-                Image::ExifTool::AddTagToTable($tagTablePtr, $tag, $tagInfo);
+                AddTagToTable($tagTablePtr, $tag, $tagInfo);
             }
             # use string value directly if no numerical value
             $num = $val unless defined $num;
@@ -676,7 +690,7 @@ interpret Ricoh maker notes EXIF meta information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

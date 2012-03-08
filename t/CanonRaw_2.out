@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.35
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.77
 [File, System, Image] FileName - File Name: CanonRaw.crw
 [File, System, Image] Directory - Directory: t/images
-[File, System, Image] FileSize - File Size: 6.1 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2005:11:14 14:47:21-05:00
+[File, System, Image] FileSize - File Size: 6.7 kB
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:01:22 13:29:41-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: CRW
 [File, File, Image] MIMEType - MIME Type: image/x-canon-crw
@@ -137,6 +137,8 @@
 [MakerNotes, CanonRaw, Image] 3 - Raw Jpg Width: 2048
 [MakerNotes, CanonRaw, Image] 4 - Raw Jpg Height: 1360
 [MakerNotes, CanonRaw, Camera] 6203 - Serial Number Format: Format 1
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.31
+[XMP, XMP-dc, Image] description - Description: CRW with embedded XMP
 [Composite, Composite, Image] Aperture - Aperture: 3.6
 [Composite, Composite, Camera] ConditionalFEC - Flash Exposure Compensation: +2/3
 [Composite, Composite, Camera] DriveMode - Drive Mode: Continuous Shooting

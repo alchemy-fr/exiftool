@@ -858,10 +858,17 @@ my %plusImageSupplier = (
     notes      => { Avoid => 1 },
     rating     => { Avoid => 1, Writable => 'real' }, # integer?
     tagged     => { Avoid => 1, Writable => 'boolean' },
+    rawrppused => { Writable => 'boolean' },
     rpp => {
         Name => 'RPP',
         Writable => 'lang-alt',
         Notes => 'raw processing settings in XML format',
+        Binary => 1,
+    },
+    dpp => {
+        Name => 'DPP',
+        Writable => 'lang-alt',
+        Notes => 'newer version of XML raw processing settings',
         Binary => 1,
     },
 );
@@ -953,6 +960,8 @@ my %plusImageSupplier = (
     CaptionsAuthorNames    => { Writable => 'lang-alt' },
     CaptionsDateTimeStamps => { Writable => 'lang-alt' },
     TagsList               => { List => 'Seq' },
+    ColorLabel             => { },
+    PickLabel              => { },
 );
 
 # SWF schema tags (ref PH)
@@ -989,8 +998,8 @@ my %sExtensions = (
     NAMESPACE   => undef, # variable namespace
     NOTES => q{
         This structure may contain any top-level XMP tags, but none have been
-        pre-defined in ExifTool.  Without pre-defined flattened tag names,
-        RegionExtensions may be written only as a structure (ie.
+        pre-defined in ExifTool.  Since no flattened tags have been pre-defined,
+        RegionExtensions is writable only as a structure (ie.
         C<{xmp-dc:creator=me,rating=5}>).  Fields for this structure are identified
         using the standard ExifTool tag name (with optional leading group name,
         and/or trailing language code, and/or trailing C<#> symbol to disable print
@@ -1203,7 +1212,7 @@ This file contains definitions for less common XMP schemas.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

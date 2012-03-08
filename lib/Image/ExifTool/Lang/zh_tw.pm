@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::zh_tw;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 %Image::ExifTool::Lang::zh_tw::Translate = (
    'Album' => '相簿',
@@ -214,6 +214,14 @@ $VERSION = '1.04';
    'ExposureTime' => '曝光時間',
    'ExtraSamples' => '額外的樣本',
    'FNumber' => '光圈',
+   'FaceOrientation' => {
+      PrintConv => {
+        'Horizontal (normal)' => '0° (頂端/左邊)',
+        'Rotate 180' => '180° (底部/右邊)',
+        'Rotate 270 CW' => '90° CW (左邊/底部)',
+        'Rotate 90 CW' => '90° CCW (右邊/頂端)',
+      },
+    },
    'FaxRecvParams' => '傳真接收參數',
    'FaxRecvTime' => '傳真接收時間',
    'FaxSubAddress' => '傳真附屬地址',
@@ -767,7 +775,7 @@ and values.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

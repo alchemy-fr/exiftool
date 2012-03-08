@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.02
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.72
 [File, System, Image] FileName - File Name: Olympus_3_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 4.3 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2009:12:13 20:39:50-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2011:11:21 15:11:13-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -60,12 +60,12 @@
 [MakerNotes, Olympus, Camera] 516 - Digital Zoom: 0.0
 [MakerNotes, Olympus, Camera] 517 - Focal Plane Diagonal: 7.8 mm
 [MakerNotes, Olympus, Camera] 518 - Lens Distortion Params: -215 -388 -418 -185 -310 -314
-[MakerNotes, Olympus, Camera] 519 - Camera Type: SR951
+[MakerNotes, Olympus, Camera] 519 - Camera Type: C2000Z
 [MakerNotes, Olympus, Image] Resolution - Resolution: 1
-[MakerNotes, Olympus, Camera] Type - Camera Type: SR951
+[MakerNotes, Olympus, Camera] Type - Camera Type: C2000Z
 [MakerNotes, Olympus, Camera] 521 - Camera ID: OLYMPUS DIGITAL CAMERA
 [MakerNotes, Olympus, Camera] 3840 - Data Dump: (Binary data 186 bytes)
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.02
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.72
 [XMP, XMP-tiff, Image] Software - Software: ExifTool
 [Composite, Composite, Image] Aperture - Aperture: 2.0
 [Composite, Composite, Image] ImageSize - Image Size: 8x8

@@ -5,6 +5,8 @@
 #
 # Usage:        exiftool -tagsFromFile SRCFILE -@ pdf2xmp.args DSTFILE
 #
+# Requires:     ExifTool version 7.07 or later
+#
 # Revisions:    2011/01/23 - P. Harvey Created
 #
 # References:   http://www.adobe.com/devnet/xmp/

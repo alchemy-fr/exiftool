@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.50
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.74
 [File, System, Image] FileName - File Name: GPS.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 2.1 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2010:10:09 03:36:18-07:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2008:10:14 11:37:59-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -27,7 +27,7 @@
 [EXIF, IFD0, Image] 531 - Y Cb Cr Positioning: Co-sited
 [EXIF, IFD0, Image] 532 - Reference Black White: 0 255 128 255 128 255
 [EXIF, IFD0, Author] 33432 - Copyright: ian Britton - FreeFoto.com
-[EXIF, ExifIFD, Image] 33437 - F Number: 0.6
+[EXIF, ExifIFD, Image] 33437 - F Number: 0.64
 [EXIF, ExifIFD, Camera] 34850 - Exposure Program: Shutter speed priority AE
 [EXIF, ExifIFD, Image] 34855 - ISO: 0
 [EXIF, ExifIFD, Image] 36864 - Exif Version: 0200
@@ -82,7 +82,7 @@
 [IPTC, IPTC, Other] 10 - Urgency: 5 (normal urgency)
 [IPTC, IPTC, Other] 25 - Keywords: Communications
 [IPTC, IPTC, Author] 116 - Copyright Notice: ian Britton - FreeFoto.com
-[Composite, Composite, Image] Aperture - Aperture: 0.6
+[Composite, Composite, Image] Aperture - Aperture: 0.64
 [Composite, Composite, Location] GPSLatitude - GPS Latitude: 54 degrees 59.38 minutes N
 [Composite, Composite, Location] GPSLongitude - GPS Longitude: 1 degrees 54.85 minutes W
 [Composite, Composite, Location] GPSPosition - GPS Position: 54 degrees 59.38 minutes N, 1 degrees 54.85 minutes W

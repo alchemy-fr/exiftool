@@ -241,6 +241,17 @@ sub IptcTime($)
 }
 
 #------------------------------------------------------------------------------
+# Inverse print conversion for IPTC date or time value
+# Inputs: 0) IPTC date or 'now'
+# Returns: IPTC date
+sub InverseDateOrTime($)
+{
+    my $val = shift;
+    return Image::ExifTool::TimeNow() if lc($val) eq 'now';
+    return $val;
+}
+
+#------------------------------------------------------------------------------
 # Convert picture number
 # Inputs: 0) value
 # Returns: Converted value
@@ -501,7 +512,7 @@ sub DoWriteIPTC($$$)
                     $doSet = 1 if not $found and Image::ExifTool::IsCreating($nvHash);
                 }
                 if ($doSet) {
-                    @values = Image::ExifTool::GetNewValues($nvHash);
+                    @values = $exifTool->GetNewValues($nvHash);
                     @values and $foundRec{$newRec}->{$newTag} = $found | 0x04;
                     # write tags for each value in list
                     my $value;
@@ -557,7 +568,7 @@ sub DoWriteIPTC($$$)
             my $val = substr($$dataPt, $valuePtr, $len);
             my $oldXlat = $xlat;
             FormatIPTC($exifTool, $tagInfo, \$val, \$xlat, $rec, 1);
-            if (Image::ExifTool::IsOverwriting($nvHash, $val)) {
+            if ($exifTool->IsOverwriting($nvHash, $val)) {
                 $xlat = $oldXlat;   # don't change translation (not writing this value)
                 $exifTool->VerboseValue("- IPTC:$$tagInfo{Name}", $val);
                 ++$exifTool->{CHANGED};
@@ -616,7 +627,7 @@ sub WriteIPTC($$$)
         my $nvHash = $exifTool->{NEW_VALUE}{$Image::ExifTool::Photoshop::iptcDigestInfo};
         last unless defined $nvHash;
         last unless IsStandardIPTC($exifTool->MetadataPath());
-        my @values = Image::ExifTool::GetNewValues($nvHash);
+        my @values = $exifTool->GetNewValues($nvHash);
         push @values, @{$$nvHash{DelValue}} if $$nvHash{DelValue};
         my $new = grep /^new$/, @values;
         my $old = grep /^old$/, @values;
@@ -676,7 +687,7 @@ seldom-used routines.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

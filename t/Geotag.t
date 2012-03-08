@@ -1,9 +1,23 @@
 # Before "make install", this script should be runnable with "make test".
 # After "make install" it should work as "perl t/Geotag.t".
 
-BEGIN { $| = 1; print "1..7\n"; $Image::ExifTool::noConfig = 1; }
+BEGIN {
+    $| = 1; print "1..8\n"; $Image::ExifTool::noConfig = 1;
+    # must create user-defined tags before loading ExifTool (used in test 8)
+    %Image::ExifTool::UserDefined = (
+        'Image::ExifTool::GPS::Main' => {
+            0xd000 => {
+                Name => 'GPSPitch',
+                Writable => 'rational64s',
+            },
+            0xd001 => {
+                Name => 'GPSRoll',
+                Writable => 'rational64s',
+            },
+        },
+    );
+}
 END {print "not ok 1\n" unless $loaded;}
-
 # test 1: Load the module(s)
 use Image::ExifTool 'ImageInfo';
 use Image::ExifTool::Geotag;
@@ -127,5 +141,24 @@ my $testfile2;
     }
     print "ok $testnum\n";
 }
+
+# test 8: Geotag with attitude information from PTNTHPR sentence
+{
+    ++$testnum;
+    my $exifTool = new Image::ExifTool;
+    my $testfile = "t/${testname}_${testnum}_failed.jpg";
+    unlink $testfile;
+    $exifTool->SetNewValue(Geotag => 't/images/Geotag2.log');
+    $exifTool->SetNewValue(Geotime => '2010:04:24 06:27:30-05:00');
+    $exifTool->WriteInfo('t/images/Writer.jpg', $testfile);
+    my $info = $exifTool->ImageInfo($testfile, @testTags);
+    if (check($exifTool, $info, $testname, $testnum)) {
+        unlink $testfile;
+    } else {
+        print 'not ';
+    }
+    print "ok $testnum\n";
+}
+
 
 # end

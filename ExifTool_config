@@ -33,21 +33,25 @@
 #
 #                   exiftool -config ExifTool_config ...
 #
-#               This sample file defines the following 12 new tags as well as a
+#               This sample file defines the following 16 new tags as well as a
 #               number of Shortcut and Composite tags:
 #
 #                   1.  EXIF:NewEXIFTag
-#                   2.  IPTC:NewIPTCTag
-#                   3.  XMP-xmp:NewXMPxmpTag
-#                   4.  XMP-xxx:NewXMPxxxTag1
-#                   5.  XMP-xxx:NewXMPxxxTag2
-#                   6.  XMP-xxx:NewXMPxxxTag3
-#                   7.  XMP-xxx:NewXMPxxxStruct
-#                   8.  PNG:NewPngTag1
-#                   9.  PNG:NewPngTag2
-#                  10.  PNG:NewPngTag3
-#                  11.  MIE-Meta:NewMieTag1
-#                  12.  MIE-Test:NewMieTag2
+#                   2.  GPS:GPSPitch
+#                   3.  GPS:GPSRoll
+#                   4.  IPTC:NewIPTCTag
+#                   5.  XMP-xmp:NewXMPxmpTag
+#                   6.  XMP-exif:GPSPitch
+#                   7.  XMP-exif:GPSRoll
+#                   8.  XMP-xxx:NewXMPxxxTag1
+#                   9.  XMP-xxx:NewXMPxxxTag2
+#                  10.  XMP-xxx:NewXMPxxxTag3
+#                  11.  XMP-xxx:NewXMPxxxStruct
+#                  12.  PNG:NewPngTag1
+#                  13.  PNG:NewPngTag2
+#                  14.  PNG:NewPngTag3
+#                  15.  MIE-Meta:NewMieTag1
+#                  16.  MIE-Test:NewMieTag2
 #
 #               For detailed information on the definition of tag tables and
 #               tag information hashes, see lib/Image/ExifTool/README.
@@ -74,18 +78,37 @@
             Writable => 'int16u',
             WriteGroup => 'IFD0',
         },
+        # add more user-defined EXIF tags here...
+    },
+    # the Geotag feature writes these additional GPS tags if available:
+    'Image::ExifTool::GPS::Main' => {
+        0xd000 => {
+            Name => 'GPSPitch',
+            Writable => 'rational64s',
+        },
+        0xd001 => {
+            Name => 'GPSRoll',
+            Writable => 'rational64s',
+        },
     },
     # IPTC tags are added to a specific record type (ie. application record):
-    # (Note: IPTC tags ID's are limited to the range 0-255)
+    # (Note: IPTC tag ID's are limited to the range 0-255)
     'Image::ExifTool::IPTC::ApplicationRecord' => {
         160 => {
             Name => 'NewIPTCTag',
             Format => 'string[0,16]',
         },
+        # add more user-defined IPTC ApplicationRecord tags here...
     },
     # XMP tags may be added to existing namespaces:
     'Image::ExifTool::XMP::xmp' => {
         NewXMPxmpTag => { Groups => { 2 => 'Author' } },
+        # add more user-defined XMP-xmp tags here...
+    },
+    # special Geotag tags for XMP-exif:
+    'Image::ExifTool::XMP::exif' => {
+        GPSPitch => { Writable => 'rational', Groups => { 2 => 'Location' } },
+        GPSRoll  => { Writable => 'rational', Groups => { 2 => 'Location' } },
     },
     # new XMP namespaces (ie. xxx) must be added to the Main XMP table:
     'Image::ExifTool::XMP::Main' => {
@@ -95,6 +118,7 @@
                 # (see the definition of this table below)
             },
         },
+        # add more user-defined XMP namespaces here...
     },
     # new PNG tags are added to the PNG::TextualData table:
     'Image::ExifTool::PNG::TextualData' => {
@@ -164,6 +188,33 @@
             ValueConv => '$val[0]/$val[2] . " " . $val[1]/$val[3]',
             PrintConv => 'sprintf("%.1fx%.1f $prt[4]", split(" ",$val))',
         },
+        # [advanced] select largest JPEG preview image
+        BigImage => {
+            Desire => {
+                0 => 'JpgFromRaw',
+                1 => 'PreviewImage',
+                2 => 'OtherImage',
+                # (DNG and A100 ARW may be have 2 PreviewImage's)
+                3 => 'PreviewImage (1)',
+            },
+            # ValueConv may also be a code reference
+            # Inputs: 0) reference to list of values, 1) ExifTool object
+            ValueConv => sub {
+                my $val = shift;
+                my ($image, $bigImage, $len, $bigLen);
+                foreach $image (@$val) {
+                    next unless ref $image eq 'SCALAR';
+                    # check for JPEG image (or "Binary data" if -b not used)
+                    next unless $$image =~ /^(\xff\xd8\xff|Binary data (\d+))/;
+                    $len = $2 || length $$image; # get image length
+                    # save largest image
+                    next if defined $bigLen and $bigLen >= $len;
+                    $bigLen = $len;
+                    $bigImage = $image;
+                }
+                return $bigImage;
+            },
+        },
     },
 );
 
@@ -182,7 +233,7 @@
     NewXMPxxxTag3 => { List => 'Bag' },
     # example structured XMP tag
     NewXMPxxxStruct => {
-        # a structure with 3 fields (X, Y and Things):
+        # the "Struct" entry defines the structure fields
         Struct => {
             # optional namespace prefix and URI for structure fields
             # (required only if different than NAMESPACE above)
@@ -191,7 +242,7 @@
             STRUCT_NAME => 'MyStruct',
             # optional rdf:type property for the structure
             TYPE => 'http://x.y.z/test/xystruct',
-            # structure fields (very similar to tag definitions)
+            # structure field definitions (very similar to tag definitions)
             X => { Writable => 'integer' },
             Y => { Writable => 'integer' },
             # a nested structure...

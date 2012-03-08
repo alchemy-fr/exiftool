@@ -5,6 +5,8 @@
 #
 # Usage:        exiftool -tagsFromFile SRCFILE -@ xmp2exif.args DSTFILE
 #
+# Requires:     ExifTool version 8.60 or later
+#
 # Revisions:    2009/01/20 - P. Harvey Created
 #               2011/06/22 - PH Copy flash information via Composite:Flash
 #

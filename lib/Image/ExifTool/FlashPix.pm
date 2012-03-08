@@ -19,7 +19,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::ASF;   # for GetGUID()
 
-$VERSION = '1.19';
+$VERSION = '1.20';
 
 sub ProcessFPX($$);
 sub ProcessFPXR($$$);
@@ -1082,12 +1082,12 @@ sub ReadFPXValue($$$$$;$$)
                 push @vals, $val;
                 next;   # avoid adding $size to $valPos again
             } elsif ($format eq 'VT_FILETIME') {
-                # get time in seconds
+                # convert from time in 100 ns increments to time in seconds
                 $val = 1e-7 * Image::ExifTool::Get64u($dataPt, $valPos);
                 # print as date/time if value is greater than one year (PH hack)
                 if ($val > 365 * 24 * 3600) {
                     # shift from Jan 1, 1601 to Jan 1, 1970
-                    $val -= 134774 * 24 * 3600 if $val != 0;
+                    $val -= 134774 * 24 * 3600;
                     $val = Image::ExifTool::ConvertUnixTime($val);
                 }
             } elsif ($format eq 'VT_DATE') {
@@ -1263,7 +1263,7 @@ sub ProcessProperties($$$)
                     $name =~ tr/-_a-zA-Z0-9//dc;    # remove illegal characters
                     next unless length $name;
                     $exifTool->VPrint(0, "$$exifTool{INDENT}\[adding $name]\n") if $verbose;
-                    Image::ExifTool::AddTagToTable($tagTablePtr, $tag, { Name => $name });
+                    AddTagToTable($tagTablePtr, $tag, { Name => $name });
                 }
                 next;
             }
@@ -1853,7 +1853,7 @@ JPEG images.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

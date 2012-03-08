@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::nl;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 %Image::ExifTool::Lang::nl::Translate = (
    'AEBAutoCancel' => {
@@ -1159,6 +1159,14 @@ $VERSION = '1.07';
     },
    'ExtraSamples' => 'Extra componenten',
    'FNumber' => 'F waarde',
+   'FaceOrientation' => {
+      PrintConv => {
+        'Horizontal (normal)' => '0° (boven/links)',
+        'Rotate 180' => '180° (onder/rechts)',
+        'Rotate 270 CW' => 'Draai 270° met de klok mee',
+        'Rotate 90 CW' => '90° tegen de klok in (rechts/boven)',
+      },
+    },
    'FastSeek' => {
       PrintConv => {
         'No' => 'Nee',
@@ -3187,7 +3195,7 @@ and values.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

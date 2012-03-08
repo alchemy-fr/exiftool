@@ -12,7 +12,7 @@ Samsung models.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index4</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -29,6 +29,25 @@ Samsung models.</p>
 <td>PreviewImageLength</td>
 <td class=c title=' * = Protected'>int32u*</td>
 <td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='11 = 0xb'>11</td>
+<td>SamsungIFD</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Samsung.html#IFD'>Samsung IFD Tags</a></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='IFD'>Samsung IFD Tags</a></h2>
+<p>This is a standard-format IFD found in the Type1 maker notes of some Samsung
+models, except that the entry count is a 4-byte integer and the offsets are
+relative to the end of the IFD.  Currently, no tags in this IFD are known,
+so the Unknown (-u) or Verbose (-v) option must be used to see this
+information.</p>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr><td colspan=4 class=c><i>[no tags known]</i></td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='Type2'>Samsung Type2 Tags</a></h2>
@@ -46,8 +65,8 @@ Samsung models.</p>
 <tr class=b>
 <td title='0x0021 = 33'>0x0021</td>
 <td>PictureWizard</td>
-<td class=c>int16u[5]</td>
-<td>&nbsp;</td></tr>
+<td class=c>int16u</td>
+<td>--&gt; <a href='Samsung.html#PictureWizard'>Samsung PictureWizard Tags</a></td></tr>
 <tr>
 <td title='0x0030 = 48'>0x0030</td>
 <td>LocalLocationName</td>
@@ -77,12 +96,14 @@ Samsung models.</p>
 <td title='0xa003 = 40963'>0xa003</td>
 <td>LensType</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Built-in
+<td><span class=s>0 = Built-in or Manual Lens
   <br>1 = Samsung 30mm F2 Pancake
   <br>2 = Samsung Zoom 18-55mm F3.5-5.6 OIS
   <br>3 = Samsung Zoom 50-200mm F4-5.6 ED OIS
   <br>4 = Samsung 20-50mm F3.5-5.6 Compact Zoom
-  <br>5 = Samsung 20mm F2.8 Pancake</span></td></tr>
+  <br>5 = Samsung 20mm F2.8 Pancake
+  <br>7 = Samsung 60mm F2.8 Macro ED OIS SSA
+  <br>8 = Samsung 16mm F2.4 Ultra Wide Pancake</span></td></tr>
 <tr>
 <td title='0xa004 = 40964'>0xa004</td>
 <td>LensFirmware</td>
@@ -198,6 +219,52 @@ array of X coordinates then an array of Y coordinates)</span></span></td></tr>
 <td>&nbsp;</td></tr>
 </table></td></tr></table></blockquote>
 
+<h2><a name='PictureWizard'>Samsung PictureWizard Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index2</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>PictureWizardMode</td>
+<td class=c>int16u</td>
+<td><table class=cols><tr>
+  <td>0 = Standard
+  <br>1 = Vivid
+  <br>2 = Portrait
+  <br>3 = Landscape</td><td>&nbsp;&nbsp;</td>
+  <td>4 = Forest
+  <br>5 = Retro
+  <br>6 = Cool
+  <br>7 = Calm</td><td>&nbsp;&nbsp;</td>
+  <td>8 = Classic
+  <br>9 = Custom1
+  <br>10 = Custom2
+  <br>11 = Custom3</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
+<tr class=b>
+<td class=r title='1 = 0x1'>1</td>
+<td>PictureWizardColor</td>
+<td class=c>int16u</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='2 = 0x2'>2</td>
+<td>PictureWizardSaturation</td>
+<td class=c>int16u</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='3 = 0x3'>3</td>
+<td>PictureWizardSharpness</td>
+<td class=c>int16u</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='4 = 0x4'>4</td>
+<td>PictureWizardContrast</td>
+<td class=c>int16u</td>
+<td>&nbsp;</td></tr>
+</table></td></tr></table></blockquote>
+
 <h2><a name='INFO'>Samsung INFO Tags</a></h2>
 <p>This information is found in MP4 videos from Samsung models such as the
 SMX-C20N.</p>
@@ -224,7 +291,7 @@ WP10.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -262,22 +329,35 @@ WP10.</p>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
 <tr class=b>
-<td class=r title='248 = 0xf8'>248</td>
+<td class=r title='244 = 0xf4'>244</td>
+<td>Thumbnail</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Samsung.html#Thumbnail'>Samsung Thumbnail Tags</a></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='Thumbnail'>Samsung Thumbnail Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index4</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='1 = 0x1'>1</td>
 <td>ThumbnailWidth</td>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
-<tr>
-<td class=r title='252 = 0xfc'>252</td>
+<tr class=b>
+<td class=r title='2 = 0x2'>2</td>
 <td>ThumbnailHeight</td>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
-<td class=r title='256 = 0x100'>256</td>
+<tr>
+<td class=r title='3 = 0x3'>3</td>
 <td>ThumbnailLength</td>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
-<tr>
-<td class=r title='260 = 0x104'>260</td>
+<tr class=b>
+<td class=r title='4 = 0x4'>4</td>
 <td>ThumbnailOffset</td>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
@@ -285,7 +365,7 @@ WP10.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Apr 16, 2011</i>
+<br><i>Last revised Jan 17, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

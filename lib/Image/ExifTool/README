@@ -28,10 +28,12 @@ is an explanation of the meaning of each special key:
 
   PROCESS_PROC : Reference to a function used to process the directory for this
   table.  If PROCESS_PROC is not given, \&Image::ExifTool::Exif::ProcessExif is
-  assumed.  If PROCESS_PROC is set to 0, the tags are not added to the lookup.
-  The process proc returns 1 on success or 0 on failure, and takes 3 arguments:
-  0) reference to the ExifTool object, 1) reference to a directory information
-  hash (with the following entries:), 2) reference to the tag table hash.
+  assumed (except for QuickTime atoms for which
+  \&Image::ExifTool::QuickTime::ProcessMOV is the default).  If PROCESS_PROC is
+  set to 0, the tags are not added to the lookup. The process proc returns 1 on
+  success or 0 on failure, and takes 3 arguments: 0) reference to the ExifTool
+  object, 1) reference to a directory information hash (with the following
+  entries:), 2) reference to the tag table hash.
 
     Name        - Tag name for this SubDirectory entry (for verbose messages)
     Base        - Base offset for pointers from start of file
@@ -173,6 +175,8 @@ is an explanation of the meaning of each special key:
 
     NO_ID         Avoid printing "Tag ID" column in tag name documentation.
 
+    NO_LOOKUP     Do not add tags to TagLookup.pm lookup tables
+
     CAPTURE       Used by PDF module to name dictionaries to capture when
                   writing.
 
@@ -233,7 +237,7 @@ numerical.
                   in trailing brackets which is a Perl expression to be
                   evaluated. The expression may access any of the previous table
                   entries through a %val hash (read-only tables), the data size
-                  via $size, or the ExifTool object via $self. For example,
+                  via $size, or the ExifTool object via $self.  For example,
                   'string[$val{3}]' defines a string with length given by the
                   table entry with tag index '3'.  An initial "var_" may be
                   added to the Format name of any BinaryData tag with a size in
@@ -257,8 +261,8 @@ numerical.
 
   Flags         : Flags to specify characteristics for this tag.  May be a
                   simple scalar flag name, a reference to a list of flag names,
-                  or a reference to a hash of flag/value pairs. If not a hash
-                  reference, the flag value is set to 1. Flags are expanded for
+                  or a reference to a hash of flag/value pairs.  If not a hash
+                  reference, the flag value is set to 1.  Flags are expanded for
                   faster access at run time into members of the tagInfo hash,
                   and may be written directly as members if desired. The
                   available flag names are:
@@ -268,7 +272,8 @@ numerical.
                   pattern for split, or 1 for default pattern ',?\\s+'.
 
                   'Avoid' - avoid creating this tag if possible.  This is only
-                  effective if another tag exists with the same name.
+                  effective if another tag exists with the same name.  Setting
+                  this flag also sets the default Priority to 0 for this tag.
 
                   'Binary' - set to 1 for binary data.  This has the same effect
                   as setting ValueConv to '\$val', but it it a bit cleaner and
@@ -332,7 +337,7 @@ numerical.
                   behaviour for a flattened tag which is itself not a list
                   element (ie. a member of list of structures).  Note that in
                   ExifTool an XMP lang-alt tag (Writable="lang-alt") is NOT a
-                  List-type tag (unless it is a list of lang-alt lists, which is
+                  list-type tag (unless it is a list of lang-alt lists, which is
                   uncommon).
 
                   'MakerNotes' - set if this tag is maker note data.
@@ -392,6 +397,12 @@ numerical.
                   for main IFD's (IFD0, IFD1, etc) and IFD's where SubIFD flag
                   is set to 2 (currently only ExifIFD).
 
+                  'RawJoin' - [List tags only] Joins raw List-type tag values
+                  into a single string with a space separator, allowing
+                  ValueConv and PrintConv to act on the concatenated string so
+                  the tag does not exhibit list-type behaviour.  When writing,
+                  the inverse is performed and the value is split at whitespace.
+
                   'Resource' - [XMP only] flag to write value as an rdf:resource
                   in an empty element instead of as a normal string.
 
@@ -442,26 +453,26 @@ numerical.
                   with $val and $self as arguments.  For Composite tags, $val is
                   a reference to a hash of source ("derived from") tag names,
                   and @val may be used to access the Raw values of these tags.
-                  If RawConv is specified for a Composite tag, then ValueConv
-                  and PrintConv evals will no longer have access to the source
-                  @val and @prt values.  The returned value may be a scalar
-                  which is used as the new Raw value, a scalar reference to a
-                  binary data value, a hash reference for Composite tags, an
-                  ARRAY reference for a list of values, or undefined to indicate
-                  that the tag should be ignored.  Also, RawConv may generate
-                  Warning or Error tags, while ValueConv and PrintConv may not. 
-                  Note: RawConv should only be used if necessary (in general,
-                  only if the conversion may return undef to ignore the tag)
-                  because ValueConv is more efficient since it is only executed
-                  if the tag value is requested, while RawConv is executed for
-                  all extracted tags.
+                  The returned value may be a scalar which is used as the new
+                  Raw value, a scalar reference to a binary data value, a hash
+                  reference for Composite tags, an ARRAY reference for a list of
+                  values, or undefined to indicate that the tag should be
+                  ignored.  If RawConv is specified for a Composite tag, then
+                  ValueConv and PrintConv evals will no longer have access to
+                  the source @val and @prt values unless the input $val is
+                  returned.  RawConv may generate Warning or Error tags, while
+                  ValueConv and PrintConv may not. Note: RawConv should only be
+                  used if necessary (in general, only if the conversion may
+                  return undef to ignore the tag) because ValueConv is more
+                  efficient since it is only executed if the tag value is
+                  requested, while RawConv is executed for all extracted tags.
 
   ValueConv     : Used to convert the Raw value to a useable form. May be a hash
                   reference to act as a lookup table, a scalar which is
                   evaluated as a Perl expression, or a code reference to a
                   subroutine.  May also be a list reference, in which case the
-                  value is split at whitespace into a list of values and each
-                  value is converted by the associated entry in the ValueConv
+                  value is split at whitespace into a list of items and each
+                  item is converted by the associated entry in the ValueConv
                   list.  If a hash reference is used and the Raw value doesn't
                   appear as one of the keys, then the converted value is set to
                   "Unknown (X)", where X is the Raw value (unless either of the
@@ -608,9 +619,9 @@ numerical.
   Desire        : [Composite tags only] This is the same as Require except that
                   the Composite value is calculated even if the specified tags
                   don't exist.  Beware that the elements of @val, @prt and @raw
-                  may be undefined for Desire'd tags.  Even if no tags are
-                  Require'd, at least one of the Desire'd tags must exist for
-                  the Composite tag to be generated.
+                  may be undefined for Desire'd tags.  If no tags are Require'd,
+                  at least one of the Desire'd tags must exist for the Composite
+                  tag to be generated.
 
   Inhibit       : [Composite tags only] Similar to the Require and Desire
                   hashes, except that the Composite tag is NOT built if any of
@@ -620,8 +631,8 @@ numerical.
                   value may be shifted.  Set to 'Time' for shifting date/time
                   tags.
 
-  Writable      : Indicates this tag can be written (or not written if value is
-                  set to zero), and for EXIF-type tables gives format for
+  Writable      : Indicates this tag can be written (or not written if Writable
+                  is set to zero), and for EXIF-type tables gives format for
                   writing.  Writable may be set to 1 for MakerNotes information
                   because the existing format is always used, however providing
                   a format is desireable because it is used in validating the
@@ -663,6 +674,8 @@ numerical.
                   error string, or undef if the value is good.  If the error
                   string is empty, the tag is not written and no warnings are
                   issued, but WriteAlso is still evaluated if it exists.
+
+  WriteOnly     : Flag set if tag is write-only.  Used for documentation only.
 
   DelCheck      : Similar to WriteCheck, but called when the tag is deleted. The
                   expression may access $self, $tagInfo and $wantGroup.  Returns
@@ -884,12 +897,11 @@ the specific field is stored (including any necessary list properties).  The
 full property path is obtained by walking the structure tree.
 
 Flattened tags corresponding to each field in a structure are automatically
-generated (using an on-demand approach to avoid spending time generating them
-unless necessary).  Pre-defined flattened tags are allowed, and are used when it
-is necessary to change the Name or Description of a flattened tag.  The
-flattened tag information hash entries are copied from the corresponding
-structure field definitions, even for pre-defined flattened tags.  The exception
-that the List tag is generated automatically unless explicity set to 0 in a
-pre-defined flattened tag.
+generated (using an on-demand approach to reduce startup overhead).  Pre-defined
+flattened tags are allowed, and are used when it is necessary to change the Name
+or Description of a flattened tag.  The flattened tag information hash entries
+are copied from the corresponding structure field definitions, even for
+pre-defined flattened tags.  The exception that the List tag is generated
+automatically unless explicity set to 0 in a pre-defined flattened tag.
 
 --------------------------------------------------------------------------------

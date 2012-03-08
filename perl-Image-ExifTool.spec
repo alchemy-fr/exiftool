@@ -1,6 +1,6 @@
 Summary: perl module for image data extraction
 Name: perl-Image-ExifTool
-Version: 8.61
+Version: 8.80
 Release: 1
 License: Artistic/GPL
 Group: Development/Libraries/Perl
@@ -21,35 +21,37 @@ supported by ExifTool (r = read, w = write, c = create):
 
   File Types
   ------------+-------------+-------------+-------------+------------
-  3FR   r     | DVB   r     | MEF   r/w   | PDF   r/w   | RM    r
-  3G2   r     | DYLIB r     | MIE   r/w/c | PEF   r/w   | SO    r
-  3GP   r     | EIP   r     | MIFF  r     | PFA   r     | SR2   r/w
-  ACR   r     | EPS   r/w   | MKA   r     | PFB   r     | SRF   r
-  AFM   r     | ERF   r/w   | MKS   r     | PFM   r     | SRW   r/w
-  AI    r/w   | EXE   r     | MKV   r     | PGF   r     | SVG   r
-  AIFF  r     | EXIF  r/w/c | MNG   r/w   | PGM   r/w   | SWF   r
-  APE   r     | F4A/V r     | MOS   r/w   | PICT  r     | THM   r/w
-  ARW   r/w   | FLA   r     | MOV   r     | PMP   r     | TIFF  r/w
-  ASF   r     | FLAC  r     | MP3   r     | PNG   r/w   | TTC   r
-  AVI   r     | FLV   r     | MP4   r     | PPM   r/w   | TTF   r
-  BMP   r     | FPX   r     | MPC   r     | PPT   r     | VRD   r/w/c
-  BTF   r     | GIF   r/w   | MPG   r     | PPTX  r     | VSD   r
-  CHM   r     | GZ    r     | MPO   r/w   | PS    r/w   | WAV   r
-  COS   r     | HDP   r/w   | MQV   r     | PSB   r/w   | WDP   r/w
-  CR2   r/w   | HTML  r     | MRW   r/w   | PSD   r/w   | WEBP  r
-  CRW   r/w   | ICC   r/w/c | MXF   r     | PSP   r     | WEBM  r
-  CS1   r/w   | IIQ   r/w   | NEF   r/w   | QTIF  r     | WMA   r
-  DCM   r     | IND   r/w   | NRW   r/w   | RA    r     | WMV   r
-  DCP   r/w   | ITC   r     | NUMBERS r   | RAF   r/w   | X3F   r/w
-  DCR   r     | JNG   r/w   | ODP   r     | RAM   r     | XCF   r
-  DFONT r     | JP2   r/w   | ODS   r     | RAR   r     | XLS   r
-  DIVX  r     | JPEG  r/w   | ODT   r     | RAW   r/w   | XLSX  r
-  DJVU  r     | K25   r     | OGG   r     | RIFF  r     | XMP   r/w/c
-  DLL   r     | KDC   r     | OGV   r     | RSRC  r     | ZIP   r
-  DNG   r/w   | KEY   r     | ORF   r/w   | RTF   r     |
-  DOC   r     | LNK   r     | OTF   r     | RW2   r/w   |
-  DOCX  r     | M2TS  r     | PAGES r     | RWL   r/w   |
-  DV    r     | M4A/V r     | PBM   r/w   | RWZ   r     |
+  3FR   r     | EIP   r     | LNK   r     | PAC   r     | RWZ   r
+  3G2   r     | EPS   r/w   | M2TS  r     | PAGES r     | RM    r
+  3GP   r     | ERF   r/w   | M4A/V r     | PBM   r/w   | SO    r
+  ACR   r     | EXE   r     | MEF   r/w   | PDF   r/w   | SR2   r/w
+  AFM   r     | EXIF  r/w/c | MIE   r/w/c | PEF   r/w   | SRF   r
+  AI    r/w   | EXR   r     | MIFF  r     | PFA   r     | SRW   r/w
+  AIFF  r     | F4A/V r     | MKA   r     | PFB   r     | SVG   r
+  APE   r     | FFF   r/w   | MKS   r     | PFM   r     | SWF   r
+  ARW   r/w   | FLA   r     | MKV   r     | PGF   r     | THM   r/w
+  ASF   r     | FLAC  r     | MNG   r/w   | PGM   r/w   | TIFF  r/w
+  AVI   r     | FLV   r     | MOS   r/w   | PICT  r     | TTC   r
+  BMP   r     | FPX   r     | MOV   r     | PMP   r     | TTF   r
+  BTF   r     | GIF   r/w   | MP3   r     | PNG   r/w   | VRD   r/w/c
+  CHM   r     | GZ    r     | MP4   r     | PPM   r/w   | VSD   r
+  COS   r     | HDP   r/w   | MPC   r     | PPT   r     | WAV   r
+  CR2   r/w   | HDR   r     | MPG   r     | PPTX  r     | WDP   r/w
+  CRW   r/w   | HTML  r     | MPO   r/w   | PS    r/w   | WEBP  r
+  CS1   r/w   | ICC   r/w/c | MQV   r     | PSB   r/w   | WEBM  r
+  DCM   r     | IDML  r     | MRW   r/w   | PSD   r/w   | WMA   r
+  DCP   r/w   | IIQ   r/w   | MXF   r     | PSP   r     | WMV   r
+  DCR   r     | IND   r/w   | NEF   r/w   | QTIF  r     | WV    r
+  DFONT r     | INX   r     | NRW   r/w   | RA    r     | X3F   r/w
+  DIVX  r     | ITC   r     | NUMBERS r   | RAF   r/w   | XCF   r
+  DJVU  r     | J2C   r     | ODP   r     | RAM   r     | XLS   r
+  DLL   r     | JNG   r/w   | ODS   r     | RAR   r     | XLSX  r
+  DNG   r/w   | JP2   r/w   | ODT   r     | RAW   r/w   | XMP   r/w/c
+  DOC   r     | JPEG  r/w   | OFR   r     | RIFF  r     | ZIP   r
+  DOCX  r     | K25   r     | OGG   r     | RSRC  r     |
+  DV    r     | KDC   r     | OGV   r     | RTF   r     |
+  DVB   r     | KEY   r     | ORF   r/w   | RW2   r/w   |
+  DYLIB r     | LA    r     | OTF   r     | RWL   r/w   |
 
   Meta Information
   ----------------------+----------------------+---------------------

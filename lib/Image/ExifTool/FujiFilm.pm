@@ -23,15 +23,16 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.31';
+$VERSION = '1.34';
 
 sub ProcessFujiDir($$$);
 sub ProcessFaceRec($$$);
 
 # the following RAF version numbers have been tested for writing:
 my %testedRAF = (
-    '0100' => 'E550, E900, S5600, S6000fd, S6500fd, HS10/HS11, S200EXR, X100 (all Ver1.00)',
-    '0102' => 'S100FS Ver1.02',
+    '0100' => 'E550, E900, S5600, S6000fd, S6500fd, HS10/HS11, S200EXR, X100, X-S1 Ver1.00',
+    '0102' => 'S100FS, X10 Ver1.02',
+    '0103' => 'IS Pro Ver1.03',
     '0104' => 'S5Pro Ver1.04',
     '0106' => 'S5Pro Ver1.06',
     '0111' => 'S5Pro Ver1.11',
@@ -554,6 +555,67 @@ my %faceCategories = (
         Format => 'int16u',
         Count => 4,
     },
+    0xc000 => {
+        Name => 'RAFData',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::FujiFilm::RAFData',
+            ByteOrder => 'Little-endian',
+        }
+    },
+);
+
+%Image::ExifTool::FujiFilm::RAFData = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    FIRST_ENTRY => 0,
+    # (FujiFilm image dimensions are REALLY confusing)
+    0 => {
+        Name => 'RawImageWidth',
+        Format => 'int32u',
+        ValueConv => '$$self{FujiLayout} ? ($val / 2) : $val',
+    },
+    4 => {
+        Name => 'RawImageHeight',
+        Format => 'int32u',
+        ValueConv => '$$self{FujiLayout} ? ($val * 2) : $val',
+    },
+);
+
+# TIFF IFD-format information stored in FujiFilm RAF images (ref 5)
+%Image::ExifTool::FujiFilm::IFD = (
+    PROCESS_PROC => \&Image::ExifTool::Exif::ProcessExif,
+    GROUPS => { 0 => 'RAF', 1 => 'FujiIFD', 2 => 'Image' },
+    NOTES => 'Tags found in the FujiIFD information of RAF images from some models.',
+    0xf000 => {
+        Name => 'FujiIFD',
+        Groups => { 1 => 'FujiIFD' },
+        Flags => 'SubIFD',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::FujiFilm::IFD',
+            DirName => 'FujiSubIFD',
+            Start => '$val',
+        },
+    },
+    0xf001 => 'RawImageWidth',
+    0xf002 => 'RawImageHeight',
+    0xf003 => 'BitsPerSample',
+    # 0xf004 - values: 4
+    # 0xf005 - values: 1374, 1668
+    # 0xf006 - some sort of flag indicating packed format?
+    0xf007 => {
+        Name => 'StripOffsets',
+        IsOffset => 1,
+        OffsetPair => 0xf008,  # point to associated byte counts
+    },
+    0xf008 => {
+        Name => 'StripByteCounts',
+        OffsetPair => 0xf007,  # point to associated offsets
+    },
+    # 0xf009 - values: 0, 3
+    # 0xf00a-0xf00c ?
+    # 0xf00d - similar to 0xf00e
+    0xf00e => 'WB_GRBLevels',
+    # 0xf00f ?
 );
 
 # information found in FFMV atom of MOV videos
@@ -695,7 +757,7 @@ sub WriteRAF($$)
     }
     # check to make sure this version of RAF has been tested
     unless ($testedRAF{$ver}) {
-        $exifTool->Error("RAF version $ver not yet tested", 1) and return 1;
+        $exifTool->Warn("RAF version $ver not yet tested", 1);
     }
     # read the embedded JPEG
     unless ($raf->Seek($jpos, 0) and $raf->Read($jpeg, $jlen) == $jlen) {
@@ -748,7 +810,7 @@ sub WriteRAF($$)
     my $ptrDiff = length($outJpeg) + length($pad) - ($jlen + $oldPadLen);
     # update necessary pointers in header
     foreach $offset (0x5c, 0x64, 0x78, 0x80) {
-        last if $offset >= $jpos;    # some versions have a short header
+        last if $offset >= $jpos;   # some versions have a short header
         my $oldPtr = Get32u(\$hdr, $offset);
         next unless $oldPtr;        # don't update if pointer is zero
         Set32u($oldPtr + $ptrDiff, \$hdr, $offset);
@@ -786,6 +848,7 @@ sub ProcessRAF($$)
     $raf->Seek($jpos, 0)              or return 0;
     $raf->Read($jpeg, $jlen) == $jlen or return 0;
 
+    $exifTool->SetFileType();
     $exifTool->FoundTag('RAFVersion', substr($buff, 0x3c, 4));
 
     # extract information from embedded JPEG
@@ -798,9 +861,9 @@ sub ProcessRAF($$)
     $$exifTool{BASE} -= $jpos;
     $exifTool->FoundTag('PreviewImage', \$jpeg) if $rtnVal;
 
-    # extract information from Fuji RAF directories
-    my $num = '';
-    foreach $offset (0x5c, 0x78) {
+    # extract information from Fuji RAF and TIFF directories
+    my ($rafNum, $ifdNum) = ('','');
+    foreach $offset (0x5c, 0x64, 0x78, 0x80) {
         last if $offset >= $jpos;
         unless ($raf->Seek($offset, 0) and $raf->Read($buff, 4)) {
             $warn = 1;
@@ -808,17 +871,30 @@ sub ProcessRAF($$)
         }
         my $start = unpack('N',$buff);
         next unless $start;
-
-        %dirInfo = (
-            RAF      => $raf,
-            DirStart => $start,
-        );
-        $$exifTool{SET_GROUP1} = "RAF$num";
-        my $tagTablePtr = GetTagTable('Image::ExifTool::FujiFilm::RAF');
-        $exifTool->ProcessDirectory(\%dirInfo, $tagTablePtr) or $warn = 1;
-        delete $$exifTool{SET_GROUP1};
-
-        $num = ($num || 1) + 1;
+        if ($offset == 0x64 or $offset == 0x80) {
+            # parse FujiIFD directory
+            %dirInfo = (
+                RAF  => $raf,
+                Base => $start,
+            );
+            $$exifTool{SET_GROUP1} = "FujiIFD$ifdNum";
+            my $tagTablePtr = GetTagTable('Image::ExifTool::FujiFilm::IFD');
+            # this is TIFF-format data only for some models, so no warning if it fails
+            $exifTool->ProcessTIFF(\%dirInfo, $tagTablePtr, \&Image::ExifTool::ProcessTIFF);
+            delete $$exifTool{SET_GROUP1};
+            $ifdNum = ($ifdNum || 1) + 1;
+        } else {
+            # parse RAF directory
+            %dirInfo = (
+                RAF      => $raf,
+                DirStart => $start,
+            );
+            $$exifTool{SET_GROUP1} = "RAF$rafNum";
+            my $tagTablePtr = GetTagTable('Image::ExifTool::FujiFilm::RAF');
+            $exifTool->ProcessDirectory(\%dirInfo, $tagTablePtr) or $warn = 1;
+            delete $$exifTool{SET_GROUP1};
+            $rafNum = ($rafNum || 1) + 1;
+        }
     }
     $warn and $exifTool->Warn('Possibly corrupt RAF information');
 
@@ -845,7 +921,7 @@ FujiFilm maker notes in EXIF information, and to read/write FujiFilm RAW
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.44
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.69
 [File, System, Image] FileName - File Name: MP3.mp3
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 395 bytes
@@ -19,6 +19,7 @@
 [MPEG, MPEG, Audio] Bit30-31 - Emphasis: None
 [ID3, ID3v2_2, Audio] TRK - Track: 1/5
 [ID3, ID3v2_2, Audio] TPA - Part Of Set: 1/2
+[ID3, ID3v2_2, Audio] RVA - Relative Volume Adjustment: +18.0% Right, +18.0% Left
 [ID3, ID3v2_2, Audio] ULT - Lyrics: Do-wap she-bang
 [ID3, ID3v2_2, Image] PIC-1 - Picture Format: JPG
 [ID3, ID3v2_2, Image] PIC-2 - Picture Type: Other

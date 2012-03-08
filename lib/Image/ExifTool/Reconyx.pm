@@ -13,7 +13,7 @@ package Image::ExifTool::Reconyx;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 # maker notes for Reconyx Hyperfire cameras (ref PH)
 %Image::ExifTool::Reconyx::Main = (
@@ -91,7 +91,7 @@ $VERSION = '1.02';
             join ' ', @a[5,4,3,1,2,0];
         },
         PrintConv => '$self->ConvertDateTime($val)',
-        PrintConvInv => '$val',
+        PrintConvInv => '$self->InverseDateTime($val)',
     },
     0x12 => {
         Name => 'MoonPhase',
@@ -109,13 +109,15 @@ $VERSION = '1.02';
     },
     0x13 => {
         Name => 'AmbientTemperatureFahrenheit',
+        Format => 'int16s',
         PrintConv => '"$val F"',
-        PrintConvInv => '$val=~/(\d+)/ ? $1 : $val',
+        PrintConvInv => '$val=~/(-?\d+)/ ? $1 : $val',
     },
     0x14 => {
         Name => 'AmbientTemperature',
+        Format => 'int16s',
         PrintConv => '"$val C"',
-        PrintConvInv => '$val=~/(\d+)/ ? $1 : $val',
+        PrintConvInv => '$val=~/(-?\d+)/ ? $1 : $val',
     },
     0x15 => {
         Name => 'SerialNumber',
@@ -170,7 +172,7 @@ maker notes in Reconyx cameras.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

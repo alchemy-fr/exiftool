@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.59
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.79
 [File, System, Image] FileName - File Name: Writer_35_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 9.5 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2011:06:02 14:25:50-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:02:20 10:04:41-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -84,7 +84,7 @@
 [Photoshop, Photoshop, Author] 1035 - URL: http://owl.phy.queensu.ca/~phil/exiftool/
 [Photoshop, Photoshop, Image] 1037 - Global Angle: 30
 [Photoshop, Photoshop, Image] 1049 - Global Altitude: 30
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.59
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.79
 [XMP, XMP-dc, Author] creator - Creator: Phil Harvey
 [XMP, XMP-dc, Image] description - Description: UTF-16 (big-endian) encoded XMP
 [XMP, XMP-dc, Author] rights - Rights: Copyright 2004 Phil Harvey
@@ -136,6 +136,10 @@
 [ICC_Profile, ICC_Profile, Image] bXYZ - Blue Matrix Column: 0.14919 0.06322 0.74457
 [Ducky, Ducky, Author] 3 - Copyright: Copyright 2004 Phil Harvey
 [Ducky, Ducky, Image] 1 - Quality: 84%
+[APP14, Adobe, Image] 0 - DCT Encode Version: 100
+[APP14, Adobe, Image] 1 - APP14 Flags 0: (none)
+[APP14, Adobe, Image] 2 - APP14 Flags 1: (none)
+[APP14, Adobe, Image] 3 - Color Transform: YCbCr
 [CanonVRD, CanonVRD, Image] 2 - VRD Version: 1.00
 [CanonVRD, CanonVRD, Image] 6 - WB Adj RGGB Levels: 0 0 0 0
 [CanonVRD, CanonVRD, Image] 24 - White Balance Adj: Shot Settings

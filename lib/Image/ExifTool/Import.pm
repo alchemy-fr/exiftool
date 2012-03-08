@@ -12,7 +12,7 @@ require Exporter;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
-$VERSION = '1.00';
+$VERSION = '1.02';
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(ReadCSV ReadJSON);
 
@@ -82,6 +82,9 @@ sub ReadCSV($$;$)
         } else {
             # the first row should be the tag names
             foreach (@vals) {
+                # terminate at first blank tag name (ie. extra comma at end of line)
+                last unless length $_;
+                @tags or s/^\xef\xbb\xbf//; # remove UTF-8 BOM if it exists
                 /^[-\w]+(:[-\w+]+)?#?$/ or $err = "Invalid tag name '$_'", last;
                 push(@tags, $_);
             }
@@ -115,7 +118,7 @@ sub ReadJSONObject($;$)
 {
     my ($fp, $buffPt) = @_;
     # initialize buffer if necessary
-    my ($pos, $readMore, $rtnVal, $tok, $key);
+    my ($pos, $readMore, $rtnVal, $tok, $key, $didBOM);
     if ($buffPt) {
         $pos = pos $$buffPt;
     } else {
@@ -129,6 +132,10 @@ Tok: for (;;) {
             my $offset = length($$buffPt) - $pos;
             $$buffPt = substr($$buffPt, $pos) if $offset;
             read $fp, $$buffPt, 65536, $offset or $$buffPt = '', last;
+            unless ($didBOM) {
+                $$buffPt =~ s/^\xef\xbb\xbf//;  # remove UTF-8 BOM if it exists
+                $didBOM = 1;
+            }
             $pos = pos($$buffPt) = 0;
             $readMore = 0;
         }
@@ -288,7 +295,7 @@ stored as hash lookups of tag name/value for each SourceFile.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

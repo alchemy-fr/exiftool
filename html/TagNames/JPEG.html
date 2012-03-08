@@ -47,7 +47,7 @@
 <td>--&gt; <a href='ICC_Profile.html'>ICC_Profile Tags</a>
   <br>--&gt; <a href='FlashPix.html'>FlashPix Tags</a>
   <br>--&gt; <a href='MPF.html'>MPF Tags</a>
-  <br><span class=n>(Samsung large preview)</span></td></tr>
+  <br><span class=n>(Samsung APP2 preview image)</span></td></tr>
 <tr class=b>
 <td>'APP3'</td>
 <td>Meta
@@ -56,7 +56,7 @@
 <td class=c>-<br>-<br>N</td>
 <td>--&gt; <a href='Kodak.html#Meta'>Kodak Meta Tags</a>
   <br>--&gt; <a href='Stim.html'>Stim Tags</a>
-  <br><span class=n>(Hewlett-Packard or Samsung preview image)</span></td></tr>
+  <br><span class=n>(Samsung/HP preview image)</span></td></tr>
 <tr>
 <td>'APP4'</td>
 <td>Scalado
@@ -65,12 +65,14 @@
 <td class=c>-<br>-<br>N</td>
 <td>--&gt; <a href='JPEG.html#Scalado'>JPEG Scalado Tags</a>
   <br>--&gt; <a href='FlashPix.html'>FlashPix Tags</a>
-  <br><span class=n>(Continued Samsung preview from APP3)</span></td></tr>
+  <br><span class=n>(continued from APP3)</span></td></tr>
 <tr class=b>
 <td>'APP5'</td>
-<td>RMETA</td>
-<td class=c>-</td>
-<td>--&gt; <a href='Ricoh.html#RMETA'>Ricoh RMETA Tags</a></td></tr>
+<td>RMETA
+  <br>PreviewImage</td>
+<td class=c>-<br>N</td>
+<td>--&gt; <a href='Ricoh.html#RMETA'>Ricoh RMETA Tags</a>
+  <br><span class=n>(continued from APP4)</span></td></tr>
 <tr>
 <td>'APP6'</td>
 <td>EPPIM
@@ -81,55 +83,60 @@
   <br>--&gt; <a href='JPEG.html#NITF'>JPEG NITF Tags</a>
   <br>--&gt; <a href='HP.html#TDHD'>HP TDHD Tags</a></td></tr>
 <tr class=b>
+<td>'APP7'</td>
+<td>Qualcomm</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Qualcomm.html'>Qualcomm Tags</a></td></tr>
+<tr>
 <td>'APP8'</td>
 <td>SPIFF</td>
 <td class=c>-</td>
 <td>--&gt; <a href='JPEG.html#SPIFF'>JPEG SPIFF Tags</a></td></tr>
-<tr>
+<tr class=b>
 <td>'APP10'</td>
 <td>Comment</td>
 <td class=c>N</td>
 <td><span class=s><span class=n>(PhotoStudio Unicode comment)</span></span></td></tr>
-<tr class=b>
+<tr>
 <td>'APP12'</td>
 <td>PictureInfo
   <br>Ducky</td>
 <td class=c>-<br>-</td>
 <td>--&gt; <a href='APP12.html#PictureInfo'>APP12 PictureInfo Tags</a>
   <br>--&gt; <a href='APP12.html#Ducky'>APP12 Ducky Tags</a></td></tr>
-<tr>
+<tr class=b>
 <td>'APP13'</td>
 <td>Photoshop
   <br>Adobe_CM</td>
 <td class=c>-<br>-</td>
 <td>--&gt; <a href='Photoshop.html'>Photoshop Tags</a>
   <br>--&gt; <a href='JPEG.html#AdobeCM'>JPEG AdobeCM Tags</a></td></tr>
-<tr class=b>
+<tr>
 <td>'APP14'</td>
 <td>Adobe</td>
-<td class=c>-</td>
+<td class=c>Y</td>
 <td>--&gt; <a href='JPEG.html#Adobe'>JPEG Adobe Tags</a></td></tr>
-<tr>
+<tr class=b>
 <td>'APP15'</td>
 <td>GraphicConverter</td>
 <td class=c>-</td>
 <td>--&gt; <a href='JPEG.html#GraphConv'>JPEG GraphConv Tags</a></td></tr>
-<tr class=b>
+<tr>
 <td>'COM'</td>
 <td>Comment</td>
 <td class=c>Y</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td>'DQT'</td>
 <td>DefineQuantizationTable</td>
 <td class=c>N</td>
 <td><span class=s><span class=n>(used to calculate the Extra:JPEGDigest tag value)</span></span></td></tr>
-<tr class=b>
+<tr>
 <td>'SOF'</td>
 <td>StartOfFrame</td>
 <td class=c>-</td>
 <td>--&gt; <a href='JPEG.html#SOF'>JPEG SOF Tags</a></td></tr>
-<tr>
+<tr class=b>
 <td>'Trailer'</td>
 <td>AFCP
   <br>CanonVRD
@@ -150,7 +157,7 @@
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -228,7 +235,7 @@ the official specification.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -302,7 +309,7 @@ specification.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -391,7 +398,7 @@ has an idea about what this means, please let me know.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -401,11 +408,14 @@ has an idea about what this means, please let me know.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='Adobe'>JPEG Adobe Tags</a></h2>
-<p>The &quot;Adobe&quot; APP14 segment stores image encoding information for DCT filters.</p>
+<p>The &quot;Adobe&quot; APP14 segment stores image encoding information for DCT filters.
+This segment may be copied or deleted as a block using the Extra &quot;Adobe&quot;
+tag, but note that it is not deleted by default when deleting all metadata
+because it may affect the appearance of the image.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -500,7 +510,7 @@ has an idea about what this means, please let me know.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Mar 7, 2011</i>
+<br><i>Last revised Feb 20, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

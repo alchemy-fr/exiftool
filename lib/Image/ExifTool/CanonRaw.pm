@@ -6,7 +6,6 @@
 # Revisions:    11/25/2003 - P. Harvey Created
 #               12/02/2003 - P. Harvey Completely reworked and figured out many
 #                            more tags
-#               01/19/2004 - P. Harvey Added CleanRaw()
 #
 # References:   1) http://www.cybercom.net/~dcoffin/dcraw/
 #               2) http://www.wonderland.org/crw/
@@ -895,7 +894,7 @@ tags.)
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

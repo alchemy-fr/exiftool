@@ -41,21 +41,25 @@
 #
 #                   exiftool -config ExifTool_config ...
 #
-#               This sample file defines the following 12 new tags as well as a
+#               This sample file defines the following 16 new tags as well as a
 #               number of Shortcut and Composite tags:
 #
 #                   1.  EXIF:NewEXIFTag
-#                   2.  IPTC:NewIPTCTag
-#                   3.  XMP-xmp:NewXMPxmpTag
-#                   4.  XMP-xxx:NewXMPxxxTag1
-#                   5.  XMP-xxx:NewXMPxxxTag2
-#                   6.  XMP-xxx:NewXMPxxxTag3
-#                   7.  XMP-xxx:NewXMPxxxStruct
-#                   8.  PNG:NewPngTag1
-#                   9.  PNG:NewPngTag2
-#                  10.  PNG:NewPngTag3
-#                  11.  MIE-Meta:NewMieTag1
-#                  12.  MIE-Test:NewMieTag2
+#                   2.  GPS:GPSPitch
+#                   3.  GPS:GPSRoll
+#                   4.  IPTC:NewIPTCTag
+#                   5.  XMP-xmp:NewXMPxmpTag
+#                   6.  XMP-exif:GPSPitch
+#                   7.  XMP-exif:GPSRoll
+#                   8.  XMP-xxx:NewXMPxxxTag1
+#                   9.  XMP-xxx:NewXMPxxxTag2
+#                  10.  XMP-xxx:NewXMPxxxTag3
+#                  11.  XMP-xxx:NewXMPxxxStruct
+#                  12.  PNG:NewPngTag1
+#                  13.  PNG:NewPngTag2
+#                  14.  PNG:NewPngTag3
+#                  15.  MIE-Meta:NewMieTag1
+#                  16.  MIE-Test:NewMieTag2
 #
 #               For detailed information on the definition of tag tables and
 #               tag information hashes, see lib/Image/ExifTool/README.
@@ -82,18 +86,37 @@
             Writable =&gt; 'int16u',
             WriteGroup =&gt; 'IFD0',
         },
+        <span class='com'># add more user-defined EXIF tags here...</span>
+    },
+    <span class='com'># the <a href="geotag.html">Geotag feature</a> writes these additional GPS tags if available:</span>
+    'Image::ExifTool::GPS::Main' =&gt; {
+        0xd000 =&gt; {
+            Name =&gt; 'GPSPitch',
+            Writable =&gt; 'rational64s',
+        },
+        0xd001 =&gt; {
+            Name =&gt; 'GPSRoll',
+            Writable =&gt; 'rational64s',
+        },
     },
     <span class='com'># IPTC tags are added to a specific record type (ie. application record):
-    # (Note: IPTC tags ID's are limited to the range 0-255)</span>
+    # (Note: IPTC tag ID's are limited to the range 0-255)</span>
     'Image::ExifTool::IPTC::ApplicationRecord' =&gt; {
         240 =&gt; {
             Name =&gt; 'NewIPTCTag',
             Format =&gt; 'string[0,16]',
         },
+        <span class='com'># add more user-defined IPTC ApplicationRecord tags here...</span>
     },
     <span class='com'># XMP tags may be added to existing namespaces:</span>
     'Image::ExifTool::XMP::xmp' =&gt; {
         NewXMPxmpTag =&gt; { Groups =&gt; { 2 =&gt; 'Author' } },
+        <span class='com'># add more user-defined XMP-xmp tags here...</span>
+    },
+    <span class='com'># special Geotag tags for XMP-exif:</span>
+    'Image::ExifTool::XMP::exif' =&gt; {
+        GPSPitch =&gt; { Writable =&gt; 'rational', Groups =&gt; { 2 =&gt; 'Location' } },
+        GPSRoll  =&gt; { Writable =&gt; 'rational', Groups =&gt; { 2 =&gt; 'Location' } },
     },
     <span class='com'># new XMP namespaces (ie. xxx) must be added to the Main XMP table:</span>
     'Image::ExifTool::XMP::Main' =&gt; {
@@ -103,6 +126,7 @@
                 <span class='com'># (see the definition of this table below)</span>
             },
         },
+        <span class='com'># add more user-defined XMP namespaces here...</span>
     },
     <span class='com'># new PNG tags are added to the PNG::TextualData table:</span>
     'Image::ExifTool::PNG::TextualData' =&gt; {
@@ -172,6 +196,33 @@
             ValueConv => '$val[0]/$val[2] . " " . $val[1]/$val[3]',
             PrintConv => 'sprintf("%.1fx%.1f $prt[4]", split(" ",$val))',
         },
+        <span class='com'># [advanced] select largest JPEG preview image</span>
+        BigImage => {
+            Desire => {
+                0 => 'JpgFromRaw',
+                1 => 'PreviewImage',
+                2 => 'OtherImage',
+                <span class='com'># (DNG and A100 ARW may be have 2 PreviewImage's)</span>
+                3 => 'PreviewImage (1)',
+            },
+            <span class='com'># ValueConv may also be a code reference
+            # Inputs: 0) reference to list of values, 1) ExifTool object</span>
+            ValueConv => sub {
+                my $val = shift;
+                my ($image, $bigImage, $len, $bigLen);
+                foreach $image (@$val) {
+                    next unless ref $image eq 'SCALAR';
+                    <span class='com'># check for JPEG image (or "Binary data" if -b not used)</span>
+                    next unless $$image =~ /^(\xff\xd8\xff|Binary data (\d+))/;
+                    $len = $2 || length $$image; <span class='com'># get image length</span>
+                    <span class='com'># save largest image</span>
+                    next if defined $bigLen and $bigLen >= $len;
+                    $bigLen = $len;
+                    $bigImage = $image;
+                }
+                return $bigImage;
+            },
+        },
     },
 );
 
@@ -190,7 +241,7 @@
     NewXMPxxxTag3 =&gt; { List =&gt; 'Bag' },
     <span class='com'># example structured XMP tag</span>
     NewXMPxxxStruct => {
-        <span class='com'># a structure with 3 fields (X, Y and Things):</span>
+        <span class='com'># the "Struct" entry defines the structure fields</span>
         Struct =&gt; {
             <span class='com'># optional namespace prefix and URI for structure fields
             # (required only if different than NAMESPACE above)</span>

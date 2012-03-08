@@ -491,7 +491,7 @@ sub ProcessHTML($$)
                     $name =~ s/_x([0-9a-f]{4})_/chr(hex($1))/gie; # convert hex codes
                     $name =~ s/\s(.)/\U$1/g;     # capitalize all words in tag name
                     $name =~ tr/-_a-zA-Z0-9//dc; # remove illegal characters (also hex code wide chars)
-                    Image::ExifTool::AddTagToTable($table, $tag, { Name => $name });
+                    AddTagToTable($table, $tag, { Name => $name });
                     $exifTool->VPrint(0, "  [adding $tag '$name']\n");
                 }
                 $val = $exifTool->Decode($val, $$exifTool{HTMLCharset}) if $$exifTool{HTMLCharset};
@@ -507,7 +507,7 @@ sub ProcessHTML($$)
             $name =~ s/\W+(\w)/\u$1/sg;
             my $info = { Name => $name, Groups => { 0 => 'HTML' } };
             $info->{Groups}->{1} = ($grp eq 'http-equiv' ? 'HTTP-equiv' : "HTML-$grp") if $grp;
-            Image::ExifTool::AddTagToTable($table, $tag, $info);
+            AddTagToTable($table, $tag, $info);
             $exifTool->VPrint(0, "  [adding $tag '$tagName']\n");
         }
         # recode if necessary
@@ -538,7 +538,7 @@ meta information from HTML documents.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -5,12 +5,14 @@
 #
 # Usage:        exiftool -tagsFromFile SRCFILE -@ xmp2gps.args DSTFILE
 #
+# Requires:     ExifTool version 6.75 or later
+#
 # Revisions:    2009/01/09 - P. Harvey Created
 #
 # Notes:        Most of the GPS tags are copied by the first argument, but
 #               the coordinate references and date/time values are stored
 #               separately in EXIF, so they must be handled separately.
-#               A bit of magic is employed by exiftool to extract the date
+#               A bit of magic is employed by ExifTool to extract the date
 #               and time parts respectively when writing date-only and
 #               time-only tags with a date/time value.
 #------------------------------------------------------------------------------

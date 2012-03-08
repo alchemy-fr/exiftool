@@ -28,7 +28,7 @@ my $testnum = 1;
     print "ok $testnum\n";
 }
 
-# tests 3-5: Test adding/editing/deleting Comment and XMP of images in memory
+# tests 3-5: Test adding/editing/deleting various types of metadata for GIF images in memory
 {
     ++$testnum;
     open(TESTFILE, 't/images/GIF.gif');
@@ -41,13 +41,13 @@ my $testnum = 1;
     $exifTool->SetNewValue(City => 'Kingston');
     my $image1;
     $exifTool->WriteInfo(\$gifImage, \$image1);
-    my $info = ImageInfo(\$image1);
+    $info = ImageInfo(\$image1);
     print 'not ' unless check($info, $testname, $testnum);
     print "ok $testnum\n";
 
     ++$testnum;
     $exifTool->SetNewValue();       # clear previous new values
-    $exifTool->SetNewValue('all');  # delete everything
+    $exifTool->SetNewValue('all');  # delete everything...
     # add back some XMP tags
     $exifTool->SetNewValue(Subject => ['one','two','three']);
     $exifTool->SetNewValue(Country => 'Canada');
@@ -58,10 +58,11 @@ my $testnum = 1;
     print "ok $testnum\n";
 
     ++$testnum;
-    $info = ImageInfo(\$gifImage, 'Comment', 'XMP');
+    $info = ImageInfo(\$gifImage, 'Comment', 'XMP', 'ICC_Profile');
     $exifTool->SetNewValue();       # clear previous new values
     $exifTool->SetNewValue(Comment => $$info{Comment});
     $exifTool->SetNewValue(XMP => $$info{XMP}, Protected => 1);
+    $exifTool->SetNewValue(ICC_Profile => $$info{ICC_Profile}, Protected => 1);
     my $image3;
     $exifTool->WriteInfo(\$image2, \$image3);
     my $testfile = "t/${testname}_${testnum}_failed.gif";

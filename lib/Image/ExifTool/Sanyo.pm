@@ -14,7 +14,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.14';
+$VERSION = '1.15';
 
 my %offOn = (
     0 => 'Off',
@@ -350,31 +350,36 @@ my %offOn = (
             return $val;
         },
     },
-    0xfd => {
-        Name => 'ThumbnailLength',
+    0xf1 => {
+        Name => 'Thumbnail',
         Condition => '$$self{SanyoSledder0xd1}',
-        Format => 'int32u',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Sanyo::Thumbnail',
+            Base => '$start',
+        },
     },
-    0xfe => {
-        Name => 'ThumbnailLength',
+    0xf2 => {
+        Name => 'Thumbnail',
         Condition => '$$self{SanyoSledder0xd2}',
-        Format => 'int32u',
-    },
-    0x101 => {
-        Name => 'ThumbnailOffset',
-        Condition => '$$self{SanyoSledder0xd1}',
-        IsOffset => 1,
-        Format => 'int32u',
-        RawConv => '$val + 0xf1',
-    },
-    0x102 => {
-        Name => 'ThumbnailOffset',
-        Condition => '$$self{SanyoSledder0xd2}',
-        IsOffset => 1,
-        Format => 'int32u',
-        RawConv => '$val + 0xf2',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Sanyo::Thumbnail',
+            Base => '$start',
+        },
     },
 );
+
+# thumbnail image information found in MP4 videos (similar in Olympus,Samsung,Sanyo)
+%Image::ExifTool::Sanyo::Thumbnail = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    FIRST_ENTRY => 0,
+    FORMAT => 'int32u',
+    1 => 'ThumbnailWidth',
+    2 => 'ThumbnailHeight',
+    3 => 'ThumbnailLength',
+    4 => { Name => 'ThumbnailOffset', IsOffset => 1 },
+);
+
 
 #------------------------------------------------------------------------------
 # Patch incorrect offsets in J1, J2, J4, S1, S3 and S4 maker notes
@@ -413,7 +418,7 @@ Sanyo maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

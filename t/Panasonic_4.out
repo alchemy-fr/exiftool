@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.40
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.79
 [File, System, Image] FileName - File Name: Panasonic.rw2
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 12 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2009:03:25 11:54:31-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2009:03:25 12:10:29-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: RW2
 [File, File, Image] MIMEType - MIME Type: image/x-panasonic-rw2
@@ -133,6 +133,7 @@
 [MakerNotes, Panasonic, Camera] 64 - Saturation: Normal
 [MakerNotes, Panasonic, Camera] 65 - Sharpness: Normal
 [MakerNotes, Panasonic, Camera] 66 - Film Mode: Standard (color)
+[MakerNotes, Panasonic, Camera] 68 - Color Temp Kelvin: 0
 [MakerNotes, Panasonic, Camera] 70 - WB Adjust AB: 0
 [MakerNotes, Panasonic, Camera] 71 - WB Adjust GM: 0
 [MakerNotes, Panasonic, Camera] 75 - Panasonic Image Width: 3648

@@ -46,14 +46,14 @@ use Image::ExifTool qw(:Utils);
 use Image::ExifTool::Exif;
 require Exporter;
 
-$VERSION = '2.40';
+$VERSION = '2.47';
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(EscapeXML UnescapeXML);
 
 sub ProcessXMP($$;$);
 sub WriteXMP($$;$);
 sub CheckXMP($$$);
-sub ParseXMPElement($$$;$$$);
+sub ParseXMPElement($$$;$$$$);
 sub DecodeBase64($);
 sub SaveBlankInfo($$$;$);
 sub ProcessBlankInfo($$$;$);
@@ -343,6 +343,8 @@ my %sPageInfo = (
     L           => { Writable => 'real' },
     A           => { Writable => 'integer' },
     B           => { Writable => 'integer' },
+    # 'tint' observed in INDD sample - PH
+    tint        => { Writable => 'integer', Notes => 'not part of 2010 XMP specification' },
 );
 my %sFont = (
     STRUCT_NAME => 'Font',
@@ -357,8 +359,8 @@ my %sFont = (
     childFontFiles => { List => 'Seq' },
 );
 my %sOECF = (
-    NAMESPACE   => 'exif',
     STRUCT_NAME => 'OECF',
+    NAMESPACE   => 'exif',
     Columns     => { Writable => 'integer' },
     Rows        => { Writable => 'integer' },
     Names       => { List => 'Seq' },
@@ -399,8 +401,8 @@ my %sCorrection = (
 
 # IPTC Extension 1.0 structures
 my %sLocationDetails = (
-    NAMESPACE   => 'Iptc4xmpExt',
     STRUCT_NAME => 'LocationDetails',
+    NAMESPACE   => 'Iptc4xmpExt',
     City         => { },
     CountryCode  => { },
     CountryName  => { },
@@ -818,6 +820,7 @@ my %sPantryItem = (
     ColorantsL          => { Flat => 1, Name => 'ColorantL' },
     ColorantsA          => { Flat => 1, Name => 'ColorantA' },
     ColorantsB          => { Flat => 1, Name => 'ColorantB' },
+    ColorantsTint       => { Flat => 1, Name => 'ColorantTint' },
     PlateNames          => { List => 'Seq' },
 );
 
@@ -847,7 +850,7 @@ my %sPantryItem = (
         ValueConvInv => '"/$val"',
         PrintConv => { True => 'True', False => 'False', Unknown => 'Unknown' },
     },
-    Keywords    => { },
+    Keywords    => { Priority => 0 },
     PDFVersion  => { },
     Producer    => { Groups => { 2 => 'Author' } },
 );
@@ -1294,7 +1297,7 @@ my %sPantryItem = (
     PerspectiveHorizontal                => { Writable => 'integer' },
     PerspectiveRotate                    => { Writable => 'real'    },
     PerspectiveScale                     => { Writable => 'integer' },
-    CropConstrainToWarp                  => { Writable => 'integer' },      
+    CropConstrainToWarp                  => { Writable => 'integer' },
     LuminanceNoiseReductionDetail        => { Writable => 'integer' },
     LuminanceNoiseReductionContrast      => { Writable => 'integer' },
     ColorNoiseReductionDetail            => { Writable => 'integer' },
@@ -1335,7 +1338,18 @@ my %sPantryItem = (
             2 => 'Planar',
         },
     },
-    YCbCrSubSampling => { PrintConv => \%Image::ExifTool::JPEG::yCbCrSubSampling },
+    YCbCrSubSampling => {
+        Writable => 'integer',
+        List => 'Seq',
+        # join the raw values before conversion to allow PrintConv to operate on
+        # the combined string as it does for the corresponding EXIF tag
+        RawJoin => 1,
+        Notes => q{
+            while technically this is  a list-type tag, for compatibility with its EXIF
+            counterpart it is written and read as a simple string
+        },
+        PrintConv => \%Image::ExifTool::JPEG::yCbCrSubSampling,
+    },
     YCbCrPositioning => {
         Writable => 'integer',
         PrintConv => {
@@ -1354,7 +1368,7 @@ my %sPantryItem = (
             3 => 'cm',
         },
     },
-    TransferFunction      => { Writable => 'integer',  List => 'Seq' },
+    TransferFunction      => { Writable => 'integer',  List => 'Seq', AutoSplit => 1 },
     WhitePoint            => { Writable => 'rational', List => 'Seq', AutoSplit => 1 },
     PrimaryChromaticities => { Writable => 'rational', List => 'Seq', AutoSplit => 1 },
     YCbCrCoefficients     => { Writable => 'rational', List => 'Seq', AutoSplit => 1 },
@@ -1394,8 +1408,8 @@ my %sPantryItem = (
         },
     },
     ComponentsConfiguration => {
-        List => 'Seq',
         Writable => 'integer',
+        List => 'Seq',
         AutoSplit => 1,
         PrintConvColumns => 2,
         PrintConv => {
@@ -1431,7 +1445,7 @@ my %sPantryItem = (
     },
     FNumber => {
         Writable => 'rational',
-        PrintConv => 'sprintf("%.1f",$val)',
+        PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
         PrintConvInv => '$val',
     },
     ExposureProgram => {
@@ -1964,6 +1978,7 @@ my %sPantryItem = (
     DigitalSourceType       => { Name => 'DigitalSourceType' },
     Event                   => { Writable => 'lang-alt' },
     RegistryId => {
+        Name => 'RegistryID',
         Struct => {
             STRUCT_NAME => 'RegistryEntryDetails',
             NAMESPACE   => 'Iptc4xmpExt',
@@ -1974,7 +1989,11 @@ my %sPantryItem = (
     },
     RegistryIdRegItemId         => { Flat => 1, Name => 'RegistryItemID' },
     RegistryIdRegOrgId          => { Flat => 1, Name => 'RegistryOrganisationID' },
-    IptcLastEdited          => { Groups => { 2 => 'Time' }, %dateTimeInfo },
+    IptcLastEdited => {
+        Name => 'IPTCLastEdited',
+        Groups => { 2 => 'Time' },
+        %dateTimeInfo,
+    },
     LocationCreated => {
         Struct => \%sLocationDetails,
         Groups => { 2 => 'Location' },
@@ -2427,7 +2446,7 @@ sub AddFlattenedTags($$)
             # generate new flattened tag information based on structure field
             $flatInfo = { %$fieldInfo, Name => $$tagInfo{Name} . $fieldName, Flat => 0 };
             # add new flattened tag to table
-            Image::ExifTool::AddTagToTable($tagTablePtr, $flatID, $flatInfo);
+            AddTagToTable($tagTablePtr, $flatID, $flatInfo);
             ++$count;
         }
         # propagate List flag (unless set to 0 in pre-defined flattened tag)
@@ -2447,7 +2466,7 @@ sub AddFlattenedTags($$)
         $$flatInfo{RootTagInfo} = $$tagInfo{RootTagInfo} || $tagInfo;
         # recursively generate flattened tags for sub-structures
         next unless $$flatInfo{Struct};
-        length($flatID) > 150 and warn("Possible deep recursion for tag $flatID\n"), last;
+        length($flatID) > 250 and warn("Possible deep recursion for tag $flatID\n"), last;
         # reset flattened tag just in case we flattened hierarchy in the wrong order
         # because we must start from the outtermost structure to get the List flags right
         # (this should only happen when building tag tables)
@@ -2553,6 +2572,7 @@ sub PrintLensID(@)
         my $mod = { Sigma => 'SigmaRaw', Leica => 'Panasonic' }->{$mk} || $mk;
         require "Image/ExifTool/$mod.pm";
         # get the name of the lens name lookup (default "makeLensTypes")
+        # (canonLensTypes, pentaxLensTypes, nikonLensIDs, etc)
         my $convName = "Image::ExifTool::${mod}::" .
             ({ Nikon => 'nikonLensIDs' }->{$mk} || lc($mk) . 'LensTypes');
         no strict 'refs';
@@ -2564,6 +2584,10 @@ sub PrintLensID(@)
             my @a = split ' ', $info;
             $_ eq 'undef' and $_ = undef foreach @a;
             ($minf, $maxf, $maxa, $mina) = @a;
+        }
+        if ($mk eq 'Pentax' and $id =~ /^\d+$/) {
+            # for Pentax, CS4 stores an int16u, but we use 2 x int8u
+            $id = join(' ', unpack('C*', pack('n', $id)));
         }
         my $str = $$printConv{$id} || "Unknown ($id)";
         # Nikon is a special case because Adobe doesn't store the full LensID
@@ -2627,7 +2651,7 @@ sub FoundXMP($$$$;$)
 {
     local $_;
     my ($exifTool, $tagTablePtr, $props, $val, $attrs) = @_;
-    my ($lang, @structProps);
+    my ($lang, @structProps, $rawVal);
     my ($tag, $ns) = GetXMPTagID($props, $exifTool->{OPTIONS}{Struct} ? \@structProps : undef);
     return 0 unless $tag;   # ignore things that aren't valid tags
 
@@ -2791,7 +2815,7 @@ NoLoop:
         #} elsif (grep / /, @$props) {
         #    $$tagInfo{List} = 1;
         }
-        Image::ExifTool::AddTagToTable($tagTablePtr, $tagID, $tagInfo);
+        AddTagToTable($tagTablePtr, $tagID, $tagInfo);
         $added = 1;
         last;
     }
@@ -2828,11 +2852,14 @@ NoLoop:
     $val = $exifTool->Decode($val, 'UTF8');
     # convert rational and date values to a more sensible format
     my $fmt = $$tagInfo{Writable};
-    my $new = $$tagInfo{WasAdded};
+    my $new = $$tagInfo{WasAdded} && $$exifTool{OPTIONS}{XMPAutoConv};
     if ($fmt or $new) {
+        $rawVal = $val; # save raw value for verbose output
         unless (($new or $fmt eq 'rational') and ConvertRational($val)) {
             $val = ConvertXMPDate($val, $new) if $new or $fmt eq 'date';
         }
+        # protect against large binary data in unknown tags
+        $$tagInfo{Binary} = 1 if $new and length($val) > 65536;
     }
     # store the value for this tag
     my $key = $exifTool->FoundTag($tagInfo, $val);
@@ -2851,23 +2878,21 @@ NoLoop:
             $exifTool->VPrint(0, $exifTool->{INDENT}, "[adding $g1:$tag]\n");
         }
         my $tagID = join('/',@$props);
-        $exifTool->VerboseInfo($tagID, $tagInfo, Value=>$val);
+        $exifTool->VerboseInfo($tagID, $tagInfo, Value => $rawVal || $val);
     }
     return 1;
 }
 
 #------------------------------------------------------------------------------
 # Recursively parse nested XMP data element
-# Inputs: 0) ExifTool object reference
-#         1) Pointer to tag table
-#         2) reference to XMP data
-#         3) start of xmp element
-#         4) reference to array of enclosing XMP property names (undef if none)
-#         5) reference to blank node information hash
+# Inputs: 0) ExifTool ref, 1) tag table ref, 2) XMP data ref
+#         3) offset to start of XMP element, 4) offset to end of XMP element
+#         5) reference to array of enclosing XMP property names (undef if none)
+#         6) reference to blank node information hash
 # Returns: Number of contained XMP elements
-sub ParseXMPElement($$$;$$$)
+sub ParseXMPElement($$$;$$$$)
 {
-    my ($exifTool, $tagTablePtr, $dataPt, $start, $propListPt, $blankInfo) = @_;
+    my ($exifTool, $tagTablePtr, $dataPt, $start, $end, $propListPt, $blankInfo) = @_;
     my ($count, $nItems) = (0, 0);
     my $isWriting = $exifTool->{XMP_CAPTURE};
     my $isSVG = $$exifTool{XMP_IS_SVG};
@@ -2881,6 +2906,7 @@ sub ParseXMPElement($$$;$$$)
         $foundProc = \&FoundXMP;
     }
     $start or $start = 0;
+    $end or $end = length $$dataPt;
     $propListPt or $propListPt = [ ];
 
     my $processBlankInfo;
@@ -2888,38 +2914,53 @@ sub ParseXMPElement($$$;$$$)
     $blankInfo or $blankInfo = $processBlankInfo = { Prop => { } };
     # keep track of current nodeID at this nesting level
     my $oldNodeID = $$blankInfo{NodeID};
-
     pos($$dataPt) = $start;
+
     Element: for (;;) {
+        # all done if there isn't enough data for another element
+        # (the smallest possible element is 4 bytes, ie. "<a/>")
+        last if pos($$dataPt) > $end - 4;
         # reset nodeID before processing each element
         my $nodeID = $$blankInfo{NodeID} = $oldNodeID;
         # get next element
-        last unless $$dataPt =~ m/<([-\w:.\x80-\xff]+)(.*?)>/sg;
-        my ($prop, $attrs) = ($1, $2);
-        my $val = '';
+        last if $$dataPt !~ m{<([?/]?)([-\w:.\x80-\xff]+)([^>]*)>}sg or pos($$dataPt) > $end;
+        # (the only reason we match '<[?/]' is to keep from scanning past the
+        #  "<?xpacket end..." terminator or other closing token, so
+        next if $1;
+        my ($prop, $attrs) = ($2, $3);
+        my $valStart = pos($$dataPt);
+        my $valEnd;
         # only look for closing token if this is not an empty element
         # (empty elements end with '/', ie. <a:b/>)
         if ($attrs !~ s/\/$//) {
             my $nesting = 1;
+            my $tok;
             for (;;) {
 # this match fails with perl 5.6.2 (perl bug!), but it works without
-# the '(.*?)', so do it the hard way instead...
+# the '(.*?)', so we must do it differently...
 #                $$dataPt =~ m/(.*?)<\/$prop>/sg or last Element;
 #                my $val2 = $1;
-                my $pos = pos($$dataPt);
-                unless ($$dataPt =~ m/<\/$prop>/sg) {
+                # find next matching closing token, or the next opening token
+                # of a nested same-named element
+                if ($$dataPt !~ m{<(/?)$prop([-\w:.\x80-\xff]*)(.*?(/?))>}sg or
+                    pos($$dataPt) > $end)
+                {
                     $exifTool->Warn("XMP format error (no closing tag for $prop)");
                     last Element;
                 }
-                my $len = pos($$dataPt) - $pos - length($prop) - 3;
-                my $val2 = substr($$dataPt, $pos, $len);
-                # increment nesting level for each contained similar opening token
-                ++$nesting while $val2 =~ m/<$prop\b.*?(\/?)>/sg and $1 ne '/';
-                $val .= $val2;
-                --$nesting or last;
-                $val .= "</$prop>";
+                next if $2; # ignore opening properties with different names
+                if ($1) {
+                    next if --$nesting;
+                    $valEnd = pos($$dataPt) - length($prop) - length($3) - 3;
+                    last;   # this element is complete
+                }
+                # this is a nested opening token (or empty element)
+                ++$nesting unless $4;
             }
+        } else {
+            $valEnd = $valStart;
         }
+        $start = pos($$dataPt);         # start from here the next time around
         my $parseResource;
         if ($prop eq 'rdf:li') {
             # add index to list items so we can keep them in order
@@ -2931,11 +2972,13 @@ sub ParseXMPElement($$$;$$$)
             # with index numbers ranging from 0 to 999999999.  The sequence is:
             # 10,11,12-19,210,211-299,3100,3101-3999,41000...9999999999.
             $prop .= ' ' . length($nItems) . $nItems;
+            # reset LIST_TAGS at the start of the outtermost list
+            # (avoids accumulating incorrectly-written elements in a correctly-written list)
+            if (not $nItems and not grep /^rdf:li /, @$propListPt) {
+                $$exifTool{LIST_TAGS} = { };
+            }
             ++$nItems;
         } elsif ($prop eq 'rdf:Description') {
-            # trim comments and whitespace from rdf:Description properties only
-            $val =~ s/<!--.*?-->//g;
-            $val =~ s/^\s*(.*)\s*$/$1/;
             # remove unnecessary rdf:Description elements since parseType='Resource'
             # is more efficient (also necessary to make property path consistent)
             $parseResource = 1 if grep /^rdf:Description$/, @$propListPt;
@@ -2945,15 +2988,21 @@ sub ParseXMPElement($$$;$$$)
         }
 
         # extract property attributes
-        my (%attrs, @attrs);
+        my (%attrs, @attrs, $val);
         while ($attrs =~ m/(\S+?)\s*=\s*(['"])(.*?)\2/sg) {
             push @attrs, $1;    # preserve order
             $attrs{$1} = $3;
         }
 
         # hook for special parsing of attributes
-        $attrProc and &$attrProc(\@attrs, \%attrs, \$prop, \$val);
-            
+        if ($attrProc) {
+            $val = substr($$dataPt, $valStart, $valEnd - $valStart);
+            if (&$attrProc(\@attrs, \%attrs, \$prop, \$val)) {
+                # the value was changed, so reset $valStart/$valEnd to use $val instead
+                $valStart = $valEnd;
+            }
+        }
+
         # add nodeID to property path (with leading ' #') if it exists
         if (defined $attrs{'rdf:nodeID'}) {
             $nodeID = $$blankInfo{NodeID} = $attrs{'rdf:nodeID'};
@@ -3043,9 +3092,9 @@ sub ParseXMPElement($$$;$$$)
                 # handle special attributes (extract as tags only once if not empty)
                 if (ref $recognizedAttrs{$propName} and $shortVal) {
                     my ($tbl, $id, $name) = @{$recognizedAttrs{$propName}};
-                    my $val = UnescapeXML($shortVal);
-                    unless (defined $$exifTool{VALUE}{$name} and $$exifTool{VALUE}{$name} eq $val) {
-                        $exifTool->HandleTag(GetTagTable($tbl), $id, $val);
+                    my $tval = UnescapeXML($shortVal);
+                    unless (defined $$exifTool{VALUE}{$name} and $$exifTool{VALUE}{$name} eq $tval) {
+                        $exifTool->HandleTag(GetTagTable($tbl), $id, $tval);
                     }
                 }
                 next;
@@ -3064,13 +3113,18 @@ sub ParseXMPElement($$$;$$$)
             $shorthand = 1;
         }
         if ($isWriting) {
-            if (ParseXMPElement($exifTool, $tagTablePtr, \$val, 0, $propListPt, $blankInfo)) {
-                # undefine value since we found more properties within this one
-                undef $val;
+            if (ParseXMPElement($exifTool, $tagTablePtr, $dataPt, $valStart, $valEnd,
+                                $propListPt, $blankInfo))
+            {
+                # (no value since we found more properties within this one)
                 # set an error on any ignored attributes here, because they will be lost
                 $exifTool->{XMP_ERROR} = "Can't handle XMP attribute '$ignored'" if $ignored;
-            }
-            if (defined $val and (length $val or not $shorthand)) {
+            } elsif (not $shorthand or $valEnd != $valStart) {
+                $val = substr($$dataPt, $valStart, $valEnd - $valStart);
+                # remove comments and whitespace from rdf:Description only
+                if ($prop eq 'rdf:Description') {
+                    $val =~ s/<!--.*?-->//g; $val =~ s/^\s+//; $val =~ s/\s+$//;
+                }
                 if (defined $nodeID) {
                     SaveBlankInfo($blankInfo, $propListPt, $val, \%attrs);
                 } else {
@@ -3078,17 +3132,27 @@ sub ParseXMPElement($$$;$$$)
                 }
             }
         } else {
-            # if element value is empty, take value from 'resource' attribute
-            # (preferentially) or 'about' attribute (if no 'resource')
-            my $wasEmpty;
-            if ($val eq '' and ($attrs =~ /\bresource=(['"])(.*?)\1/ or
-                                $attrs =~ /\babout=(['"])(.*?)\1/))
-            {
-                $val = $2;
-                $wasEmpty = 1;
-            }
             # look for additional elements contained within this one
-            if (!ParseXMPElement($exifTool, $tagTablePtr, \$val, 0, $propListPt, $blankInfo)) {
+            if ($valStart == $valEnd or
+                !ParseXMPElement($exifTool, $tagTablePtr, $dataPt, $valStart, $valEnd,
+                                 $propListPt, $blankInfo))
+            {
+                my $wasEmpty;
+                unless (defined $val) {
+                    $val = substr($$dataPt, $valStart, $valEnd - $valStart);
+                    # remove comments and whitespace from rdf:Description only
+                    if ($prop eq 'rdf:Description' and $val) {
+                        $val =~ s/<!--.*?-->//g; $val =~ s/^\s+//; $val =~ s/\s+$//;
+                    }
+                    # if element value is empty, take value from 'resource' attribute
+                    # (preferentially) or 'about' attribute (if no 'resource')
+                    if ($val eq '' and ($attrs =~ /\bresource=(['"])(.*?)\1/ or
+                                        $attrs =~ /\babout=(['"])(.*?)\1/))
+                    {
+                        $val = $2;
+                        $wasEmpty = 1;
+                    }
+                }
                 # there are no contained elements, so this must be a simple property value
                 # (unless we already extracted shorthand values from this element)
                 if (length $val or not $shorthand) {
@@ -3108,6 +3172,9 @@ sub ParseXMPElement($$$;$$$)
         }
         pop @$propListPt unless $parseResource;
         ++$count;
+        last if $start >= $end;
+        pos($$dataPt) = $start;
+        $$dataPt =~ /\G\s+/gc;  # skip white space after closing token
     }
 #
 # process resources referenced by blank nodeID's
@@ -3198,7 +3265,13 @@ sub ProcessXMP($$;$)
             }
             $bom = 1 if $1;
             if ($2 eq '<?xml') {
-                if ($buf2 =~ /<x(mp)?:x[ma]pmeta/) {
+                if (defined $fmt and not $fmt and $buf2 =~ /^[^\n\r]*[\n\r]+<\?aid /s) {
+                    if ($exifTool->{XMP_CAPTURE}) {
+                        $exifTool->Error("ExifTool does not yet support writing of INX files");
+                        return 0;
+                    }
+                    $type = 'INX';
+                } elsif ($buf2 =~ /<x(mp)?:x[ma]pmeta/) {
                     $hasXMP = 1;
                 } else {
                     # identify SVG images by DOCTYPE if available
@@ -3236,37 +3309,7 @@ sub ProcessXMP($$;$)
                 }
             }
         }
-        $raf->Seek(0, 2) or return 0;
-        my $size = $raf->Tell() or return 0;
-        $raf->Seek(0, 0) or return 0;
-        $raf->Read($buff, $size) == $size or return 0;
-        # decode the first layer of double-encoded UTF text
-        if ($double) {
-            $buff = substr($buff, length $double);  # remove leading BOM
-            Image::ExifTool::SetWarning(undef);     # clear old warning
-            local $SIG{'__WARN__'} = \&Image::ExifTool::SetWarning;
-            my $tmp;
-            # assume that character data has been re-encoded in UTF, so re-pack
-            # as characters and look for warnings indicating a false assumption
-            if ($double eq "\xef\xbb\xbf") {
-                require Image::ExifTool::Charset;
-                my $uni = Image::ExifTool::Charset::Decompose(undef,$buff,'UTF8');
-                $tmp = pack('C*', @$uni);
-            } else {
-                my $fmt = ($double eq "\xfe\xff") ? 'n' : 'v';
-                $tmp = pack('C*', unpack("$fmt*",$buff));
-            }
-            if (Image::ExifTool::GetWarning()) {
-                $exifTool->Warn('Superfluous BOM at start of XMP');
-            } else {
-                $exifTool->Warn('XMP is double UTF-encoded');
-                $buff = $tmp;   # use the decoded XMP
-            }
-            $size = length $buff;
-        }
-        $dataPt = \$buff;
-        $dirStart = 0;
-        $dirLen = $dataLen = $size;
+        my $size;
         unless ($type) {
             if ($isSVG) {
                 $type = 'SVG';
@@ -3275,16 +3318,67 @@ sub ProcessXMP($$;$)
             }
         }
         $exifTool->SetFileType($type);
-    }
 
-    # take substring if necessary
-    if ($dataLen != $dirStart + $dirLen) {
-        $buff = substr($$dataPt, $dirStart, $dirLen);
+        if ($type and $type eq 'INX') {
+            # brute force search for first XMP packet in INX file
+            # start: '<![CDATA[<?xpacket begin' (24 bytes)
+            # end:   '<?xpacket end="r"?>]]>'   (22 bytes)
+            $raf->Seek(0, 0) or return 0;
+            $raf->Read($buff, 65536) or return 1;
+            for (;;) {
+                last if $buff =~ /<!\[CDATA\[<\?xpacket begin/g;
+                $raf->Read($buf2, 65536) or return 1;
+                $buff = substr($buff, -24) . $buf2;
+            }
+            $buff = substr($buff, pos($buff) - 15); # (discard '<![CDATA[' and before)
+            for (;;) {
+                last if $buff =~ /<\?xpacket end="[rw]"\?>\]\]>/g;
+                my $n = length $buff;
+                $raf->Read($buf2, 65536) or $exifTool->Warn('Missing xpacket end'), return 1;
+                $buff .= $buf2;
+                pos($buff) = $n - 22;   # don't miss end pattern if it was split
+            }
+            $size = pos($buff) - 3;     # (discard ']]>' and after)
+            $buff = substr($buff, 0, $size);
+        } else {
+            $raf->Seek(0, 2) or return 0;
+            $size = $raf->Tell() or return 0;
+            $raf->Seek(0, 0) or return 0;
+            $raf->Read($buff, $size) == $size or return 0;
+            # decode the first layer of double-encoded UTF text
+            if ($double) {
+                $buff = substr($buff, length $double);  # remove leading BOM
+                Image::ExifTool::SetWarning(undef);     # clear old warning
+                local $SIG{'__WARN__'} = \&Image::ExifTool::SetWarning;
+                my $tmp;
+                # assume that character data has been re-encoded in UTF, so re-pack
+                # as characters and look for warnings indicating a false assumption
+                if ($double eq "\xef\xbb\xbf") {
+                    require Image::ExifTool::Charset;
+                    my $uni = Image::ExifTool::Charset::Decompose(undef,$buff,'UTF8');
+                    $tmp = pack('C*', @$uni);
+                } else {
+                    my $fmt = ($double eq "\xfe\xff") ? 'n' : 'v';
+                    $tmp = pack('C*', unpack("$fmt*",$buff));
+                }
+                if (Image::ExifTool::GetWarning()) {
+                    $exifTool->Warn('Superfluous BOM at start of XMP');
+                } else {
+                    $exifTool->Warn('XMP is double UTF-encoded');
+                    $buff = $tmp;   # use the decoded XMP
+                }
+                $size = length $buff;
+            }
+        }
         $dataPt = \$buff;
         $dirStart = 0;
+        $dirLen = $dataLen = $size;
     }
+
     # extract XMP as a block if specified
-    if (($exifTool->{REQ_TAG_LOOKUP}{xmp} or $exifTool->{OPTIONS}{Binary}) and not $isSVG) {
+    if (($exifTool->{REQ_TAG_LOOKUP}{xmp} or ($exifTool->{OPTIONS}{Binary} and
+        not $exifTool->{EXCL_TAG_LOOKUP}{xmp})) and not $isSVG)
+    {
         $exifTool->FoundTag('XMP', substr($$dataPt, $dirStart, $dirLen));
     }
     if ($exifTool->Options('Verbose') and not $exifTool->{XMP_CAPTURE}) {
@@ -3294,6 +3388,7 @@ sub ProcessXMP($$;$)
 # convert UTF-16 or UTF-32 encoded XMP to UTF-8 if necessary
 #
     my $begin = '<?xpacket begin=';
+    my $dirEnd = $dirStart + $dirLen;
     pos($$dataPt) = $dirStart;
     delete $$exifTool{XMP_IS_XML};
     delete $$exifTool{XMP_IS_SVG};
@@ -3303,7 +3398,9 @@ sub ProcessXMP($$;$)
         $$exifTool{XMP_NO_XPACKET} = 1 + $bom;
     } elsif ($$dataPt =~ /\G\Q$begin\E/gc) {
         delete $$exifTool{XMP_NO_XPACKET};
-    } elsif ($$dataPt =~ /<x(mp)?:x[ma]pmeta/gc) {
+    } elsif ($$dataPt =~ /<x(mp)?:x[ma]pmeta/gc and
+             pos($$dataPt) > $dirStart and pos($$dataPt) < $dirEnd)
+    {
         $$exifTool{XMP_NO_XPACKET} = 1 + $bom;
     } else {
         delete $$exifTool{XMP_NO_XPACKET};
@@ -3336,7 +3433,7 @@ sub ProcessXMP($$;$)
     }
     if ($fmt) {
         # trim if necessary to avoid converting non-UTF data
-        if ($dirStart or $dirLen != length($$dataPt) - $dirStart) {
+        if ($dirStart or $dirEnd != length($$dataPt)) {
             $buff = substr($$dataPt, $dirStart, $dirLen);
             $dataPt = \$buff;
         }
@@ -3349,6 +3446,7 @@ sub ProcessXMP($$;$)
         $dataPt = \$buff;
         $dirStart = 0;
         $dirLen = length $$dataPt;
+        $dirEnd = $dirStart + $dirLen;
     }
     # initialize namespace translation
     $xlatNamespace = \%stdXlatNS;
@@ -3364,7 +3462,7 @@ sub ProcessXMP($$;$)
 
     # parse the XMP
     $tagTablePtr or $tagTablePtr = GetTagTable('Image::ExifTool::XMP::Main');
-    $rtnVal = 1 if ParseXMPElement($exifTool, $tagTablePtr, $dataPt, $dirStart);
+    $rtnVal = 1 if ParseXMPElement($exifTool, $tagTablePtr, $dataPt, $dirStart, $dirEnd);
 
     # return DataPt if successful in case we want it for writing
     $$dirInfo{DataPt} = $dataPt if $rtnVal and $$dirInfo{RAF};
@@ -3404,7 +3502,7 @@ information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

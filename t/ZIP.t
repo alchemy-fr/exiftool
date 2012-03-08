@@ -54,7 +54,7 @@ if ($Image::ExifTool::ZIP::warnString) {
 if ($failed) {
     my $mod;
     warn "\n";
-    foreach $mod ('Archive::Zip', 'Compress::Raw::Zlib') {
+    foreach $mod ('Archive::Zip', 'Compress::Raw::Zlib', 'IO::String') {
         my $v;
         if (eval "require $mod") {
             my $var = $mod . '::VERSION';

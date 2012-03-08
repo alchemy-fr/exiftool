@@ -1,8 +1,8 @@
-  ExifToolVersion = 8.44
+  ExifToolVersion = 8.75
   FileName = Olympus_7_failed.jpg
   Directory = t
   FileSize = 7335
-  FileModifyDate = 1294672607
+  FileModifyDate = 1326111630
   FilePermissions = 33188
   FileType = JPEG
   MIMEType = image/jpeg
@@ -62,7 +62,7 @@ JPEG APP1 (7080 bytes):
   | |     - Tag 0x920a (8 bytes, rational64u[1])
   | | 14) MakerNoteOlympus2 (SubDirectory) -->
   | |     - Tag 0x927c (5502 bytes, undef[5502])
-  | | + [MakerNotes directory with 14 entries]
+  | | + [MakerNoteOlympus2 directory with 14 entries]
   | | | 0)  SpecialMode = 0 0 0
   | | |     - Tag 0x0200 (12 bytes, int32u[3])
   | | | 1)  Quality = 3

@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.34
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.72
 [File, System, Image] FileName - File Name: Olympus2.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 7.5 kB
@@ -67,10 +67,10 @@
 [MakerNotes, Olympus, Camera] 516 - Digital Zoom: 1.0
 [MakerNotes, Olympus, Camera] 517 - Focal Plane Diagonal: 7.58 mm
 [MakerNotes, Olympus, Camera] 518 - Lens Distortion Params: 0 0 0 0 0 0
-[MakerNotes, Olympus, Camera] 519 - Camera Type: D4328
+[MakerNotes, Olympus, Camera] 519 - Camera Type: u760,S760
 [MakerNotes, Olympus, Camera] 521 - Camera ID: OLYMPUS DIGITAL CAMERA         
 [MakerNotes, Olympus, Camera] 0 - Equipment Version: 0100
-[MakerNotes, Olympus, Camera] 256 - Camera Type 2: D4328
+[MakerNotes, Olympus, Camera] 256 - Camera Type 2: u760,S760
 [MakerNotes, Olympus, Camera] 257 - Serial Number: C90500055
 [MakerNotes, Olympus, Camera] 258 - Internal Serial Number: 0171612001128001               
 [MakerNotes, Olympus, Camera] 259 - Focal Plane Diagonal: 7.58 mm

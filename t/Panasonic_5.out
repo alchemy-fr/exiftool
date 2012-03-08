@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.40
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.79
 [File, System, Image] FileName - File Name: Panasonic_5_failed.rw2
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 14 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2010:11:18 13:46:54-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:02:20 10:52:55-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: RW2
 [File, File, Image] MIMEType - MIME Type: image/x-panasonic-rw2
@@ -159,7 +159,7 @@
 [MakerNotes, Panasonic, Camera] 65 - Sharpness: Normal
 [MakerNotes, Panasonic, Camera] 66 - Film Mode: Standard (color)
 [MakerNotes, Panasonic, Camera] 67 - Panasonic 0x0043: 2
-[MakerNotes, Panasonic, Camera] 68 - Panasonic 0x0044: 0
+[MakerNotes, Panasonic, Camera] 68 - Color Temp Kelvin: 0
 [MakerNotes, Panasonic, Camera] 70 - WB Adjust AB: 0
 [MakerNotes, Panasonic, Camera] 71 - WB Adjust GM: 0
 [MakerNotes, Panasonic, Camera] 72 - Panasonic 0x0048: 0
@@ -198,7 +198,7 @@
 [PrintIM, PrintIM, Printing] 256 - Print IM 0x0100: 0x00000005
 [PrintIM, PrintIM, Printing] 257 - Print IM 0x0101: 0x00000001
 [PrintIM, PrintIM, Printing] 272 - Print IM 0x0110: 0x00000080
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.40
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.79
 [XMP, XMP-dc, Image] title - Title: new title
 [IPTC, IPTC, Other] 25 - Keywords: a keyword
 [IPTC, IPTC, Other] 0 - Application Record Version: 4

@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.02
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.72
 [File, System, Image] FileName - File Name: Olympus.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 1573 bytes
@@ -60,9 +60,9 @@
 [MakerNotes, Olympus, Camera] 516 - Digital Zoom: 0.0
 [MakerNotes, Olympus, Camera] 517 - Focal Plane Diagonal: 7.8 mm
 [MakerNotes, Olympus, Camera] 518 - Lens Distortion Params: -215 -388 -418 -185 -310 -314
-[MakerNotes, Olympus, Camera] 519 - Camera Type: SR951
+[MakerNotes, Olympus, Camera] 519 - Camera Type: C2000Z
 [MakerNotes, Olympus, Image] Resolution - Resolution: 1
-[MakerNotes, Olympus, Camera] Type - Camera Type: SR951
+[MakerNotes, Olympus, Camera] Type - Camera Type: C2000Z
 [MakerNotes, Olympus, Camera] 521 - Camera ID: OLYMPUS DIGITAL CAMERA
 [MakerNotes, Olympus, Camera] 3840 - Data Dump: (Binary data 186 bytes)
 [Composite, Composite, Image] Aperture - Aperture: 2.0

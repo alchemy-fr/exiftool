@@ -62,6 +62,7 @@
 #              47) http://www.exiv2.org/
 #              48) Tomasz A. Kawecki private communication (550D, firmware 1.0.6, 1.0.8)
 #              49) http://www.listware.net/201101/digikam-users/49795-digikam-users-re-lens-recognition.html
+#              50) http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3833.0.html
 #              JD) Jens Duttke private communication
 #------------------------------------------------------------------------------
 
@@ -77,7 +78,7 @@ sub ProcessSerialData($$$);
 sub ProcessFilters($$$);
 sub SwapWords($);
 
-$VERSION = '2.74';
+$VERSION = '2.84';
 
 # Note: Removed 'USM' from 'L' lenses since it is redundant - PH
 # (or is it?  Ref 32 shows 5 non-USM L-type lenses)
@@ -166,6 +167,7 @@ $VERSION = '2.74';
     50 => 'Canon EF-S 18-200mm f/3.5-5.6 IS',
     51 => 'Canon EF-S 18-135mm f/3.5-5.6 IS', #PH
     52 => 'Canon EF-S 18-55mm f/3.5-5.6 IS II', #PH
+    53 => 'Canon EF-S 18-55mm f/3.5-5.6 III', #Jon Charnas
     94 => 'Canon TS-E 17mm f/4L', #42
     95 => 'Canon TS-E 24.0mm f/3.5 L II', #43
     124 => 'Canon MP-E 65mm f/2.8 1-5x Macro Photo', #9
@@ -195,7 +197,11 @@ $VERSION = '2.74';
     137.5 => 'Sigma 18-125mm f/3.8-5.6 DC OS HSM', #PH
     137.6 => 'Sigma 17-70mm f/2.8-4 DC Macro OS HSM', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,2819.0.html
     137.7 => 'Sigma 17-50mm f/2.8 OS HSM', #PH (from Exiv2)
-    137.8 => 'Tamron AF 18-270mm f/3.5-6.3 Di II VC PZD', #(model B008)http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3090.0.html
+    137.8 => 'Sigma 18-200mm f/3.5-6.3 II DC OS HSM', #PH
+    137.9 => 'Tamron AF 18-270mm f/3.5-6.3 Di II VC PZD', #(model B008)http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3090.0.html
+   '137.10' => 'Sigma 8-16mm f/4.5-5.6 DC HSM', #50-Zwielicht
+   '137.11' => 'Tamron SP 17-50mm f/2.8 XR Di II VC', #50 (model B005)
+   '137.12' => 'Tamron SP 60mm f/2 Macro Di II', #50 (model G005)
     138 => 'Canon EF 28-80mm f/2.8-4L', #32
     139 => 'Canon EF 400mm f/2.8L',
     140 => 'Canon EF 500mm f/4.5L', #32
@@ -325,6 +331,8 @@ $VERSION = '2.74';
     # Note: LensType 488 (0x1e8) is reported as 232 (0xe8) in 7D CameraSettings
     488 => 'Canon EF-S 15-85mm f/3.5-5.6 IS USM', #PH
     489 => 'Canon EF 70-300mm f/4-5.6L IS USM', #Gerald Kapounek
+    490 => 'Canon EF 8-15mm f/4L USM', #Klaus Reinfeld
+    491 => 'Canon EF 300mm f/2.8L IS II USM', #42
 );
 
 # Canon model ID numbers (PH)
@@ -450,7 +458,7 @@ $VERSION = '2.74';
     0x2770000 => 'PowerShot SD940 IS / Digital IXUS 120 IS / IXY Digital 220 IS',
     0x2800000 => 'PowerShot A495',
     0x2810000 => 'PowerShot A490',
-    0x2820000 => 'PowerShot A3100 IS',
+    0x2820000 => 'PowerShot A3100 IS / A3150 IS', # (different cameras, same ID)
     0x2830000 => 'PowerShot A3000 IS',
     0x2840000 => 'PowerShot SD1400 IS / IXUS 130 / IXY 400F',
     0x2850000 => 'PowerShot SD1300 IS / IXUS 105 / IXY 200F',
@@ -464,7 +472,7 @@ $VERSION = '2.74';
     0x2950000 => 'PowerShot S95',
     0x2980000 => 'PowerShot A3300 IS',
     0x2990000 => 'PowerShot A3200 IS',
-    0x3000000 => 'PowerShot ELPH 500 HS / IXUS 310 HS / IXY 31 S',
+    0x3000000 => 'PowerShot ELPH 500 HS / IXUS 310 HS / IXY 31S',
     0x3010000 => 'PowerShot Pro90 IS',
     0x3010001 => 'PowerShot A800',
     0x3020000 => 'PowerShot ELPH 100 HS / IXUS 115 HS / IXY 210F',
@@ -473,6 +481,21 @@ $VERSION = '2.74';
     0x3050000 => 'PowerShot A2200',
     0x3060000 => 'PowerShot A1200',
     0x3070000 => 'PowerShot SX220 HS',
+    0x3080000 => 'PowerShot G1 X', 
+    0x3090000 => 'PowerShot SX150 IS',
+    0x3100000 => 'PowerShot ELPH 510 HS / IXUS 1100 HS / IXY 51S',
+    0x3110000 => 'PowerShot S100 (new)',
+    0x3130000 => 'PowerShot SX40 HS',
+    0x3120000 => 'PowerShot ELPH 310 HS / IXUS 230 HS / IXY 600F',
+    0x3140000 => 'PowerShot ELPH 500 HS / IXUS 320 HS / IXY 32S', # (duplicate PowerShot model???)
+    0x3190000 => 'PowerShot ELPH 110 HS / IXUS 125 HS / IXY 220F',
+    0x3200000 => 'PowerShot D20',
+    0x3220000 => 'PowerShot SX260 HS',
+    0x3250000 => 'PowerShot ELPH 520 HS / IXUS 500 HS / IXY 3',
+    0x3260000 => 'A3400IS',
+    0x3280000 => 'PowerShot A2300',
+    # ??? => 'PowerShot ELPH 530 HS / IXUS 510 HS / IXY 1',
+    # ??? => 'PowerShot ELPH 320 HS / IXUS 240 HS / IXY 420F',
     0x4040000 => 'PowerShot G1',
     0x6040000 => 'PowerShot S100 / Digital IXUS / IXY Digital',
     0x4007d673 => 'DC19/DC21/DC22',
@@ -487,6 +510,7 @@ $VERSION = '2.74';
     0x4007d77d => 'MD255/ZR950',
     0x4007d81c => 'HF11',
     0x4007d878 => 'HV30',
+    0x4007d87c => 'XH A1S',
     0x4007d87e => 'DC301/DC310/DC311/DC320/DC330',
     0x4007d87f => 'FS100',
     0x4007d880 => 'HF10', #29 (iVIS/VIXIA)
@@ -494,14 +518,14 @@ $VERSION = '2.74';
     0x4007d925 => 'HF21', # (LEGRIA)
     0x4007d926 => 'HF S11', # (LEGRIA)
     0x4007d978 => 'HV40', # (LEGRIA)
-    0x4007d987 => 'DC410/DC420',
+    0x4007d987 => 'DC410/DC411/DC420',
     0x4007d988 => 'FS19/FS20/FS21/FS22/FS200', # (LEGRIA)
     0x4007d989 => 'HF20/HF200', # (LEGRIA)
     0x4007d98a => 'HF S10/S100', # (LEGRIA/VIXIA)
-    0x4007da8e => 'HF R16/R17/R18/R100/R106', # (LEGRIA/VIXIA)
+    0x4007da8e => 'HF R10/R16/R17/R18/R100/R106', # (LEGRIA/VIXIA)
     0x4007da8f => 'HF M30/M31/M36/M300/M306', # (LEGRIA/VIXIA)
     0x4007da90 => 'HF S20/S21/S200', # (LEGRIA/VIXIA)
-    0x4007da92 => 'FS36/FS37/FS305/FS306/FS307',
+    0x4007da92 => 'FS31/FS36/FS37/FS300/FS305/FS306/FS307',
     # NOTE: some pre-production models may have a model name of
     # "Canon EOS Kxxx", where "xxx" is the last 3 digits of the model ID below.
     # This has been observed for the 1DSmkIII/K215 and 400D/K236.
@@ -519,18 +543,26 @@ $VERSION = '2.74';
     0x80000213 => 'EOS 5D',
     0x80000215 => 'EOS-1Ds Mark III',
     0x80000218 => 'EOS 5D Mark II',
+    0x80000219 => 'WFT-E1',
     0x80000232 => 'EOS-1D Mark II N',
     0x80000234 => 'EOS 30D',
-    0x80000236 => 'EOS Digital Rebel XTi / 400D / Kiss Digital X', # and K236
+    0x80000236 => 'EOS Digital Rebel XTi / 400D / Kiss Digital X',
+    0x80000241 => 'WFT-E2',
+    0x80000246 => 'WFT-E3',
     0x80000250 => 'EOS 7D',
     0x80000252 => 'EOS Rebel T1i / 500D / Kiss X3',
     0x80000254 => 'EOS Rebel XS / 1000D / Kiss F',
     0x80000261 => 'EOS 50D',
+    0x80000269 => 'EOS-1D X',
     0x80000270 => 'EOS Rebel T2i / 550D / Kiss X4',
+    0x80000271 => 'WFT-E4',
+    0x80000273 => 'WFT-E5',
     0x80000281 => 'EOS-1D Mark IV',
     0x80000286 => 'EOS Rebel T3i / 600D / Kiss X5',
     0x80000287 => 'EOS 60D',
     0x80000288 => 'EOS Rebel T3 / 1100D / Kiss X50',
+    0x80000297 => 'WFT-E2 II',
+    0x80000298 => 'WFT-E4 II',
 );
 
 my %canonQuality = (
@@ -1250,9 +1282,32 @@ my %binaryDataAttrs = (
     ],
     0x97 => { #PH
         Name => 'DustRemovalData',
-        # some interesting stuff is stored in here, like LensType and InternalSerialNumber...
         Writable => 'undef',
         Flags => [ 'Binary', 'Protected' ],
+        # some interesting stuff is stored in here (maybe also InternalSerialNumber)...
+        # 0x00: Version
+        # 0x01: LensInfo
+        # 0x02: AVValue
+        # 0x03: POValue
+        # 0x04: DustCount
+        # 0x06: FocalLength
+        # 0x08: LensID
+        # 0x0a: Width
+        # 0x0c: Height
+        # 0x0e: RAW_Width
+        # 0x10: RAW_Height
+        # 0x12: PixelPitch [um]
+        # 0x14: LpfDistance [mm]
+        # 0x16: TopOffset
+        # 0x17: BottomOffset
+        # 0x18: LeftOffset
+        # 0x19: RightOffset
+        # 0x1a: Year
+        # 0x1b: Month
+        # 0x1c: Day
+        # 0x1d: Hour
+        # 0x1e: Minutes
+        # 0x1f: BrightDiff
     },
     0x98 => { #PH
         Name => 'CropInfo',
@@ -1356,7 +1411,7 @@ my %binaryDataAttrs = (
     0x4001 => [ #13
         {   # (int16u[582]) - 20D and 350D
             Condition => '$count == 582',
-            Name => 'ColorData1',
+            Name => 'ColorData1', # (Canon: WBPacket)
             SubDirectory => {
                 TagTable => 'Image::ExifTool::Canon::ColorData1',
             },
@@ -1430,11 +1485,11 @@ my %binaryDataAttrs = (
         Flags => [ 'Unknown', 'Binary', 'Drop' ],
     },
     0x4008 => { #PH guess (1DmkIII)
-        Name => 'BlackLevel', # (BasePictStyleOfUser)
+        Name => 'BlackLevel', # (Canon: BasePictStyleOfUser)
         Unknown => 1,
     },
     0x4010 => { #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,2933.0.html
-        Name => 'CustomPictureStyleFileName',
+        Name => 'CustomPictureStyleFileName', # (Canon: PictStyleCaption)
         Writable => 'string',
     },
     0x4013 => { #PH
@@ -1444,8 +1499,9 @@ my %binaryDataAttrs = (
             TagTable => 'Image::ExifTool::Canon::AFMicroAdj',
         },
     },
+    # 0x4014 (similar to 0x83?)
     0x4015 => {
-        Name => 'VignettingCorr',
+        Name => 'VignettingCorr', # (Canon: LensPacket)
         Condition => '$$valPt !~ /^\0\0\0\0/', # (data may be all zeros for 60D)
         SubDirectory => {
             # (the size word is at byte 2 in this structure)
@@ -1454,7 +1510,7 @@ my %binaryDataAttrs = (
         },
     },
     0x4016 => {
-        Name => 'VignettingCorr2',
+        Name => 'VignettingCorr2', # (Canon: ImageCorrectActual)
         SubDirectory => {
             # (the size word is actually 4 bytes, but it doesn't matter if little-endian)
             Validate => 'Image::ExifTool::Canon::Validate($dirData,$subdirStart,$size)',
@@ -1462,7 +1518,7 @@ my %binaryDataAttrs = (
         },
     },
     0x4018 => { #PH
-        Name => 'LightingOpt',
+        Name => 'LightingOpt', # (Canon: ImageCorrect)
         SubDirectory => {
             Validate => 'Image::ExifTool::Canon::Validate($dirData,$subdirStart,$size)',
             TagTable => 'Image::ExifTool::Canon::LightingOpt',
@@ -1748,6 +1804,7 @@ my %binaryDataAttrs = (
         Notes => 'this value is incorrect for EOS 7D images with lenses of type 256 or greater',
         SeparateTable => 1,
         DataMember => 'LensType',
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     23 => {
@@ -2392,6 +2449,7 @@ my %ciLongFocal = (
         Format => 'int16uRev', # value is little-endian
         SeparateTable => 1,
         RawConv => '$val ? $val : undef', # don't use if value is zero
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0x0e => {
@@ -2506,6 +2564,7 @@ my %ciLongFocal = (
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
         RawConv => '$val ? $val : undef', # don't use if value is zero
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0x11 => { %ciShortFocal }, #9
@@ -2582,6 +2641,7 @@ my %ciLongFocal = (
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
         RawConv => '$val ? $val : undef', # don't use if value is zero
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0x11 => { %ciShortFocal },
@@ -2677,6 +2737,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0x113 => { %ciShortFocal },
@@ -2844,6 +2905,7 @@ my %ciLongFocal = (
         Condition => '$$self{CanonFirmA}',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0x14f => {
@@ -2851,6 +2913,7 @@ my %ciLongFocal = (
         Condition => '$$self{CanonFirmB}',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0x150 => {
@@ -2946,6 +3009,7 @@ my %ciLongFocal = (
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
         RawConv => '$val ? $val : undef', # don't use if value is zero
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0x17 => { %ciCameraTemperature }, #PH
@@ -3003,6 +3067,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0xa4 => { #PH
@@ -3194,6 +3259,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0xe8 => { %ciShortFocal },
@@ -3375,6 +3441,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0xf0 => { %ciShortFocal },
@@ -3465,6 +3532,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0xd8 => { %ciShortFocal }, #15
@@ -3584,6 +3652,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0xec => { %ciShortFocal },
@@ -3691,6 +3760,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0xea => { %ciShortFocal },
@@ -3781,6 +3851,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0x107 => { #PH
@@ -3897,6 +3968,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0xf8 => { %ciShortFocal },
@@ -3993,6 +4065,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0x101 => { %ciShortFocal }, # (500D + 9)
@@ -4089,6 +4162,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0xec => { %ciShortFocal }, # (60D + 2)
@@ -4176,6 +4250,7 @@ my %ciLongFocal = (
         Name => 'LensType',
         Format => 'int16uRev', # value is big-endian
         SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
         PrintConv => \%canonLensTypes,
     },
     0xe4 => { %ciShortFocal }, #PH
@@ -6052,10 +6127,11 @@ my %ciLongFocal = (
     FIRST_ENTRY => 1,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
     1 => {
-        Name => 'AFMicroAdjActive',
+        Name => 'AFMicroAdjMode',
         PrintConv => {
-            0 => 'No',
-            1 => 'Yes',
+            0 => 'Disable',
+            1 => 'Adjust all by the same amount',
+            2 => 'Adjust by lens',
         },
     },
     2 => {
@@ -6966,7 +7042,7 @@ Canon maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

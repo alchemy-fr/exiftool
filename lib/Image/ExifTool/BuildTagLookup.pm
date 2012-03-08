@@ -32,7 +32,7 @@ use Image::ExifTool::XMP;
 use Image::ExifTool::Canon;
 use Image::ExifTool::Nikon;
 
-$VERSION = '2.29';
+$VERSION = '2.42';
 @ISA = qw(Exporter);
 
 sub NumbersFirst;
@@ -75,6 +75,7 @@ my %formatOK = (
     int16uRev => 1,
     rational32u => 1,
     rational32s => 1,
+    pstring     => 1,
     var_string  => 1,
     var_int16u  => 1,
     var_pstr32  => 1,
@@ -108,11 +109,12 @@ meta information extracted from or written to a file.
 The tables listed below give the names of all tags recognized by ExifTool.
 },
     ExifTool2 => q{
-B<Tag ID>, B<Index> or B<Sequence> is given in the first column of each
+B<Tag ID>, B<Index#> or B<Sequence> is given in the first column of each
 table.  A B<Tag ID> is the computer-readable equivalent of a tag name, and
-is the identifier that is actually stored in the file.  An B<Index> refers
-to the location of a value when found at a fixed position within a data
-block, and B<Sequence> gives the order of values for a serial data stream.
+is the identifier that is actually stored in the file.  B<Index#> refers to
+the location of a value when found at a fixed position within a data block
+(B<#> is the multiplier for calculating a byte offset: B<1>, B<2> or B<4>).
+B<Sequence> gives the order of values for a serial data stream.
 
 A B<Tag Name> is the handle by which the information is accessed in
 ExifTool.  In some instances, more than one name may correspond to a single
@@ -171,8 +173,8 @@ question.
     EXIF => q{
 EXIF stands for "Exchangeable Image File Format".  This type of information
 is formatted according to the TIFF specification, and may be found in JPG,
-TIFF, PNG, PGF, MIFF, HDP, PSP and XCF images, as well as many TIFF-based
-RAW images, and even some AVI and MOV videos.
+TIFF, PNG, JP2, PGF, MIFF, HDP, PSP and XCF images, as well as many
+TIFF-based RAW images, and even some AVI and MOV videos.
 
 The EXIF meta information is organized into different Image File Directories
 (IFD's) within an image.  The names of these IFD's correspond to the
@@ -213,9 +215,10 @@ GPSVersionID tag automatically if new a GPS IFD is added to an image.
 XMP stands for "Extensible Metadata Platform", an XML/RDF-based metadata
 format which is being pushed by Adobe.  Information in this format can be
 embedded in many different image file types including JPG, JP2, TIFF, GIF,
-EPS, PDF, PSD, IND, PNG, DJVU, SVG, PGF, MIFF, XCF, CRW, DNG and a variety
-of proprietary TIFF-based RAW images, as well as MOV, AVI, ASF, WMV, FLV,
-SWF and MP4 videos, and WMA and audio formats supporting ID3v2 information.
+EPS, PDF, PSD, IND, INX, PNG, DJVU, SVG, PGF, MIFF, XCF, CRW, DNG and a
+variety of proprietary TIFF-based RAW images, as well as MOV, AVI, ASF, WMV,
+FLV, SWF and MP4 videos, and WMA and audio formats supporting ID3v2
+information.
 
 The XMP B<Tag ID>'s aren't listed because in most cases they are identical
 to the B<Tag Name> (aside from differences in case).  Tags with different
@@ -228,15 +231,19 @@ C<integer> is a string of digits (possibly beginning with a '+' or '-'),
 C<real> is a floating point number, C<rational> is entered as a floating
 point number but stored as two C<integer> strings separated by a '/'
 character, C<date> is a date/time string entered in the format "YYYY:mm:dd
-HH:MM:SS[.ss][+/-HH:MM]", C<boolean> is either "True" or "False",
-C<lang-alt> indicates that the tag supports alternate languages (see below),
-and C<struct> is an XMP structure.  When reading, structures are extracted
-only if the Struct (-struct) option is used.  Otherwise the corresponding
-"flattened" tags, indicated by an underline (C<_>) after the B<Writable>
-type, are extracted.  When copying information, the Struct option is in
-effect by default.  When writing, the Struct option has no effect, and both
-structured and flattened tags may be written.  See
-L<http://owl.phy.queensu.ca/~phil/exiftool/struct.html> for more details.
+HH:MM:SS[.ss][+/-HH:MM]", C<boolean> is either "True" or "False", C<struct>
+indicates a structured tag, and C<lang-alt> is a tag that supports alternate
+languages.
+
+When reading, C<struct> tags are extracted only if the Struct (-struct)
+option is used.  Otherwise the corresponding "flattened" tags, indicated by
+an underline (C<_>) after the B<Writable> type, are extracted.  When
+copying, the Struct option is in effect by default, so flattened tag names
+may not be copied unless the Struct option is disabled (by setting Struct to
+0 via the API or with --struct on the command line).  When writing, the
+Struct option has no effect, and both structured and flattened tags may be
+written.  See L<http://owl.phy.queensu.ca/~phil/exiftool/struct.html> for
+more details.
 
 Individual languages for C<lang-alt> tags are accessed by suffixing the tag
 name with a '-', followed by an RFC 3066 language code (ie. "XMP:Title-fr",
@@ -269,20 +276,22 @@ tables.  For example, the C<pdfx> namespace doesn't have a predefined set of
 tag names because it is used to store application-defined PDF information,
 but this information is extracted by ExifTool.
 
-See L<http://www.adobe.com/devnet/xmp/> for the official XMP specification.
+The tables below list tags from the official XMP specification as well as
+extensions from various other sources.  See
+L<http://www.adobe.com/devnet/xmp/> for the official XMP specification.
 },
     IPTC => q{
 The tags listed below are part of the International Press Telecommunications
 Council (IPTC) and the Newspaper Association of America (NAA) Information
 Interchange Model (IIM).  This is an older meta information format, slowly
-being phased out in favor of XMP.  (In fact, the newer IPTCCore
-specification actually uses XMP format!)  IPTC information may be embedded
-in JPG, TIFF, PNG, MIFF, PS, PDF, PSD, XCF and DNG images.
+being phased out in favor of XMP -- the newer IPTCCore specification uses
+XMP format.  IPTC information may be embedded in JPG, TIFF, PNG, MIFF, PS,
+PDF, PSD, XCF and DNG images.
 
 IPTC information is separated into different records, each of which has its
 own set of tags.  See
 L<http://www.iptc.org/std/IIM/4.1/specification/IIMV4.1.pdf> for the
-official specification.
+official IPTC IIM specification.
 
 This specification dictates a length for ASCII (C<string> or C<digits>) and
 binary (C<undef>) values.  These lengths are given in square brackets after
@@ -349,8 +358,9 @@ located in 5 different places.)
 },
     Olympus => q{
 Tags 0x0000 through 0x0103 are used by some older Olympus cameras, and are
-the same as Konica/Minolta tags.  The Olympus tags are also used for Epson
-and Agfa cameras.
+the same as Konica/Minolta tags.  These tags are also used for some models
+from other brands such as Acer, BenQ, Epson, Hitachi, HP, Maginon, Minolta,
+Pentax, Ricoh, Samsung, Sanyo, SeaLife, Sony, Supra and Vivitar.
 },
     Panasonic => q{
 These tags are used in Panasonic/Leica cameras.
@@ -359,7 +369,8 @@ These tags are used in Panasonic/Leica cameras.
 These tags are used in Pentax/Asahi cameras.
 },
     Sigma => q{
-These tags are used in Sigma/Foveon cameras.
+These tags are used in Sigma/Foveon cameras.  Many tags are not consistent
+between different models.
 },
     Sony => q{
 The maker notes in images from most recent Sony camera models contain a
@@ -425,11 +436,15 @@ and RPM).
 },
     Extra => q{
 The extra tags represent extra information extracted or generated by
-ExifTool that is not directly associated with another tag group.  The three
-writable "pseudo" tags (FileName, Directory and FileModifyDate) may be
-written without the need to rewrite the file since their values are not
-contained within the file data.  These "pseudo" tags belong to the family 1
-"System" group.
+ExifTool that is not directly associated with another tag group.  The
+B<Group> column lists the family 1 group name when reading.  Tags with a "-"
+in this column are write-only.
+
+Tags in the family 1 "System" group are referred to as "pseudo" tags because
+they don't represent real metadata in the file.  Instead, this information
+is stored in the directory structure of the filesystem.  The three writable
+"pseudo" tags (FileName, Directory and FileModifyDate) may be written
+without modifying the file itself.
 },
     Composite => q{
 The values of the composite tags are B<Derived From> the values of other
@@ -454,7 +469,7 @@ L<Image::ExifTool::BuildTagLookup|Image::ExifTool::BuildTagLookup>.
 
 ~head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
@@ -475,7 +490,8 @@ my %shortcutNotes = (
     },
     CommonIFD0 => q{
         common metadata tags found in IFD0 of TIFF-format images.  Used to simpify
-        deletion of all metadata from these images.  See FAQ number 7 for details
+        deletion of all metadata from these images.  See
+        L<FAQ number 7|../faq.html#Q7> for details
     },
     Unsafe => q{
         "unsafe" tags in JPEG images which are normally not copied.  Defined here
@@ -637,8 +653,9 @@ sub new
             $$table{PROCESS_PROC} eq \&Image::ExifTool::ProcessBinaryData or
             $$table{PROCESS_PROC} eq \&Image::ExifTool::Nikon::ProcessNikonEncrypted));
         if ($$vars{ID_LABEL} or $processBinaryData) {
+            my $s = $$table{FORMAT} ? Image::ExifTool::FormatSize($$table{FORMAT}) || 1 : 1;
             $binaryTable = 1;
-            $id{$tableName} = $$vars{ID_LABEL} || 'Index';
+            $id{$tableName} = $$vars{ID_LABEL} || "Index$s";
         } elsif ($isIPTC and $$table{PROCESS_PROC}) { #only the main IPTC table has a PROCESS_PROC
             $id{$tableName} = 'Record';
         } elsif (not $noID) {
@@ -715,6 +732,11 @@ TagID:  foreach $tagID (@keys) {
                     {
                         warn "$short $name is not shiftable!\n";
                     }
+                    if ($writable and (not $$tagInfo{PrintConvInv} or
+                        $$tagInfo{PrintConvInv} !~ /InverseDateTime/))
+                    {
+                        warn "$short $name missing InverseDateTime PrintConvInv\n";
+                    }
                 } elsif ($name =~ /DateTime(?!Stamp)/ and (not $$tagInfo{Groups}{2} or
                     $$tagInfo{Groups}{2} ne 'Time') and $short ne 'DICOM') {
                     warn "$short $name should be in 'Time' group!\n";
@@ -761,7 +783,7 @@ TagID:  foreach $tagID (@keys) {
                 if ($$tagInfo{Notes}) {
                     my $note = $$tagInfo{Notes};
                     # remove leading/trailing blank lines
-                    $note =~ s/(^\s+|\s+$)//g;
+                    $note =~ s/^\s+//; $note =~ s/\s+$//;
                     # remove leading/trailing spaces on each line
                     $note =~ s/(^[ \t]+|[ \t]+$)//mg;
                     push @values, "($note)";
@@ -774,7 +796,12 @@ TagID:  foreach $tagID (@keys) {
                     }
                 }
                 my $writeGroup;
-                $writeGroup = $$tagInfo{WriteGroup};
+                if ($short eq 'Extra') {
+                    my @g = $exifTool->GetGroup($tagInfo);
+                    $writeGroup = $$tagInfo{WriteOnly} ? '-' : $g[1];
+                } else {
+                    $writeGroup = $$tagInfo{WriteGroup};
+                }
                 unless ($writeGroup) {
                     $writeGroup = $$table{WRITE_GROUP} if $writable;
                     $writeGroup = '-' unless $writeGroup;
@@ -897,8 +924,16 @@ TagID:  foreach $tagID (@keys) {
                                 $_ eq 'BITMASK' and $bits = $$printConv{$_}, next;
                                 $_ eq 'OTHER' and next;
                                 my $index;
-                                if (($$tagInfo{PrintHex} or $$printConv{BITMASK}) and /^\d+$/) {
-                                    $index = sprintf('0x%x',$_);
+                                if (($$tagInfo{PrintHex} or $$printConv{BITMASK}) and /^-?\d+$/) {
+                                    if ($_ >= 0) {
+                                        $index = sprintf('0x%x', $_);
+                                    } elsif ($format and $format =~ /int(16|32)/) {
+                                        # mask off unused bits of signed integer hex value
+                                        my $mask = { 16 => 0xffff, 32 => 0xffffffff }->{$1};
+                                        $index = sprintf('0x%x', $_ & $mask);
+                                    } else {
+                                        $index = $_;
+                                    }
                                 } elsif (/^[+-]?(?=\d|\.\d)\d*(\.\d*)?$/ and not $$tagInfo{PrintString}) {
                                     $index = $_;
                                 } else {
@@ -958,6 +993,7 @@ TagID:  foreach $tagID (@keys) {
                 if ($subdir and not $$tagInfo{SeparateTable}) {
                     # subdirectories are only writable if specified explicitly
                     my $tw = $$tagInfo{Writable};
+                    $writable = 'Y' if $tw and $writable eq '1';
                     $writable = '-' . ($tw ? $writable : '');
                     $writable .= '!' if $tw and ($$tagInfo{Protected} || 0) & 0x01;
                 } else {
@@ -1027,10 +1063,10 @@ TagID:  foreach $tagID (@keys) {
                     push @writable, $writable;
                 }
 #
-# add this tag to the tag lookup unless PROCESS_PROC is 0 or shortcut or plug-in tag
+# add this tag to the tag lookup unless NO_LOOKUP is set or shortcut or plug-in tag
 #
                 next if $shortcut or $isPlugin;
-                next if defined $$table{PROCESS_PROC} and not $$table{PROCESS_PROC};
+                next if $$vars{NO_LOOKUP};
                 # count our tags
                 if ($$tagInfo{SubDirectory}) {
                     $subdirs{$lcName} or $subdirs{$lcName} = 0;
@@ -1328,10 +1364,23 @@ sub WriteTagLookup($$)
 sub NumbersFirst
 {
     my $rtnVal;
-    my $bNum = ($b =~ /^-?[0-9]+(\.\d*)?$/);
-    if ($a =~ /^-?[0-9]+(\.\d*)?$/) {
-        $rtnVal = ($bNum ? $a <=> $b : -$numbersFirst);
-    } elsif ($bNum) {
+    my ($bNum, $bDec);
+    ($bNum, $bDec) = ($1, $3) if $b =~ /^(-?[0-9]+)(\.(\d*))?$/;
+    if ($a =~ /^(-?[0-9]+)(\.(\d*))?$/) {
+        if (defined $bNum) {
+            # compare integer part as a number
+            $rtnVal = $1 <=> $bNum;
+            unless ($rtnVal) {
+                my $aDec = $3 || 0;
+                $bDec or $bDec = 0;
+                # compare decimal part as an integer too
+                # (so that "1.10" comes after "1.9")
+                $rtnVal = $aDec <=> $bDec;
+            }
+        } else {
+            $rtnVal = -$numbersFirst;
+        }
+    } elsif (defined $bNum) {
         $rtnVal = $numbersFirst;
     } else {
         my ($a2, $b2) = ($a, $b);
@@ -1451,6 +1500,8 @@ sub GetTableOrder()
     }
     # tweak the table order
     my %tweakOrder = (
+      # this    => comes after this
+      # -------    -----------------
         JPEG    => '-',     # JPEG comes first
         IPTC    => 'Exif',  # put IPTC after EXIF,
         GPS     => 'XMP',   # etc...
@@ -1479,8 +1530,10 @@ sub GetTableOrder()
        'Nikon::CameraSettingsD300' => 'Nikon::ShotInfoD300b',
        'Pentax::LensData' => 'Pentax::LensInfo2',
        'Sony::SRF2' => 'Sony::SRF',
-       'Samsung::INFO' => 'Samsung::Type2', # (necessary because Samsung doesn't have a main table)
-       'Samsung::MP4' => 'Samsung::INFO', # (necessary because Samsung doesn't have a main table)
+       'Samsung::PictureWizard' => 'Samsung::Type2', # (necessary because Samsung doesn't have a main table)
+       'Samsung::INFO' => 'Samsung::PictureWizard', # (ditto)
+       'Samsung::MP4' => 'Samsung::INFO', # (ditto)
+       'Samsung::Thumbnail' => 'Samsung::MP4', # (ditto)
     );
     my @tweak = sort keys %tweakOrder;
     while (@tweak) {
@@ -1713,7 +1766,7 @@ sub WriteTagNames($$)
             my $notes = $$printConv{Notes};
             if ($notes) {
                 # remove unnecessary whitespace
-                $notes =~ s/(^\s+|\s+$)//g;
+                $notes =~ s/^\s+//; $notes =~ s/\s+$//;
                 $notes =~ s/(^[ \t]+|[ \t]+$)//mg;
             }
             my $head = $tableName;
@@ -1736,7 +1789,7 @@ sub WriteTagNames($$)
                 }
                 $wid = length($tableName)+7 if $wid < length($tableName)+7;
                 # print in multiple columns if there is room
-                my $cols = int(80 / ($wid + 4));
+                my $cols = int(110 / ($wid + 4));
                 $cols = 1 if $cols < 1 or $cols > @keys or @keys < 4;
                 my $rows = int((scalar(@keys) + $cols - 1) / $cols);
                 my ($r, $c);
@@ -1828,7 +1881,7 @@ sub WriteTagNames($$)
         my $podIdLen = $self->{LONG_ID}->{$tableName};
         if ($notes) {
             # remove unnecessary whitespace
-            $notes =~ s/(^\s+|\s+$)//g;
+            $notes =~ s/^\s+//; $notes =~ s/\s+$//;
             $notes =~ s/(^[ \t]+|[ \t]+$)//mg;
             if ($notes =~ /leading '(.*?_)' which/) {
                 $prefix = $1;
@@ -1863,9 +1916,10 @@ sub WriteTagNames($$)
             $wTag += 9;
             $hid = '';
         }
-        if ($short eq 'EXIF') {
+        if ($short eq 'EXIF' or $short eq 'Extra') {
             $derived = '<th>Group</th>';
             $showGrp = 1;
+            $wGrp += 8 if $short eq 'Extra';    # tweak Group column width for "Extra" tags
             $wTag -= $wGrp + 1;
         }
         my $head = ($short =~ / /) ? 'head3' : 'head2';
@@ -2214,7 +2268,7 @@ WriteTagNames().
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

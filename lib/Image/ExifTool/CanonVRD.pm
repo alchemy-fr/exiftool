@@ -20,7 +20,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.13';
+$VERSION = '1.15';
 
 sub ProcessCanonVRD($$;$);
 sub WriteCanonVRD($$;$);
@@ -1117,8 +1117,8 @@ sub WriteCanonVRD($$;$)
     my ($exifTool, $dirInfo, $tagTablePtr) = @_;
     $exifTool or return 1;    # allow dummy access
     my $nvHash = $exifTool->GetNewValueHash($Image::ExifTool::Extra{CanonVRD});
-    return undef unless Image::ExifTool::IsOverwriting($nvHash);
-    my $val = Image::ExifTool::GetNewValues($nvHash);
+    return undef unless $exifTool->IsOverwriting($nvHash);
+    my $val = $exifTool->GetNewValues($nvHash);
     $val = '' unless defined $val;
     ++$exifTool->{CHANGED};
     return $val;
@@ -1172,7 +1172,9 @@ sub ProcessCanonVRD($$;$)
         return 0;
     }
     # extract CanonVRD block if Binary option set, or if requested
-    if ($exifTool->{OPTIONS}->{Binary} or $exifTool->{REQ_TAG_LOOKUP}->{canonvrd}) {
+    if (($exifTool->{OPTIONS}{Binary} and not $exifTool->{EXCL_TAG_LOOKUP}{canonvrd}) or
+        $exifTool->{REQ_TAG_LOOKUP}{canonvrd})
+    {
         $exifTool->FoundTag('CanonVRD', $header . $buff . $footer);
     }
     # set variables returned in dirInfo hash
@@ -1263,7 +1265,7 @@ sub ProcessCanonVRD($$;$)
                 Description => $desc,
                 Binary      => 1,
             };
-            Image::ExifTool::AddTagToTable($tagTablePtr, $blockType, $tagInfo);
+            AddTagToTable($tagTablePtr, $blockType, $tagInfo);
         }
         if ($$tagInfo{SubDirectory}) {
             my $subTablePtr = GetTagTable($$tagInfo{SubDirectory}{TagTable});
@@ -1363,7 +1365,7 @@ trailer in JPEG, CRW, CR2 and TIFF images.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

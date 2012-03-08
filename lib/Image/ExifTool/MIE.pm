@@ -14,7 +14,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::GPS;
 
-$VERSION = '1.34';
+$VERSION = '1.36';
 
 sub ProcessMIE($$);
 sub ProcessMIEGroup($$$);
@@ -151,6 +151,9 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
         these tags, units may be added in brackets immediately following the value
         (ie. C<55(mi/h)>).  If no units are specified, the default units are
         written.
+
+        See L<http://owl.phy.queensu.ca/~phil/exiftool/MIE1.1-20070121.pdf> for the
+        official MIE specification.
     },
    '0Type' => {
         Name => 'SubfileType',
@@ -1149,7 +1152,7 @@ sub WriteMIEGroup($$$)
                     if ($isList) {
                         $isOverwriting = -1;    # force processing list elements individually
                     } else {
-                        $isOverwriting = Image::ExifTool::IsOverwriting($nvHash);
+                        $isOverwriting = $exifTool->IsOverwriting($nvHash);
                         last unless $isOverwriting;
                     }
                     my ($val, $cmpVal);
@@ -1186,12 +1189,12 @@ sub WriteMIEGroup($$$)
                                 }
                                 # keep any list items that we aren't overwriting
                                 foreach $v (@vals) {
-                                    next if Image::ExifTool::IsOverwriting($nvHash, $v);
+                                    next if $exifTool->IsOverwriting($nvHash, $v);
                                     push @newVals, $v;
                                 }
                             } else {
                                 # test to see if we really want to overwrite the value
-                                $isOverwriting = Image::ExifTool::IsOverwriting($nvHash, $val);
+                                $isOverwriting = $exifTool->IsOverwriting($nvHash, $val);
                             }
                         }
                     }
@@ -1229,7 +1232,7 @@ sub WriteMIEGroup($$$)
                         ($newTag eq $lastTag and ($$newInfo{List} or $deletedTag eq $lastTag));
                 }
                 # get the new value to write (undef to delete)
-                push @newVals, Image::ExifTool::GetNewValues($nvHash);
+                push @newVals, $exifTool->GetNewValues($nvHash);
                 next unless @newVals;
                 $writable = $$newInfo{Writable} || $$tagTablePtr{WRITABLE};
                 if ($writable eq 'string') {
@@ -1515,7 +1518,7 @@ sub ProcessMIEGroup($$$)
                 Writable => 0,
                 PrintConv => 'length($val) > 60 ? substr($val,0,55) . "[...]" : $val',
             };
-            Image::ExifTool::AddTagToTable($tagTablePtr, $tag, $tagInfo);
+            AddTagToTable($tagTablePtr, $tag, $tagInfo);
             last;
         }
 
@@ -1609,7 +1612,7 @@ sub ProcessMIEGroup($$$)
                     );
                     # set DataPos and Base for uncompressed information only
                     unless ($wasCompressed) {
-                        $subdirInfo{DataPos} = $raf->Tell() - $valLen;
+                        $subdirInfo{DataPos} = 0; # (relative to Base)
                         $subdirInfo{Base}    = $raf->Tell() - $valLen;
                     }
                     # reset PROCESSED lookup for each MIE directory
@@ -2526,7 +2529,7 @@ tag name.  For example:
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.  The MIE format itself is also

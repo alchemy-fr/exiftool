@@ -247,7 +247,7 @@ sub FoundTag($$$$;$)
                 $tagInfo{PrintConv} = '$self->ConvertDateTime($val)';
             }
             $exifTool->VPrint(0, "  | [adding $tag]\n") if $verbose;
-            Image::ExifTool::AddTagToTable($tagTablePtr, $tag, \%tagInfo);
+            AddTagToTable($tagTablePtr, $tag, \%tagInfo);
         }
     } elsif ($tag eq 'xmlns') {
         # ignore namespaces (for now)
@@ -289,7 +289,7 @@ sub FoundTag($$$$;$)
         }
     } else {
         $exifTool->VPrint(0, "  [adding $tag]\n") if $verbose;
-        Image::ExifTool::AddTagToTable($tagTablePtr, $tag, { Name => ucfirst $tag });
+        AddTagToTable($tagTablePtr, $tag, { Name => ucfirst $tag });
     }
     # save the tag
     $exifTool->HandleTag($tagTablePtr, $tag, $val);
@@ -394,7 +394,7 @@ archives of XML files.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

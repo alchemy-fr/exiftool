@@ -16,7 +16,7 @@
 #               8) Shingo Noguchi, PhotoXP (http://www.daifukuya.com/photoxp/)
 #               9) Mark Dapoz private communication
 #              10) Lilo Huang private communication (E-330)
-#              11) http://olypedia.de/Olympus_Makernotes
+#              11) http://olypedia.de/Olympus_Makernotes (Nov. 21, 2011)
 #              12) Ioannis Panagiotopoulos private communication (E-510)
 #              13) Chris Shaw private communication (E-3)
 #              14) Viktor Lushnikov private communication (E-400)
@@ -33,7 +33,7 @@ use vars qw($VERSION);
 use Image::ExifTool::Exif;
 use Image::ExifTool::APP12;
 
-$VERSION = '1.80';
+$VERSION = '1.85';
 
 sub PrintLensInfo($$$);
 
@@ -53,17 +53,20 @@ my %olympusLensTypes = (
     '0 4 16' => 'Olympus M.Zuiko Digital ED 9-18mm F4.0-5.6', #11
     '0 5 0'  => 'Olympus Zuiko Digital 14-54mm F2.8-3.5',
     '0 5 1'  => 'Olympus Zuiko Digital Pro ED 90-250mm F2.8', #9
-    '0 5 16' => 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6', #11
+    '0 5 16' => 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6 L', #11 (E-PL1)
     '0 6 0'  => 'Olympus Zuiko Digital ED 50-200mm F2.8-3.5',
     '0 6 1'  => 'Olympus Zuiko Digital ED 8mm F3.5 Fisheye', #9
     '0 6 16' => 'Olympus M.Zuiko Digital ED 40-150mm F4.0-5.6', #PH
     '0 7 0'  => 'Olympus Zuiko Digital 11-22mm F2.8-3.5',
     '0 7 1'  => 'Olympus Zuiko Digital 18-180mm F3.5-6.3', #6
-    '0 7 16' => 'Olumpus M.Zuiko Digital ED 12mm F2.0', #PH
+    '0 7 16' => 'Olympus M.Zuiko Digital ED 12mm F2.0', #PH
     '0 8 1'  => 'Olympus Zuiko Digital 70-300mm F4.0-5.6', #7 (seen as release 1 - PH)
     '0 8 16' => 'Olympus M.Zuiko Digital ED 75-300mm F4.8-6.7', #PH
     '0 9 16' => 'Olympus M.Zuiko Digital 14-42mm F3.5-5.6 II', #PH (E-PL2)
+    '0 17 16'=> 'Olympus M.Zuiko Digital 45mm F1.8', #17
     '0 19 16'=> 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6 II R', #PH
+    '0 20 16'=> 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6 II', #11
+    # (missing:  Olympus M.Zuiko Digital ED 12-50mm F3.5-6.3 EZ)
     '0 21 0' => 'Olympus Zuiko Digital ED 7-14mm F4.0',
     '0 23 0' => 'Olympus Zuiko Digital Pro ED 35-100mm F2.0', #7
     '0 24 0' => 'Olympus Zuiko Digital 14-45mm F3.5-5.6',
@@ -89,6 +92,7 @@ my %olympusLensTypes = (
     '1 16 0' => 'Sigma 24mm F1.8 EX DG Aspherical Macro', #PH
     '1 17 0' => 'Sigma 135-400mm F4.5-5.6 DG ASP APO RF', #11
     '1 18 0' => 'Sigma 300-800mm F5.6 EX DG APO', #11
+    '1 19 0' => 'Sigma 30mm F1.4 EX DC HSM', #11
     '1 20 0' => 'Sigma 50-500mm F4.0-6.3 EX DG APO HSM RF', #11
     '1 21 0' => 'Sigma 10-20mm F4.0-5.6 EX DC HSM', #11
     '1 22 0' => 'Sigma 70-200mm F2.8 EX DG Macro HSM II', #11
@@ -98,6 +102,7 @@ my %olympusLensTypes = (
     '2 1 16' => 'Lumix G Vario 14-45mm F3.5-5.6 Asph. Mega OIS', #16
     '2 2 0'  => 'Leica D Summilux 25mm F1.4 Asph.',
     '2 2 16' => 'Lumix G Vario 45-200mm F4-5.6 Mega OIS', #16
+    '2 3 0'  => 'Leica D Vario Elmar 14-50mm F3.8-5.6 Asph. Mega OIS', #11
     '2 3 1'  => 'Leica D Vario Elmar 14-50mm F3.8-5.6 Asph.', #14 (L10 kit)
     '2 3 16' => 'Lumix G Vario HD 14-140mm F4-5.8 Asph. Mega OIS', #16
     '2 4 0'  => 'Leica D Vario Elmar 14-150mm F3.5-5.6', #13
@@ -105,24 +110,309 @@ my %olympusLensTypes = (
     '2 5 16' => 'Lumix G 20mm F1.7 Asph.', #16
     '2 6 16' => 'Leica DG Macro-Elmarit 45mm F2.8', #PH
     '2 8 16' => 'Lumix G Fisheye 8mm F3.5', #PH
+    '2 9 16' => 'Lumix G Vario 100-300mm F4.0-5.6 OIS', #11
+    '2 16 16'=> 'Lumix G 14mm F2.5 Asph.', #17
     '3 1 0'  => 'Leica D Vario Elmarit 14-50mm F2.8-3.5 Asph.',
     '3 2 0'  => 'Leica D Summilux 25mm F1.4 Asph.',
 );
 
+# lookup for Olympus camera types (ref PH)
+my %olympusCameraTypes = (
+    Notes => q{
+        These values are currently decoded only for Olympus models.  Models with
+        Olympus-style maker notes from other brands such as Acer, BenQ, Hitachi, HP,
+        Premier, Konica-Minolta, Maginon, Ricoh, Rollei, SeaLife, Sony, Supra,
+        Vivitar are not listed.
+    },
+    D4028 => 'X-2,C-50Z',
+    D4029 => 'E-20,E-20N,E-20P',
+    D4034 => 'C720UZ',
+    D4040 => 'E-1',
+    D4041 => 'E-300',
+    D4083 => 'C2Z,D520Z,C220Z',
+    D4106 => 'u20D,S400D,u400D',
+    D4120 => 'X-1',
+    D4122 => 'u10D,S300D,u300D',
+    D4125 => 'AZ-1',
+    D4141 => 'C150,D390',
+    D4193 => 'C-5000Z',
+    D4194 => 'X-3,C-60Z',
+    D4199 => 'u30D,S410D,u410D',
+    D4205 => 'X450,D535Z,C370Z',
+    D4210 => 'C160,D395',
+    D4211 => 'C725UZ',
+    D4213 => 'FerrariMODEL2003',
+    D4216 => 'u15D',
+    D4217 => 'u25D',
+    D4220 => 'u-miniD,Stylus V',
+    D4221 => 'u40D,S500,uD500',
+    D4231 => 'FerrariMODEL2004',
+    D4240 => 'X500,D590Z,C470Z',
+    D4244 => 'uD800,S800',
+    D4256 => 'u720SW,S720SW',
+    D4261 => 'X600,D630,FE5500',
+    D4262 => 'uD600,S600',
+    D4301 => 'u810/S810', # (yes, "/".  Olympus is not consistent in the notation)
+    D4302 => 'u710,S710',
+    D4303 => 'u700,S700',
+    D4304 => 'FE100,X710',
+    D4305 => 'FE110,X705',
+    D4310 => 'FE-130,X-720',
+    D4311 => 'FE-140,X-725',
+    D4312 => 'FE150,X730',
+    D4313 => 'FE160,X735',
+    D4314 => 'u740,S740',
+    D4315 => 'u750,S750',
+    D4316 => 'u730/S730',
+    D4317 => 'FE115,X715',
+    D4321 => 'SP550UZ',
+    D4322 => 'SP510UZ',
+    D4324 => 'FE170,X760',
+    D4326 => 'FE200',
+    D4327 => 'FE190/X750', # (also SX876)
+    D4328 => 'u760,S760',
+    D4330 => 'FE180/X745', # (also SX875)
+    D4331 => 'u1000/S1000',
+    D4332 => 'u770SW,S770SW',
+    D4333 => 'FE240/X795',
+    D4334 => 'FE210,X775',
+    D4336 => 'FE230/X790',
+    D4337 => 'FE220,X785',
+    D4338 => 'u725SW,S725SW',
+    D4339 => 'FE250/X800',
+    D4341 => 'u780,S780',
+    D4343 => 'u790SW,S790SW',
+    D4344 => 'u1020,S1020',
+    D4346 => 'FE15,X10',
+    D4348 => 'FE280,X820,C520',
+    D4349 => 'FE300,X830',
+    D4350 => 'u820,S820',
+    D4351 => 'u1200,S1200',
+    D4352 => 'FE270,X815,C510',
+    D4353 => 'u795SW,S795SW',
+    D4354 => 'u1030SW,S1030SW',
+    D4355 => 'SP560UZ',
+    D4356 => 'u1010,S1010',
+    D4357 => 'u830,S830',
+    D4359 => 'u840,S840',
+    D4360 => 'FE350WIDE,X865',
+    D4361 => 'u850SW,S850SW',
+    D4362 => 'FE340,X855,C560',
+    D4363 => 'FE320,X835,C540',
+    D4364 => 'SP570UZ',
+    D4366 => 'FE330,X845,C550',
+    D4368 => 'FE310,X840,C530',
+    D4370 => 'u1050SW,S1050SW',
+    D4371 => 'u1060,S1060',
+    D4372 => 'FE370,X880,C575',
+    D4374 => 'SP565UZ',
+    D4377 => 'u1040,S1040',
+    D4378 => 'FE360,X875,C570',
+    D4379 => 'FE20,X15,C25',
+    D4380 => 'uT6000,ST6000',
+    D4381 => 'uT8000,ST8000',
+    D4382 => 'u9000,S9000',
+    D4384 => 'SP590UZ',
+    D4385 => 'FE3010,X895',
+    D4386 => 'FE3000,X890',
+    D4387 => 'FE35,X30',
+    D4388 => 'u550WP,S550WP',
+    D4390 => 'FE5000,X905',
+    D4391 => 'u5000',
+    D4392 => 'u7000,S7000',
+    D4396 => 'FE5010,X915',
+    D4397 => 'FE25,X20',
+    D4398 => 'FE45,X40',
+    D4401 => 'XZ-1',
+    D4402 => 'uT6010,ST6010',
+    D4406 => 'u7010,S7010 / u7020,S7020',
+    D4407 => 'FE4010,X930',
+    D4408 => 'X560WP',
+    D4409 => 'FE26,X21',
+    D4410 => 'FE4000,X920,X925',
+    D4411 => 'FE46,X41,X42',
+    D4412 => 'FE5020,X935',
+    D4413 => 'uTough-3000',
+    D4414 => 'StylusTough-6020',
+    D4415 => 'StylusTough-8010',
+    D4417 => 'u5010,S5010',
+    D4418 => 'u7040,S7040',
+    D4419 => 'u9010,S9010',
+    D4423 => 'FE4040',
+    D4424 => 'FE47,X43',
+    D4426 => 'FE4030,X950',
+    D4428 => 'FE5030,X965,X960',
+    D4432 => 'SP600UZ',
+    D4434 => 'SP800UZ',
+    D4439 => 'FE4020,X940',
+    D4442 => 'FE5035',
+    D4448 => 'FE4050,X970',
+    D4450 => 'FE5050,X985',
+    D4454 => 'u-7050',
+    D4464 => 'T10,X27',
+    D4470 => 'FE5040,X980',
+    D4472 => 'TG-310',
+    D4474 => 'TG-610',
+    D4476 => 'TG-810',
+    D4478 => 'VG145,VG140,D715',
+    D4479 => 'VG130,D710',
+    D4480 => 'VG120,D705',
+    D4482 => 'VR310,D720',
+    D4484 => 'VR320,D725',
+    D4488 => 'VG110,D700',
+    D4490 => 'SP-610UZ',
+    D4492 => 'SZ-10',
+    D4494 => 'SZ-20',
+    D4496 => 'SZ-30MR',
+    D4498 => 'SP-810UZ',
+    D4500 => 'SZ-11',
+    D4504 => 'TG-615',
+    D4529 => 'VG170',
+    D4809 => 'C2500L',
+    D4842 => 'E-10',
+    D4856 => 'C-1',
+    D4857 => 'C-1Z,D-150Z',
+    DCHC => 'D500L',
+    DCHT => 'D600L / D620L',
+    S0003 => 'E-330',
+    S0004 => 'E-500',
+    S0009 => 'E-400',
+    S0010 => 'E-510',
+    S0011 => 'E-3',
+    S0013 => 'E-410',
+    S0016 => 'E-420',
+    S0017 => 'E-30',
+    S0018 => 'E-520',
+    S0019 => 'E-P1',
+    S0023 => 'E-620',
+    S0026 => 'E-P2',
+    S0027 => 'E-PL1',
+    S0029 => 'E-450',
+    S0030 => 'E-600',
+    S0032 => 'E-P3',
+    S0033 => 'E-5',
+    S0034 => 'E-PL2',
+    S0038 => 'E-PL3',
+    S0039 => 'E-PM1',
+    S0040 => 'E-PL1s',
+    SR45 => 'D220',
+    SR55 => 'D320L',
+    SR83 => 'D340L',
+    SR85 => 'C830L,D340R',
+    SR852 => 'C860L,D360L',
+    SR872 => 'C900Z,D400Z',
+    SR874 => 'C960Z,D460Z',
+    SR951 => 'C2000Z',
+    SR952 => 'C21',
+    SR953 => 'C21T.commu',
+    SR954 => 'C2020Z',
+    SR955 => 'C990Z,D490Z',
+    SR956 => 'C211Z',
+    SR959 => 'C990ZS,D490Z',
+    SR95A => 'C2100UZ',
+    SR971 => 'C100,D370',
+    SR973 => 'C2,D230',
+    SX151 => 'E100RS',
+    SX351 => 'C3000Z / C3030Z',
+    SX354 => 'C3040Z',
+    SX355 => 'C2040Z',
+    SX357 => 'C700UZ',
+    SX358 => 'C200Z,D510Z',
+    SX374 => 'C3100Z,C3020Z',
+    SX552 => 'C4040Z',
+    SX553 => 'C40Z,D40Z',
+    SX556 => 'C730UZ',
+    SX558 => 'C5050Z',
+    SX571 => 'C120,D380',
+    SX574 => 'C300Z,D550Z',
+    SX575 => 'C4100Z,C4000Z',
+    SX751 => 'X200,D560Z,C350Z',
+    SX752 => 'X300,D565Z,C450Z',
+    SX753 => 'C750UZ',
+    SX754 => 'C740UZ',
+    SX755 => 'C755UZ',
+    SX756 => 'C5060WZ',
+    SX757 => 'C8080WZ',
+    SX758 => 'X350,D575Z,C360Z',
+    SX759 => 'X400,D580Z,C460Z',
+    SX75A => 'AZ-2ZOOM',
+    SX75B => 'D595Z,C500Z',
+    SX75C => 'X550,D545Z,C480Z',
+    SX75D => 'IR-300',
+    SX75F => 'C55Z,C5500Z',
+    SX75G => 'C170,D425',
+    SX75J => 'C180,D435',
+    SX771 => 'C760UZ',
+    SX772 => 'C770UZ',
+    SX773 => 'C745UZ',
+    SX774 => 'X250,D560Z,C350Z',
+    SX775 => 'X100,D540Z,C310Z',
+    SX776 => 'C460ZdelSol',
+    SX777 => 'C765UZ',
+    SX77A => 'D555Z,C315Z',
+    SX851 => 'C7070WZ',
+    SX852 => 'C70Z,C7000Z',
+    SX853 => 'SP500UZ',
+    SX854 => 'SP310',
+    SX855 => 'SP350',
+    SX873 => 'SP320',
+    SX875 => 'FE180/X745', # (also D4330)
+    SX876 => 'FE190/X750', # (also D4327)
+#   other brands
+#    4MP9Q3 => 'Camera 4MP-9Q3'
+#    4MP9T2 => 'BenQ DC C420 / Camera 4MP-9T2'
+#    5MP9Q3 => 'Camera 5MP-9Q3',
+#    5MP9X9 => 'Camera 5MP-9X9',
+#   '5MP-9T'=> 'Camera 5MP-9T3',
+#   '5MP-9Y'=> 'Camera 5MP-9Y2',
+#   '6MP-9U'=> 'Camera 6MP-9U9',
+#    7MP9Q3 => 'Camera 7MP-9Q3',
+#   '8MP-9U'=> 'Camera 8MP-9U4',
+#    CE5330 => 'Acer CE-5330',
+#   'CP-853'=> 'Acer CP-8531',
+#    CS5531 => 'Acer CS5531',
+#    DC500  => 'SeaLife DC500',
+#    DC7370 => 'Camera 7MP-9GA',
+#    DC7371 => 'Camera 7MP-9GM',
+#    DC7371 => 'Hitachi HDC-751E',
+#    DC7375 => 'Hitachi HDC-763E / Rollei RCP-7330X / Ricoh Caplio RR770 / Vivitar ViviCam 7330',
+#   'DC E63'=> 'BenQ DC E63+',
+#   'DC P86'=> 'BenQ DC P860',
+#    DS5340 => 'Maginon Performic S5 / Premier 5MP-9M7',
+#    DS5341 => 'BenQ E53+ / Supra TCM X50 / Maginon X50 / Premier 5MP-9P8',
+#    DS5346 => 'Premier 5MP-9Q2',
+#    E500   => 'Konica Minolta DiMAGE E500',
+#    MAGINO => 'Maginon X60',
+#    Mz60   => 'HP Photosmart Mz60',
+#    Q3DIGI => 'Camera 5MP-9Q3',
+#    SLIMLI => 'Supra Slimline X6',
+#    V8300s => 'Vivitar V8300s',
+);
+
 # ArtFilter and MagicFilter values (ref PH)
 my %filters = (
-    '0'    => 'Off',
-    '1' => 'Soft Focus',
-    '2' => 'Pop Art',
-    '3' => 'Pale & Light Color',
-    '4' => 'Light Tone',
-    '5' => 'Pin Hole',
-    '6' => 'Grainy Film',
-    '9' => 'Diorama',
-    '10' => 'Cross Process',
-    '12' => 'Fish Eye',
-    '13' => 'Drawing',
-    # Punk? Sparkle?
+    0 => 'Off',
+    1 => 'Soft Focus', # (XZ-1)
+    2 => 'Pop Art', # (SZ-10 magic filter 1)
+    3 => 'Pale & Light Color',
+    4 => 'Light Tone',
+    5 => 'Pin Hole', # (SZ-10 magic filter 2)
+    6 => 'Grainy Film',
+    9 => 'Diorama',
+    10 => 'Cross Process',
+    12 => 'Fish Eye', # (SZ-10 magic filter 3)
+    13 => 'Drawing', # (SZ-10 magic filter 4)
+    14 => 'Gentle Sepia', # (E-5)
+    15 => 'Tender Light', #11
+    16 => 'Pop Art II', #11
+    17 => 'Pin Hole II', #11
+    18 => 'Pin Hole III', #11
+    19 => 'Grainy Film II', #11
+    20 => 'Dramatic Tone', # (XZ-1)
+    21 => 'Punk', # (SZ-10 magic filter 6)
+    22 => 'Soft Focus 2', # (SZ-10 magic filter 5)
+    23 => 'Sparkle', # (SZ-10 magic filter 7)
+    24 => 'Watercolor', # (SZ-10 magic filter 8)
 );
 
 # tag information for WAV "Index" tags
@@ -290,6 +580,10 @@ my %indexInfo = (
         Writable => 'string',
         DataMember => 'CameraType',
         RawConv => '$self->{CameraType} = $val',
+        SeparateTable => 'CameraType',
+        PrintConv => \%olympusCameraTypes,
+        Priority => 0,
+        # 'NORMAL' for some models: u730,SP510UZ,u1000,FE240
     },
     0x0208 => {
         Name => 'TextInfo',
@@ -348,6 +642,7 @@ my %indexInfo = (
     0x0403 => { #11
         Name => 'SceneMode',
         Writable => 'int16u',
+        PrintConvColumns => 2,
         PrintConv => {
             0 => 'Normal',
             1 => 'Standard',
@@ -384,6 +679,7 @@ my %indexInfo = (
             32 => 'Face Portrait',
             33 => 'Pet',
             34 => 'Smile Shot',
+            35 => 'Quick Shutter',
             101 => 'Magic Filter', #PH
         },
     },
@@ -568,6 +864,7 @@ my %indexInfo = (
         Name => 'WBMode',
         Writable => 'int16u',
         Count => 2,
+        PrintConvColumns => 2,
         PrintConv => {
             '1'   => 'Auto',
             '1 0' => 'Auto',
@@ -1215,6 +1512,8 @@ my %indexInfo = (
         Groups => { 2 => 'Camera' },
         DataMember => 'CameraType',
         RawConv => '$self->{CameraType} = $val',
+        SeparateTable => 'CameraType',
+        PrintConv => \%olympusCameraTypes,
     },
 );
 
@@ -1234,6 +1533,8 @@ my %indexInfo = (
         Name => 'CameraType2',
         Writable => 'string',
         Count => 6,
+        SeparateTable => 'CameraType',
+        PrintConv => \%olympusCameraTypes,
     },
     0x101 => { #PH
         Name => 'SerialNumber',
@@ -1385,6 +1686,7 @@ my %indexInfo = (
     0x1001 => { #6
         Name => 'FlashModel',
         Writable => 'int16u',
+        PrintConvColumns => 2,
         PrintConv => {
             0 => 'None',
             1 => 'FL-20', # (or subtronic digital or Inon UW flash, ref 11)
@@ -1529,14 +1831,14 @@ my %indexInfo = (
     0x304 => { #PH/4
         Name => 'AFAreas',
         Notes => 'coordinates range from 0 to 255',
-        Format => 'int32u',
+        Writable => 'int32u',
         Count => 64,
         PrintConv => 'Image::ExifTool::Olympus::PrintAFAreas($val)',
     },
     0x0305 => { #PH
         Name => 'AFPointSelected',
         Notes => 'coordinates expressed as a percent',
-        Format => 'rational64s',
+        Writable => 'rational64s',
         Count => 5,
         ValueConv => '$val =~ s/\S* //; $val', # ignore first undefined value
         ValueConvInv => '"undef $val"',
@@ -1544,6 +1846,11 @@ my %indexInfo = (
             return $val if $val =~ /undef/;
             sprintf("(%d%%,%d%%) (%d%%,%d%%)", map {$_ * 100} split(" ",$val));
         }
+    },
+    0x306 => { #11
+        Name => 'AFFineTune',
+        Writable => 'int8u',
+        PrintConv => { 0 => 'Off', 1 => 'On' },
     },
     0x307 => { #15
         Name => 'AFFineTuneAdj',
@@ -1574,6 +1881,7 @@ my %indexInfo = (
         Name => 'FlashRemoteControl',
         Writable => 'int16u',
         PrintHex => 1,
+        PrintConvColumns => 2,
         PrintConv => {
             0 => 'Off',
             0x01 => 'Channel 1, Low',
@@ -1702,6 +2010,7 @@ my %indexInfo = (
     0x509 => { #6
         Name => 'SceneMode',
         Writable => 'int16u',
+        PrintConvColumns => 2,
         PrintConv => {
             0 => 'Standard',
             6 => 'Auto', #6
@@ -1749,15 +2058,15 @@ my %indexInfo = (
             48 => 'Nature Macro', #6
             49 => 'Underwater Snapshot', #11
             50 => 'Shooting Guide', #11
-            51 => 'Face Portrait', #PH (NC)
-            52 => 'Smile Shot', #PH (NC)
-            53 => 'Quick Shutter', #PH (NC)
-            54 => 'Slow Shutter', #PH (NC)
-            55 => 'Bird Watching', #PH (NC)
-            56 => 'Multiple Exposure', #PH (NC)
-            57 => 'e-Portrait', #PH (NC)
-            58 => 'Beauty Fix', #PH (NC)
-            59 => 'Soft Background', #PH (NC)
+            54 => 'Face Portrait', #11
+            57 => 'Bulb', #11
+            59 => 'Smile Shot', #11
+            60 => 'Quick Shutter', #11
+            63 => 'Slow Shutter', #11
+            64 => 'Bird Watching', #11
+            65 => 'Multiple Exposure', #11
+            66 => 'e-Portrait', #11
+            67 => 'Soft Background Shot', #11
         },
     },
     0x50a => { #PH/4/6
@@ -1849,6 +2158,7 @@ my %indexInfo = (
     0x525 => { #6
         Name => 'PictureModeBWFilter',
         Writable => 'int16s',
+        PrintConvColumns => 2,
         PrintConv => {
             0 => 'n/a',
             1 => 'Neutral',
@@ -1861,6 +2171,7 @@ my %indexInfo = (
     0x526 => { #6
         Name => 'PictureModeTone',
         Writable => 'int16s',
+        PrintConvColumns => 2,
         PrintConv => {
             0 => 'n/a',
             1 => 'Neutral',
@@ -1885,13 +2196,44 @@ my %indexInfo = (
         Name => 'ArtFilter',
         Writable => 'int16u',
         Count => 4,
+        PrintConvColumns => 2,
         PrintConv => [ \%filters ],
     },
     0x52c => { #PH
         Name => 'MagicFilter',
         Writable => 'int16u',
-        Count => 4, # (2nd number is 0 or 1280, 3rd/4th are 0)
+        Count => 4, # (2nd number is 0, 1280 or 1792, 3rd/4th are 0)
+        # (1792 observed for E-5 Gentle Sepia and XZ-1 Dramatic Tone)
+        PrintConvColumns => 2,
         PrintConv => [ \%filters ],
+    },
+    0x52d => { #11
+        Name => 'PictureModeEffect',
+        Writable => 'int16s',
+        Count => 3,
+        PrintConv => {
+           '-1 -1 1' => 'Low',
+           '0 -1 1' => 'Standard',
+           '1 -1 1' => 'High',
+        },
+    },
+    0x52f => { #PH
+        Name => 'ArtFilterEffect',
+        Writable => 'int16u',
+        Count => 20,
+        PrintHex => 1,
+        PrintConvColumns => 2,
+        PrintConv => [
+            \%filters, undef, undef, undef,
+            {   # there are 5 available art filter effects for the E-PL3...
+                0x0000 => 'No Effect',
+                0x8010 => 'Star Light',
+                0x8020 => 'Pin Hole',
+                0x8030 => 'Frame',
+                0x8040 => 'Soft Focus',
+                0x8050 => 'White Edge',
+            },
+        ],
     },
     0x600 => { #PH/4
         Name => 'DriveMode',
@@ -2652,6 +2994,7 @@ my %indexInfo = (
             },
             ValueConv => '($val & 0x1f) . " " . ($val & 0xffe0)',
             ValueConvInv => 'my @v=split(" ",$val); @v == 2 ? $v[0] + $v[1] : $val',
+            PrintConvColumns => 2,
             PrintConv => [
                 {
                     0x00 => '(none)',
@@ -3041,7 +3384,10 @@ my %indexInfo = (
     },
     0x18 => {
         Name => 'Model',
+        Description => 'Camera Model Name',
         Format => 'string[8]',
+        SeparateTable => 'CameraType',
+        PrintConv => \%olympusCameraTypes,
     },
     # (01 00 at offset 0x20)
     0x26 => {
@@ -3087,7 +3433,9 @@ my %indexInfo = (
     },
     0x18 => {
         Name => 'Model',
+        Description => 'Camera Model Name',
         Format => 'string[24]',
+        Notes => 'the actual model name, no decoding necessary',
     },
     # (01 00 at offset 0x30)
     0x36 => {
@@ -3132,7 +3480,18 @@ my %indexInfo = (
     },
     0x18 => {
         Name => 'Model',
+        Description => 'Camera Model Name',
         Format => 'string[24]',
+        Notes => 'oddly different than CameraType values in JPEG images by the same camera',
+        PrintConv => {
+            SG472 => 'u7040,S7040',
+            SG473 => 'u9010,S9010',
+            SG475 => 'SP800UZ',
+            SG551 => 'SZ-30MR',
+            SG553 => 'SP-610UZ',
+            SG554 => 'SZ-10',
+            SG555 => 'SZ-20',
+        },
     },
     0x28 => {
         Name => 'FNumber',
@@ -3144,10 +3503,64 @@ my %indexInfo = (
         Format => 'rational64s',
         PrintConv => 'Image::ExifTool::Exif::PrintFraction($val)',
     },
-    # NEED MORE SAMPLES TO DECODE THIS
+    # 0x38 - int32u: 3
+    # 0x3c - int32u: 1
+    # 0x40 - int16u: 5
+    # 0x42 - int16u: 0,4,9
+    # 0x64 - int32u: 0,6000,12000
+    # 0x48 - int32u: 100 (ISO?)
+    0x68 => {
+        Name => 'MovableInfo',
+        Condition => '$$valPt =~ /^DIGI/',
+        SubDirectory => { TagTable => 'Image::ExifTool::Olympus::MovableInfo' },
+    },
+    0x72 => {
+        Name => 'MovableInfo',
+        Condition => '$$valPt =~ /^DIGI/',
+        SubDirectory => { TagTable => 'Image::ExifTool::Olympus::MovableInfo' },
+    },
+);
+
+# movable information found in MP4 videos
+%Image::ExifTool::Olympus::MovableInfo = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    FIRST_ENTRY => 0,
+    0x04 => { #(NC)
+        Name => 'ISO',
+        Format => 'int32u',
+    },
+    0x2c => {
+        Name => 'EncoderVersion',
+        Format => 'string[16]',
+    },
+    0x3c => {
+        Name => 'DecoderVersion',
+        Format => 'string[16]',
+    },
+    0x83 => {
+        Name => 'Thumbnail',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Olympus::Thumbnail',
+            Base => '$start', # (use a separate table because of this)
+        },
+    },
+);
+
+# thumbnail image information found in MP4 videos (similar in Olympus,Samsung,Sanyo)
+%Image::ExifTool::Olympus::Thumbnail = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    FIRST_ENTRY => 0,
+    FORMAT => 'int32u',
+    1 => 'ThumbnailWidth',
+    2 => 'ThumbnailHeight',
+    3 => 'ThumbnailLength',
+    4 => { Name => 'ThumbnailOffset', IsOffset => 1 },
 );
 
 # tags in Olympus AVI videos (ref PH)
+# (very similar to Pentax::Junk2 tags)
 %Image::ExifTool::Olympus::AVI = (
     PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
@@ -3158,8 +3571,11 @@ my %indexInfo = (
         Format => 'string[24]',
     },
     0x2c => {
-        Name => 'ModelType',
+        Name => 'Model',
+        Description => 'Camera Model Name',
         Format => 'string[24]',
+        SeparateTable => 'CameraType',
+        PrintConv => \%olympusCameraTypes,
     },
     0x5e => {
         Name => 'FNumber',
@@ -3175,6 +3591,14 @@ my %indexInfo = (
         Name => 'DateTime2',
         Format => 'string[24]',
         Groups => { 2 => 'Time' },
+    },
+    0x129 => {
+        Name => 'ThumbnailWidth',
+        Format => 'int16u',
+    },
+    0x12b => {
+        Name => 'ThumbnailHeight',
+        Format => 'int16u',
     },
     0x12d => {
         Name => 'ThumbnailLength',
@@ -3199,6 +3623,7 @@ my %indexInfo = (
     },
     0x0c => {
         Name => 'Model',
+        Description => 'Camera Model Name',
         Format => 'string[16]',
     },
     0x1c => {
@@ -3375,7 +3800,7 @@ Olympus or Epson maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

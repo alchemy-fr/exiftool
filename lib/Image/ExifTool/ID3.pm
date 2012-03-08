@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.29';
+$VERSION = '1.33';
 
 sub ProcessID3v2($$$);
 sub ProcessPrivate($$$);
@@ -390,7 +390,7 @@ my %genre = (
         Notes => 'uses same lookup table as ID3v1 Genre',
         PrintConv => 'Image::ExifTool::ID3::PrintGenre($val)',
     },
-    TCP => 'Compilation', # not part of spec, but used by iTunes
+    TCP => { Name => 'Compilation', PrintConv => { 0 => 'No', 1 => 'Yes' } }, # iTunes
     TCR => { Name => 'Copyright', Groups => { 2 => 'Author' } },
     TDA => { Name => 'Date', Groups => { 2 => 'Time' } },
     TDY => 'PlaylistDelay',
@@ -431,6 +431,15 @@ my %genre = (
     WCP => { Name => 'CopyrightURL', Groups => { 2 => 'Author' } },
     WPB => 'PublisherURL',
     WXX => 'UserDefinedURL',
+    # the following written by iTunes 10.5 (ref PH)
+    RVA => 'RelativeVolumeAdjustment',
+    TST => 'TitleSortOrder',
+    TSA => 'AlbumSortOrder',
+    TSP => 'PerformerSortOrder',
+    TS2 => 'AlbumArtistSortOrder',
+    TSC => 'ComposerSortOrder',
+    ITU => { Name => 'iTunesU', Description => 'iTunes U', Binary => 1, Unknown => 1 },
+    PCS => { Name => 'Podcast', Binary => 1, Unknown => 1 },
 );
 
 # tags common to ID3v2.3 and ID3v2.4
@@ -440,7 +449,7 @@ my %id3v2_common = (
         Name => 'Picture',
         Groups => { 2 => 'Image' },
         Binary => 1,
-        Notes => 'the 3 tags below are also extracted from this PIC frame',
+        Notes => 'the 3 tags below are also extracted from this APIC frame',
     },
     'APIC-1' => { Name => 'PictureMimeType',    Groups => { 2 => 'Image' } },
     'APIC-2' => {
@@ -516,7 +525,7 @@ my %id3v2_common = (
     TSRC => 'ISRC', # (international standard recording code)
     TSSE => 'EncoderSettings',
     TXXX => 'UserDefinedText',
-  # UFID => 'UniqueFileID',
+  # UFID => 'UniqueFileID', (not extracted because it is long and nasty and not very useful)
     USER => 'TermsOfUse',
     USLT => 'Lyrics',
     WCOM => 'CommercialURL',
@@ -554,7 +563,7 @@ my %id3v2_common = (
     NOTES => 'ID3 version 2.4 tags',
     %id3v2_common,  # include common tags
   # EQU2 => 'Equalization',
-  # RVA2 => 'RelativeVolumeAdjustment',
+    RVA2 => 'RelativeVolumeAdjustment',
   # SEEK => 'Seek',
   # SIGN => 'Signature',
     TDEN => { Name => 'EncodingTime',       Groups => { 2 => 'Time' }, %dateTimeConv },
@@ -570,6 +579,11 @@ my %id3v2_common = (
     TSOP => 'PerformerSortOrder',
     TSOT => 'TitleSortOrder',
     TSST => 'SetSubtitle',
+    # the following are written by iTunes 10.5 (ref PH)
+    TSO2 => 'AlbumArtistSortOrder',
+    TSOC => 'ComposerSortOrder',
+    ITNU => { Name => 'iTunesU', Description => 'iTunes U', Binary => 1, Unknown => 1 },
+    PCST => { Name => 'Podcast', Binary => 1, Unknown => 1 },
 );
 
 # ID3 PRIV tags (ref PH)
@@ -662,7 +676,7 @@ sub ProcessPrivate($$$)
         $tag =~ tr{/ }{_}d; # translate '/' to '_' and remove spaces
         $tag = 'private' unless $tag =~ /^[-\w]{1,24}$/;
         unless ($$tagTablePtr{$tag}) {
-            Image::ExifTool::AddTagToTable($tagTablePtr, $tag,
+            AddTagToTable($tagTablePtr, $tag,
                 { Name => ucfirst($tag), Binary => 1 });
         }
     }
@@ -689,11 +703,11 @@ sub PrintGenre($)
     }
     # (genre numbers are separated by nulls in ID3v2.4,
     #  but nulls are converted to '/' by DecodeString())
-    while ($val =~ /(?:^|\/)(\d+)/g) {
+    while ($val =~ /(?:^|\/)(\d+)(\/|$)/g) {
         $genre{$1} or $genre{$1} = "Unknown ($1)";
     }
     $val =~ s/\((\d+)\)/\($genre{$1}\)/g;
-    $val =~ s/(^|\/)(\d+)/$1$genre{$2}/g;
+    $val =~ s/(^|\/)(\d+)(\/|$)/$1$genre{$2}$3/g;
     $val =~ s/^\(([^)]+)\)\1?$/$1/; # clean up by removing brackets and duplicates
     return $val;
 }
@@ -816,7 +830,7 @@ sub ProcessID3v2($$$)
             $id = 'unknown' unless length $id;
             unless ($$tagTablePtr{$id}) {
                 $tagInfo = { Name => "ID3_$id", Binary => 1 };
-                Image::ExifTool::AddTagToTable($tagTablePtr, $id, $tagInfo);
+                AddTagToTable($tagTablePtr, $id, $tagInfo);
             }
         }
         # decode v2.3 and v2.4 flags
@@ -927,7 +941,7 @@ sub ProcessID3v2($$$)
             foreach (0..1) { $vals[$_] = '' unless defined $vals[$_]; }
             $val = length($vals[0]) ? "($vals[0]) $vals[1]" : $vals[1];
         } elsif ($id eq 'USER') {
-            $valLen > 4 or $exifTool->Warn('Short USER frame'), next;
+            $valLen > 4 or $exifTool->Warn("Short $id frame"), next;
             $lang = substr($val,1,3);
             $val = DecodeString($exifTool, substr($val,4), Get8u(\$val,0));
         } elsif ($id =~ /^(CNT|PCNT)$/) {
@@ -957,10 +971,60 @@ sub ProcessID3v2($$$)
                 $exifTool->HandleTag($tagTablePtr, "$id-$i", $attr);
                 ++$i;
             }
+        } elsif ($id eq 'RVA' or $id eq 'RVAD') {
+            my @dat = unpack('C*', $val);
+            my $flag = shift @dat;
+            my $bits = shift @dat or $exifTool->Warn("Short $id frame"), next;
+            my $bytes = int(($bits + 7) / 8);
+            my @parse = (['Right',0,2,0x01],['Left',1,3,0x02],['Back-right',4,6,0x04],
+                         ['Back-left',5,7,0x08],['Center',8,9,0x10],['Bass',10,11,0x20]);
+            $val = '';
+            while (@parse) {
+                my $elem = shift @parse;
+                my $j = $$elem[2] * $bytes;
+                last if scalar(@dat) < $j + $bytes;
+                my $i = $$elem[1] * $bytes;
+                $val .= ', ' if $val;
+                my ($rel, $pk, $b);
+                for ($rel=0, $pk=0, $b=0; $b<$bytes; ++$b) {
+                    $rel = $rel * 256 + $dat[$i + $b];
+                    $pk  = $pk  * 256 + $dat[$j + $b]; # (peak - not used in printout)
+                }
+                $rel =-$rel unless $flag & $$elem[3];
+                $val .= sprintf("%+.1f%% %s", 100 * $rel / ((1<<$bits)-1), $$elem[0]);
+            }
+        } elsif ($id eq 'RVA2') {
+            my ($pos, $id) = $val=~/^([^\0]*)\0/ ? (length($1)+1, $1) : (1, '');
+            my @vals;
+            while ($pos + 4 <= $valLen) {
+                my $type = Get8u(\$val, $pos);
+                my $str = ({
+                    0 => 'Other',
+                    1 => 'Master',
+                    2 => 'Front-right',
+                    3 => 'Front-left',
+                    4 => 'Back-right',
+                    5 => 'Back-left',
+                    6 => 'Front-centre',
+                    7 => 'Back-centre',
+                    8 => 'Subwoofer',
+                }->{$type} || "Unknown($type)");
+                my $db = Get16s(\$val,$pos+1) / 512;
+                # convert dB to percent as displayed by iTunes 10.5
+                # (not sure why I need to divide by 20 instead of 10 as expected - PH)
+                push @vals, sprintf('%+.1f%% %s', 10**($db/20+2)-100, $str);
+                # step to next channel (ignoring peak volume)
+                $pos += 4 + int((Get8u(\$val,$pos+3) + 7) / 8);
+            }
+            $val = join ', ', @vals;
+            $val .= " ($id)" if $id;
         } elsif ($id eq 'PRIV') {
             # save version number to set group1 name for tag later
             $exifTool->{ID3_Ver} = $tagTablePtr->{GROUPS}->{1};
             $exifTool->HandleTag($tagTablePtr, $id, $val);
+            next;
+        } elsif ($$tagInfo{Format}) {
+            $exifTool->HandleTag($tagTablePtr, $id, undef, DataPt => \$val);
             next;
         } elsif (not $$tagInfo{Binary}) {
             $exifTool->Warn("Don't know how to handle $id frame");
@@ -1159,7 +1223,8 @@ sub ProcessMP3($$)
             $rtnVal = 1 if Image::ExifTool::MPEG::ParseMPEGAudioVideo($exifTool, \$buff);
         } else {
             # look for audio frame sync in first $scanLen bytes
-            $rtnVal = 1 if Image::ExifTool::MPEG::ParseMPEGAudio($exifTool, \$buff);
+            # (set MP3 flag to 1 so this will fail unless layer 3 audio)
+            $rtnVal = 1 if Image::ExifTool::MPEG::ParseMPEGAudio($exifTool, \$buff, 1);
         }
     }
     return $rtnVal;
@@ -1185,7 +1250,7 @@ other types of audio files.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -334,8 +334,7 @@ sub DeleteStruct($$$$$)
 
     # find all existing elements belonging to this structure
     ($pp = $$pathPt) =~ s/ \d+/ \\d\+/g;
-    @structPaths = sort grep(/^$pp\//, keys %$capture);
-
+    @structPaths = sort grep(/^$pp(\/|$)/, keys %$capture);
     # delete only structures with matching fields if necessary
     if ($$nvHash{DelValue}) {
         if (@{$$nvHash{DelValue}}) {
@@ -403,6 +402,13 @@ sub DeleteStruct($$$$$)
             if (@structPaths) {
                 $structPaths[-1] =~ /^($pp)/ or warn("Internal error 2 in DeleteStruct\n"), return(undef,undef);
                 my $path = $1;
+                # delete any improperly formatted xmp
+                if ($$capture{$path}) {
+                    my $cap = $$capture{$path};
+                    # an error unless this was an empty structure
+                    $exifTool->Error("Improperly structured XMP ($path)",1) if ref $cap ne 'ARRAY' or $$cap[0];
+                    delete $$capture{$path};
+                }
                 # (match last index to put in same lang-alt list for Bag of lang-alt items)
                 $path =~ m/.* (\d+)/g or warn("Internal error 3 in DeleteStruct\n"), return(undef,undef);
                 $added = $1;
@@ -634,7 +640,7 @@ sub RestoreStruct($)
                 $tag = $tag . '-' . $$tagInfo{LangCode};
                 $$strInfo{LangCode} = $$tagInfo{LangCode};
             }
-            Image::ExifTool::AddTagToTable($table, $tag, $strInfo);
+            AddTagToTable($table, $tag, $strInfo);
         }
         # use strInfo ref for base key to avoid collisions
         $tag = $strInfo;
@@ -773,7 +779,7 @@ information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

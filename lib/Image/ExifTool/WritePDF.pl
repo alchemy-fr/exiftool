@@ -42,7 +42,7 @@ sub CheckPDF($$$)
     if (not $format) {
         return 'No writable format';
     } elsif ($format eq 'string') {
-        # (encode later because List-type string tags need to be encoded as a unit)
+        # (encode later because list-type string tags need to be encoded as a unit)
     } elsif ($format eq 'date') {
         # be flexible about this for now
         return 'Bad date format' unless $$valPtr =~ /^\d{4}/;
@@ -419,7 +419,7 @@ sub WritePDF($$)
                 $val = shift @oldVals;
             }
             for (;;) {
-                if (Image::ExifTool::IsOverwriting($nvHash, $val) > 0) {
+                if ($exifTool->IsOverwriting($nvHash, $val) > 0) {
                     $deleted = 1;
                     $exifTool->VerboseValue("- PDF:$tag", $val);
                     ++$infoChanged;
@@ -437,7 +437,7 @@ sub WritePDF($$)
         next unless $deleted or $$tagInfo{List} or not exists $$infoDict{$tagID};
 
         # add new values to existing ones
-        my @newVals = Image::ExifTool::GetNewValues($nvHash);
+        my @newVals = $exifTool->GetNewValues($nvHash);
         if (@newVals) {
             push @vals, @newVals;
             ++$infoChanged;
@@ -736,7 +736,7 @@ C<PDF-update> pseudo group).
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

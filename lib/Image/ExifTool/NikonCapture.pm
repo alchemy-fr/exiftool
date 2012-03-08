@@ -17,7 +17,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.07';
+$VERSION = '1.09';
 
 sub ProcessNikonCapture($$$);
 
@@ -639,7 +639,7 @@ my %unsharpColor = (
         Name => 'ExposureAdj2',
         Format => 'double',
         PrintConv => 'sprintf("%.4f", $val)',
-        PrintConvInvn => '$val',
+        PrintConvInv => '$val',
     },
     0x24 => {
         Name => 'ActiveD-Lighting',
@@ -742,7 +742,7 @@ sub WriteNikonCapture($$$)
                 my $format = $$tagInfo{Format} || $$tagInfo{Writable};
                 my $oldVal = ReadValue($dataPt,$pos+22,$format,1,$size);
                 my $nvHash = $exifTool->GetNewValueHash($tagInfo);
-                if (Image::ExifTool::IsOverwriting($nvHash, $oldVal)) {
+                if ($exifTool->IsOverwriting($nvHash, $oldVal)) {
                     my $val = $exifTool->GetNewValues($tagInfo);
                     $newVal = WriteValue($val, $$tagInfo{Writable}) if defined $val;
                     if (defined $newVal and length $newVal) {
@@ -889,7 +889,7 @@ the maker notes of NEF images.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -473,7 +473,7 @@ sub ProcessItemID($$$)
         my $size = Get16u($dataPt, $pos);
         last if $size < 2 or $pos + $size > $dataLen;
         my $tag = Get16u($dataPt, $pos+2); # (just a guess -- may not be a tag at all)
-        Image::ExifTool::AddTagToTable($tagTablePtr, $tag, {
+        AddTagToTable($tagTablePtr, $tag, {
             Name => sprintf('Item%.4x', $tag),
             SubDirectory => { TagTable => 'Image::ExifTool::LNK::UnknownData' },
         }) unless $$tagTablePtr{$tag};
@@ -698,7 +698,7 @@ information MS Shell Link (Windows shortcut) files.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

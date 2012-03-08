@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::it;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 %Image::ExifTool::Lang::it::Translate = (
    'AEMeteringMode' => {
@@ -677,6 +677,14 @@ $VERSION = '1.07';
    'ExternalFlashFlags' => 'Flags Flash Esterno',
    'ExtraSamples' => 'Campioni Extra',
    'FNumber' => 'Numero F',
+   'FaceOrientation' => {
+      PrintConv => {
+        'Horizontal (normal)' => '0° (alto/sinistra)',
+        'Rotate 180' => '180° (basso/destra)',
+        'Rotate 270 CW' => 'Ruota di 270° in senso orario',
+        'Rotate 90 CW' => '90° senso antiorario (destra/alto)',
+      },
+    },
    'FastSeek' => {
       PrintConv => {
         'Yes' => 'Si',
@@ -2175,7 +2183,7 @@ and values.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -12,9 +12,9 @@ package Image::ExifTool::APP12;
 
 use strict;
 use vars qw($VERSION);
-use Image::ExifTool qw(:DataAccess);
+use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.08';
+$VERSION = '1.09';
 
 sub ProcessAPP12($$$);
 sub ProcessDucky($$$);
@@ -173,7 +173,7 @@ sub WriteDucky($$$)
             my $nvHash = $exifTool->GetNewValueHash($tagInfo);
             my $isNew;
             if (defined $val) {
-                if (Image::ExifTool::IsOverwriting($nvHash, $val)) {
+                if ($exifTool->IsOverwriting($nvHash, $val)) {
                     $exifTool->VerboseValue("- Ducky:$$tagInfo{Name}", $val);
                     $isNew = 1;
                 }
@@ -182,7 +182,7 @@ sub WriteDucky($$$)
                 $isNew = 1;
             }
             if ($isNew) {
-                $val = Image::ExifTool::GetNewValues($nvHash);
+                $val = $exifTool->GetNewValues($nvHash);
                 ++$exifTool->{CHANGED};
                 next unless defined $val;   # next if tag is being deleted
                 $exifTool->VerboseValue("+ Ducky:$$tagInfo{Name}", $val);
@@ -277,7 +277,7 @@ sub ProcessAPP12($$$)
             $tagInfo = { Name => ucfirst $tag };
             # put in Camera group if information in "Camera" section
             $$tagInfo{Groups} = { 2 => 'Camera' } if $section =~ /camera/i;
-            Image::ExifTool::AddTagToTable($tagTablePtr, $tag, $tagInfo);
+            AddTagToTable($tagTablePtr, $tag, $tagInfo);
         }
         $exifTool->FoundTag($tagInfo, $val);
     }
@@ -304,7 +304,7 @@ APP12 meta information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

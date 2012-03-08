@@ -17,7 +17,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::RIFF;
 
-$VERSION = '1.17';
+$VERSION = '1.18';
 
 sub ProcessMetadata($$$);
 sub ProcessContentDescription($$$);
@@ -372,7 +372,8 @@ my %advancedContentEncryption = (
         ValueConv => q{ # (89 leap years between 1601 and 1970)
             my $t = $val / 1e7 - (((1970-1601)*365+89)*24*3600);
             return Image::ExifTool::ConvertUnixTime($t) . 'Z';
-        }
+        },
+        PrintConv => '$self->ConvertDateTime($val)',
     },
     32 => { Name => 'DataPackets',  Format => 'int64u' },
     40 => {
@@ -848,7 +849,7 @@ Windows Media Audio (WMA) and Windows Media Video (WMV) files.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

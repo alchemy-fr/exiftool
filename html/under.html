@@ -38,8 +38,9 @@ formatting which is handled at the application level.</p>
 <p>The information flow is separated into two distinct modes: 1) Reading or
 extracting information, and 2) Writing or editing.  The application runs in
 <b>read</b> mode by default, but switches to <b>write</b> mode if a new value is
-assigned to any tag (via "<code>-TAG=VALUE</code>", "<code>-tagsFromFile</code>"
-or "<code>-geotag</code>" on the command line).<p>
+assigned to any tag (via "<code>-TAG=</code>", "<code>-tagsFromFile</code>",
+"<code>-geotag</code>", "<code>-csv=</code>" or "<code>-json=</code>" on the
+command line).</p>
 
 <a name="conversions"></a>
 <h2>Value Conversions</h2>
@@ -96,8 +97,8 @@ which have helped to influence the overall development:</p>
     it portable and easy to install.  (Portable to a wide range of systems
     and Perl versions.)</li>
 <li>Keep the interface simple for simple tasks (sometimes at the expense of making
-    it more complicated for complex tasks).
-<li>Maintain flexibility to allow users the freedom to do what they want.
+    it more complicated for complex tasks).</li>
+<li>Maintain flexibility to allow users the freedom to do what they want.</li>
 <li>Design the code to be efficient for batch processing, even if it increases the
     initial overhead.</li>
 <li>For writing, remember 3 things: 1) data integrity, 2) data integrity, and 3)
@@ -109,7 +110,7 @@ which have helped to influence the overall development:</p>
 </ol>
 
 <hr>
-<i>Last revised Feb. 3, 2010</i>
+<i>Last revised Nov. 20, 2011</i>
 <p class='lf'><a href="index.html">&lt;-- Back to ExifTool home page</a></p>
 </body>
 </html>

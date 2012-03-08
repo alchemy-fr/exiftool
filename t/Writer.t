@@ -1,7 +1,7 @@
 # Before "make install", this script should be runnable with "make test".
 # After "make install" it should work as "perl t/Writer.t".
 
-BEGIN { $| = 1; print "1..44\n"; $Image::ExifTool::noConfig = 1; }
+BEGIN { $| = 1; print "1..45\n"; $Image::ExifTool::noConfig = 1; }
 END {print "not ok 1\n" unless $loaded;}
 
 # test 1: Load the module(s)
@@ -765,6 +765,25 @@ my $testOK;
         ['XMP:DateTimeOriginal' => '3', Shift => 0, AddValue => 1], # shift
     );
     print 'not ' unless writeCheck(\@writeInfo, $testname, $testnum, 't/images/XMP.xmp', 1);
+    print "ok $testnum\n";
+}
+
+# test 45: Test writing different EXIF string encoding
+{
+    ++$testnum;
+    my $exifTool = new Image::ExifTool;
+    $exifTool->Options(CharsetEXIF => 'Latin');
+    my $testfile = "t/${testname}_${testnum}_failed.jpg";
+    unlink $testfile;
+    $exifTool->SetNewValue(Artist => "P\xc3\xaaro", Group => 'EXIF');
+    writeInfo($exifTool, 't/images/Writer.jpg', $testfile);
+    $exifTool->Options(CharsetEXIF => undef);
+    my $info = $exifTool->ImageInfo($testfile, 'artist');
+    if (check($exifTool, $info, $testname, $testnum)) {
+        unlink $testfile;
+    } else {
+        print 'not ';
+    }
     print "ok $testnum\n";
 }
 

@@ -14,18 +14,18 @@ sub ShiftTime($$$;$);
 
 #------------------------------------------------------------------------------
 # apply shift to value in new value hash
-# Inputs: 0) shift type, 1) shift string, 2) raw date/time value, 3) new value hash ref
+# Inputs: 0) ExifTool ref, 1) shift type, 2) shift string, 3) raw date/time value,
+#         4) new value hash ref
 # Returns: error string or undef on success and updates value in new value hash
-sub ApplyShift($$$;$)
+sub ApplyShift($$$$;$)
 {
-    my ($func, $shift, $val, $nvHash) = @_;
+    my ($self, $func, $shift, $val, $nvHash) = @_;
 
     # get shift direction from first character in shift string
     my $pre = ($shift =~ s/^(\+|-)//) ? $1 : '+';
     my $dir = ($pre eq '+') ? 1 : -1;
     my $tagInfo = $$nvHash{TagInfo};
     my $tag = $$tagInfo{Name};
-    my $self = $$nvHash{Self};    # (used in eval)
     my $shiftOffset;
     if ($$nvHash{ShiftOffset}) {
         $shiftOffset = $$nvHash{ShiftOffset};
@@ -500,7 +500,7 @@ If only one is provided, it is assumed to be a time shift when applied to a
 time-only or a date/time value, or a date shift when applied to a date-only
 value.  For example:
 
-    '7'         - shift by 1 hour if applied to a time or date/time
+    '1'         - shift by 1 hour if applied to a time or date/time
                   value, or by one day if applied to a date value
     '2:0'       - shift 2 hours (time, date/time), or 2 months (date)
     '5:0:0'     - shift 5 hours (time, date/time), or 5 years (date)
@@ -534,6 +534,7 @@ Below are some specific examples applied to real date and/or time values
     ---------------------  -------  ---  ---------------------
     '20:30:00'             '5'       +   '01:30:00'
     '2005:01:27'           '5'       +   '2005:02:01'
+    '2005:01:27 20:30:00'  '5'       +   '2005:01:28 01:30:00'
     '11:54:00'             '2.5 0'   -   '23:54:00'
     '2005:11:02'           '2.5 0'   -   '2005:10:31'
     '2005:11:02 11:54:00'  '2.5 0'   -   '2005:10:30 23:54:00'
@@ -576,12 +577,12 @@ philosophy).
 
 =head1 BUGS
 
-This feature uses the standard time library functions, which typically are
-limited to dates in the range 1970 to 2038.
+Due to the use of the standard time library functions, dates are typically
+limited to the range 1970 to 2038.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

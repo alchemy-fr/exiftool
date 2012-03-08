@@ -42,7 +42,8 @@ reference number and not the actual firmware version)</span></span></td></tr>
   <br>8 = Flash
   <br>10 = Black &amp; White
   <br>11 = Manual
-  <br>12 = Shade</span></td></tr>
+  <br>12 = Shade
+  <br>13 = Kelvin</span></td></tr>
 <tr class=b>
 <td title='0x0007 = 7'>0x0007</td>
 <td>FocusMode</td>
@@ -374,51 +375,56 @@ L10 and LC80)</span>
   <br>10 = Nostalgic
   <br>11 = Vibrant</span></td></tr>
 <tr>
+<td title='0x0044 = 68'>0x0044</td>
+<td>ColorTempKelvin</td>
+<td class=c>int16u</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
 <td title='0x0046 = 70'>0x0046</td>
 <td>WBAdjustAB</td>
 <td class=c>int16u</td>
 <td><span class=s><span class=n>(positive is a shift toward blue)</span></span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x0047 = 71'>0x0047</td>
 <td>WBAdjustGM</td>
 <td class=c>int16u</td>
 <td><span class=s><span class=n>(positive is a shift toward green)</span></span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x004b = 75'>0x004b</td>
 <td>PanasonicImageWidth</td>
 <td class=c>int32u</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0x004c = 76'>0x004c</td>
 <td>PanasonicImageHeight</td>
 <td class=c>int32u</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td title='0x004d = 77'>0x004d</td>
 <td>AFPointPosition</td>
 <td class=c>rational64u[2]</td>
 <td><span class=s><span class=n>(X Y coordinates of primary AF area center, in the range 0.0 to 1.0)</span></span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x004e = 78'>0x004e</td>
 <td>FaceDetInfo</td>
 <td class=c>-</td>
 <td>--&gt; <a href='Panasonic.html#FaceDetInfo'>Panasonic FaceDetInfo Tags</a></td></tr>
-<tr>
+<tr class=b>
 <td title='0x0051 = 81'>0x0051</td>
 <td>LensType</td>
 <td class=c>string</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0x0052 = 82'>0x0052</td>
 <td>LensSerialNumber</td>
 <td class=c>string</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td title='0x0053 = 83'>0x0053</td>
 <td>AccessoryType</td>
 <td class=c>string</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0x0059 = 89'>0x0059</td>
 <td>Transform</td>
 <td class=c>undef[4]</td>
@@ -428,7 +434,7 @@ L10 and LC80)</span>
   <br>&#39;0 0&#39; = Off
   <br>&#39;1 1&#39; = Stretch Low
   <br>&#39;3 2&#39; = Stretch High</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x005d = 93'>0x005d</td>
 <td>IntelligentExposure</td>
 <td class=c>int16u</td>
@@ -437,58 +443,58 @@ L10 and LC80)</span>
   <br>1 = Low
   <br>2 = Standard
   <br>3 = High</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x0061 = 97'>0x0061</td>
 <td>FaceRecInfo</td>
 <td class=c>-</td>
 <td>--&gt; <a href='Panasonic.html#FaceRecInfo'>Panasonic FaceRecInfo Tags</a></td></tr>
-<tr>
+<tr class=b>
 <td title='0x0062 = 98'>0x0062</td>
 <td>FlashWarning</td>
 <td class=c>int16u</td>
 <td><span class=s>0 = No
   <br>1 = Yes (flash required but disabled)</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x0063 = 99'>0x0063</td>
 <td>RecognizedFaceFlags?</td>
 <td class=c>undef[4]</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td title='0x0065 = 101'>0x0065</td>
 <td>Title</td>
 <td class=c>undef</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0x0066 = 102'>0x0066</td>
 <td>BabyName</td>
 <td class=c>undef</td>
 <td><span class=s><span class=n>(or pet name)</span></span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x0067 = 103'>0x0067</td>
 <td>Location</td>
 <td class=c>undef</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0x0069 = 105'>0x0069</td>
 <td>Country</td>
 <td class=c>undef</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td title='0x006b = 107'>0x006b</td>
 <td>State</td>
 <td class=c>undef</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0x006d = 109'>0x006d</td>
 <td>City</td>
 <td class=c>undef</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td title='0x006f = 111'>0x006f</td>
 <td>Landmark</td>
 <td class=c>undef</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0x0070 = 112'>0x0070</td>
 <td>IntelligentResolution</td>
 <td class=c>int8u</td>
@@ -497,7 +503,7 @@ L10 and LC80)</span>
   <br>2 = Standard
   <br>3 = High
   <br>4 = Extended</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x0079 = 121'>0x0079</td>
 <td>IntelligentD-Range</td>
 <td class=c>int16u</td>
@@ -505,17 +511,17 @@ L10 and LC80)</span>
   <br>1 = Low
   <br>2 = Standard
   <br>3 = High</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x0e00 = 3584'>0x0e00</td>
 <td>PrintIM</td>
 <td class=c>-</td>
 <td>--&gt; <a href='PrintIM.html'>PrintIM Tags</a></td></tr>
-<tr>
+<tr class=b>
 <td title='0x8000 = 32768'>0x8000</td>
 <td>MakerNoteVersion</td>
 <td class=c>undef</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0x8001 = 32769'>0x8001</td>
 <td>SceneMode</td>
 <td class=c>int16u</td>
@@ -567,45 +573,45 @@ L10 and LC80)</span>
   <br>46 = Photo Frame
   <br>51 = HDR</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
-<tr>
+<tr class=b>
 <td title='0x8004 = 32772'>0x8004</td>
 <td>WBRedLevel</td>
 <td class=c>int16u</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0x8005 = 32773'>0x8005</td>
 <td>WBGreenLevel</td>
 <td class=c>int16u</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td title='0x8006 = 32774'>0x8006</td>
 <td>WBBlueLevel</td>
 <td class=c>int16u</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td title='0x8007 = 32775'>0x8007</td>
 <td>FlashFired</td>
 <td class=c>int16u</td>
 <td><span class=s>1 = No
   <br>2 = Yes</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x8008 = 32776'>0x8008</td>
 <td>TextStamp</td>
 <td class=c>int16u</td>
 <td><span class=s>1 = Off
   <br>2 = On</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x8009 = 32777'>0x8009</td>
 <td>TextStamp</td>
 <td class=c>int16u</td>
 <td><span class=s>1 = Off
   <br>2 = On</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x8010 = 32784'>0x8010</td>
 <td>BabyAge</td>
 <td class=c>string</td>
 <td><span class=s><span class=n>(or pet age)</span></span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x8012 = 32786'>0x8012</td>
 <td>Transform</td>
 <td class=c>undef[4]</td>
@@ -622,7 +628,7 @@ L10 and LC80)</span>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -666,7 +672,7 @@ user-supplied set of known faces.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -843,58 +849,59 @@ length of some multi-focal lenses.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class='inner sep' cellspacing=1>
-<tr class=h><th>Value</th><th>LensType</th></tr>
+<tr class=h><th>Value</th><th>LensType</th><th>Value</th><th>LensType</th></tr>
 <tr><td>1</td><td>= Elmarit-M 21mm f/2.8</td>
+<td class=b>42</td><td class=b>= Tri-Elmar-M 28-35-50mm f/4 ASPH.</td>
 </tr><tr><td>3</td><td>= Elmarit-M 28mm f/2.8 (III)</td>
+<td class=b>43</td><td class=b>= Summarit-M 35mm f/2.5</td>
 </tr><tr><td>4</td><td>= Tele-Elmarit-M 90mm f/2.8 (II)</td>
+<td class=b>44</td><td class=b>= Summarit-M 50mm f/2.5</td>
 </tr><tr><td>5</td><td>= Summilux-M 50mm f/1.4 (II)</td>
+<td class=b>45</td><td class=b>= Summarit-M 75mm f/2.5</td>
 </tr><tr><td>6</td><td>= Summicron-M 35mm f/2 (IV)</td>
+<td class=b>46</td><td class=b>= Summarit-M 90mm f/2.5</td>
 </tr><tr><td>7</td><td>= Summicron-M 90mm f/2 (II)</td>
+<td class=b>47</td><td class=b>= Summilux-M 21mm f/1.4 ASPH.</td>
 </tr><tr><td>9</td><td>= Elmarit-M 135mm f/2.8 (I/II)</td>
+<td class=b>48</td><td class=b>= Summilux-M 24mm f/1.4 ASPH.</td>
 </tr><tr><td>16</td><td>= Tri-Elmar-M 16-18-21mm f/4 ASPH.</td>
+<td class=b>49</td><td class=b>= Noctilux-M 50mm f/0.95 ASPH.</td>
 </tr><tr><td>23</td><td>= Summicron-M 50mm f/2 (III)</td>
+<td class=b>50</td><td class=b>= Elmar-M 24mm f/3.8 ASPH.</td>
 </tr><tr><td>24</td><td>= Elmarit-M 21mm f/2.8 ASPH.</td>
+<td class=b>51</td><td class=b>= Super-Elmar-M 21mm f/3.4 Asph</td>
 </tr><tr><td>25</td><td>= Elmarit-M 24mm f/2.8 ASPH.</td>
+<td class=b>52</td><td class=b>= Super-Elmar-M 18mm f/3.8 ASPH.</td>
 </tr><tr><td>26</td><td>= Summicron-M 28mm f/2 ASPH.</td>
+<td class=b>53</td><td class=b>= Apo-Telyt-M 135mm f/3.4</td>
 </tr><tr><td>27</td><td>= Elmarit-M 28mm f/2.8 (IV)</td>
+<td class=b>'0 0'</td><td class=b>= Uncoded lens</td>
 </tr><tr><td>28</td><td>= Elmarit-M 28mm f/2.8 ASPH.</td>
+<td class=b>'6 0'</td><td class=b>= Summilux-M 35mm f/1.4</td>
 </tr><tr><td>29</td><td>= Summilux-M 35mm f/1.4 ASPH.</td>
+<td class=b>'9 0'</td><td class=b>= Apo-Telyt-M 135mm f/3.4</td>
 </tr><tr><td>30</td><td>= Summicron-M 35mm f/2 ASPH.</td>
+<td class=b>'16 1'</td><td class=b>= Tri-Elmar-M 16-18-21mm f/4 ASPH. (at 16mm)</td>
 </tr><tr><td>31</td><td>= Noctilux-M 50mm f/1</td>
+<td class=b>'16 2'</td><td class=b>= Tri-Elmar-M 16-18-21mm f/4 ASPH. (at 18mm)</td>
 </tr><tr><td>32</td><td>= Summilux-M 50mm f/1.4 ASPH.</td>
+<td class=b>'16 3'</td><td class=b>= Tri-Elmar-M 16-18-21mm f/4 ASPH. (at 21mm)</td>
 </tr><tr><td>33</td><td>= Summicron-M 50mm f/2 (IV, V)</td>
+<td class=b>'29 0'</td><td class=b>= Summilux-M 35mm f/1.4 ASPHERICAL</td>
 </tr><tr><td>34</td><td>= Elmar-M 50mm f/2.8</td>
+<td class=b>'31 0'</td><td class=b>= Noctilux-M 50mm f/1.2</td>
 </tr><tr><td>35</td><td>= Summilux-M 75mm f/1.4</td>
+<td class=b>'39 0'</td><td class=b>= Tele-Elmar-M 135mm f/4 (II)</td>
 </tr><tr><td>36</td><td>= Apo-Summicron-M 75mm f/2 ASPH.</td>
+<td class=b>'42 1'</td><td class=b>= Tri-Elmar-M 28-35-50mm f/4 ASPH. (at 28mm)</td>
 </tr><tr><td>37</td><td>= Apo-Summicron-M 90mm f/2 ASPH.</td>
+<td class=b>'42 2'</td><td class=b>= Tri-Elmar-M 28-35-50mm f/4 ASPH. (at 35mm)</td>
 </tr><tr><td>38</td><td>= Elmarit-M 90mm f/2.8</td>
+<td class=b>'42 3'</td><td class=b>= Tri-Elmar-M 28-35-50mm f/4 ASPH. (at 50mm)</td>
 </tr><tr><td>39</td><td>= Macro-Elmar-M 90mm f/4</td>
+<td class=b>'51 2'</td><td class=b>= Super-Elmar-M 14mm f/3.8 Asph</td>
 </tr><tr><td>40</td><td>= Macro-Adapter M</td>
-</tr><tr><td>42</td><td>= Tri-Elmar-M 28-35-50mm f/4 ASPH.</td>
-</tr><tr><td>43</td><td>= Summarit-M 35mm f/2.5</td>
-</tr><tr><td>44</td><td>= Summarit-M 50mm f/2.5</td>
-</tr><tr><td>45</td><td>= Summarit-M 75mm f/2.5</td>
-</tr><tr><td>46</td><td>= Summarit-M 90mm f/2.5</td>
-</tr><tr><td>47</td><td>= Summilux-M 21mm f/1.4 ASPH.</td>
-</tr><tr><td>48</td><td>= Summilux-M 24mm f/1.4 ASPH.</td>
-</tr><tr><td>49</td><td>= Noctilux-M 50mm f/0.95 ASPH.</td>
-</tr><tr><td>50</td><td>= Elmar-M 24mm f/3.8 ASPH.</td>
-</tr><tr><td>51</td><td>= Super-Elmar-M 21mm f/3.4 Asph</td>
-</tr><tr><td>52</td><td>= Super-Elmar-M 18mm f/3.8 ASPH.</td>
-</tr><tr><td>53</td><td>= Apo-Telyt-M 135mm f/3.4</td>
-</tr><tr><td>'0 0'</td><td>= Uncoded lens</td>
-</tr><tr><td>'6 0'</td><td>= Summilux-M 35mm f/1.4</td>
-</tr><tr><td>'9 0'</td><td>= Apo-Telyt-M 135mm f/3.4</td>
-</tr><tr><td>'16 1'</td><td>= Tri-Elmar-M 16-18-21mm f/4 ASPH. (at 16mm)</td>
-</tr><tr><td>'16 2'</td><td>= Tri-Elmar-M 16-18-21mm f/4 ASPH. (at 18mm)</td>
-</tr><tr><td>'16 3'</td><td>= Tri-Elmar-M 16-18-21mm f/4 ASPH. (at 21mm)</td>
-</tr><tr><td>'29 0'</td><td>= Summilux-M 35mm f/1.4 ASPHERICAL</td>
-</tr><tr><td>'31 0'</td><td>= Noctilux-M 50mm f/1.2</td>
-</tr><tr><td>'39 0'</td><td>= Tele-Elmar-M 135mm f/4 (II)</td>
-</tr><tr><td>'42 1'</td><td>= Tri-Elmar-M 28-35-50mm f/4 ASPH. (at 28mm)</td>
-</tr><tr><td>'42 2'</td><td>= Tri-Elmar-M 28-35-50mm f/4 ASPH. (at 35mm)</td>
-</tr><tr><td>'42 3'</td><td>= Tri-Elmar-M 28-35-50mm f/4 ASPH. (at 50mm)</td>
-</tr><tr><td>'51 2'</td><td>= Super-Elmar-M 14mm f/3.8 Asph</td>
+<td class=b>&nbsp;</td><td class=b>&nbsp;</td>
 </tr></table></td></tr></table></blockquote>
 
 <h2><a name='Leica3'>Panasonic Leica3 Tags</a></h2>
@@ -1085,7 +1092,7 @@ length of some multi-focal lenses.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='22 = 0x16'>22</td>
@@ -1098,7 +1105,7 @@ length of some multi-focal lenses.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr><td colspan=4 class=c><i>[no tags known]</i></td></tr>
 </table></td></tr></table></blockquote>
@@ -1171,7 +1178,7 @@ iPalm.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -1187,7 +1194,7 @@ iPalm.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Jun 22, 2011</i>
+<br><i>Last revised Feb 20, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

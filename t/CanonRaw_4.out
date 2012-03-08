@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.60
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.77
 [File, System, Image] FileName - File Name: CanonRaw_4_failed.crw
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 12 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2011:06:22 14:05:13-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:01:22 13:29:43-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: CRW
 [File, File, Image] MIMEType - MIME Type: image/x-canon-crw
@@ -138,10 +138,11 @@
 [MakerNotes, CanonRaw, Image] 3 - Raw Jpg Width: 2048
 [MakerNotes, CanonRaw, Image] 4 - Raw Jpg Height: 1360
 [MakerNotes, CanonRaw, Camera] 6203 - Serial Number Format: Format 1
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.60
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.77
 [XMP, XMP-aux, Camera] Lens - Lens: 18.0 - 55.0 mm
 [XMP, XMP-aux, Camera] OwnerName - Owner Name: Phil Harvey
 [XMP, XMP-aux, Camera] SerialNumber - Serial Number: 1234
+[XMP, XMP-dc, Image] description - Description: CRW with embedded XMP
 [XMP, XMP-exif, Image] ApertureValue - Aperture Value: 14.0
 [XMP, XMP-exif, Image] ColorSpace - Color Space: sRGB
 [XMP, XMP-exif, Image] ComponentsConfiguration - Components Configuration: Y, Cb, Cr, -

@@ -74,6 +74,8 @@ value.</p>
 
 <tr><td>ESCAPE_PROC</td><td>Routine for XML or HTML escaping if Escape option is set</td></tr>
 
+<tr><td>EXCL_TAG_LOOKUP</td><td>Hash for looking up excluded tags (keys are lower case tag names)</td></tr>
+
 <tr><td>EXIF_DATA</td><td>EXIF data block (valid while reading from file)</td></tr>
 
 <tr><td>EXIF_POS</td><td>Position of EXIF data in file</td></tr>
@@ -85,6 +87,8 @@ value.</p>
 
 <tr><td>FILE_EXT</td><td>File extension (JPG, PEF, AVI, etc...) May be undefined if
     file has no extension.</td></tr>
+
+<tr><td>FILE_SEQUENCE</td><td>File sequence number when extracting information</td></tr>
 
 <tr><td>FILE_TYPE</td><td>Root file format type (JPEG, TIFF, RIFF, etc...)</td></tr>
 
@@ -100,7 +104,7 @@ value.</p>
 
 <tr><td>IO_TAG_LIST</td><td>List for output of requested tags in proper case and order</td></tr>
 
-<tr><td>LIST_TAGS</td><td>Hash of tag keys by tagInfo reference for active List-type
+<tr><td>LIST_TAGS</td><td>Hash of tag keys by tagInfo reference for active list-type
     tags.  This hash is cleared at the start of processing for each directory.
     Not used during when writing.</td></tr>
 
@@ -192,9 +196,14 @@ value.</p>
 
 <tr><td>RAF</td><td>Random access file object for reading from input file</td></tr>
 
+<tr><td>Recreated</td><td>Directories recreated when writing (used to prevent recreating
+    multiple directories of the same type)</td></tr>
+
 <tr><td>REQUESTED_TAGS</td><td>List of requested tags in original case</td></tr>
 
 <tr><td>REQ_TAG_LOOKUP</td><td>Hash for looking up requested tags (keys are lower case tag names)</td></tr>
+
+<tr><td>SAVE_COUNT</td><td>Counts number of times SaveNewValues() has been called</td></tr>
 
 <tr><td>SAVE_DEL_GROUP</td><td>Hash of saved DEL_GROUP entries</td></tr>
 

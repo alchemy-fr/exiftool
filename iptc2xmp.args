@@ -5,6 +5,8 @@
 #
 # Usage:        exiftool -tagsFromFile SRCFILE -@ iptc2xmp.args DSTFILE
 #
+# Requires:     ExifTool version 7.45 or later
+#
 # Revisions:    2005/05/14 - P. Harvey Created
 #               2008/03/04 - PH Changed Location translation and added
 #                            IntellectualGenre and SubjectCode

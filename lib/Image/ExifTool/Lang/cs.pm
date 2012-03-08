@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::cs;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 %Image::ExifTool::Lang::cs::Translate = (
    'AEMeteringMode' => {
@@ -449,6 +449,14 @@ $VERSION = '1.04';
    'ExposureTime' => 'Expoziční čas',
    'ExposureTime2' => 'Expoziční čas 2',
    'FNumber' => 'F hodnota',
+   'FaceOrientation' => {
+      PrintConv => {
+        'Horizontal (normal)' => '0° (nahoru/vlevo)',
+        'Rotate 180' => '180° (dolů/vpravo)',
+        'Rotate 270 CW' => '90° po směru HR (vlevo/dolů)',
+        'Rotate 90 CW' => '90° ptoti směru HR (vpravo/nahoru)',
+      },
+    },
    'FaxProfile' => {
       PrintConv => {
         'Unknown' => 'Neznámý',
@@ -1552,7 +1560,7 @@ and values.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

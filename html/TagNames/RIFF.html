@@ -7,12 +7,17 @@
 </head>
 <body>
 <h2 class=top>RIFF Tags</h2>
-<p>The RIFF container format is used various types of fines including WAV, AVI
-and WEBP.  According to the EXIF specification, Meta information is embedded
-in two types of RIFF <code>LIST</code> chunks: <code>INFO</code> and <code>exif</code>, and information
-about the audio content is stored in the <code>fmt </code> chunk.  As well as this
-information, some video information and proprietary manufacturer-specific
-information is also extracted.</p>
+<p>The RIFF container format is used various types of fines including WAV, AVI,
+WEBP, LA, OFR, PAC and WV.  According to the EXIF specification, Meta
+information is embedded in two types of RIFF <code>LIST</code> chunks: <code>INFO</code> and
+<code>exif</code>, and information about the audio content is stored in the <code>fmt </code>
+chunk.  As well as this information, some video information and proprietary
+manufacturer-specific information is also extracted.</p>
+
+<p>Large AVI videos may be a concatenation of two or more RIFF chunks.
+For these files, information is extracted from subsequent RIFF
+chunks as sub-documents, but the Duration is calculated for the full
+video.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -24,12 +29,14 @@ information is also extracted.</p>
   <br>CasioJunk
   <br>RicohJunk
   <br>PentaxJunk
+  <br>PentaxJunk2
   <br>TextJunk</td>
-<td class=c>-<br>-<br>-<br>-<br>N</td>
+<td class=c>-<br>-<br>-<br>-<br>-<br>N</td>
 <td>--&gt; <a href='Olympus.html#AVI'>Olympus AVI Tags</a>
   <br>--&gt; <a href='EXIF.html'>EXIF Tags</a>
   <br>--&gt; <a href='Ricoh.html#AVI'>Ricoh AVI Tags</a>
-  <br>--&gt; <a href='Pentax.html#Junk'>Pentax Junk Tags</a></td></tr>
+  <br>--&gt; <a href='Pentax.html#Junk'>Pentax Junk Tags</a>
+  <br>--&gt; <a href='Pentax.html#Junk2'>Pentax Junk2 Tags</a></td></tr>
 <tr class=b>
 <td>'JUNQ'</td>
 <td>OldXMP</td>
@@ -624,7 +631,7 @@ by some software.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index4</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -697,7 +704,7 @@ cameras.  The first 4 characters of the data are used as the Tag ID below.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -981,7 +988,7 @@ cameras.  The first 4 characters of the data are used as the Tag ID below.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index4</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -1028,7 +1035,7 @@ cameras.  The first 4 characters of the data are used as the Tag ID below.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index4</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -1068,7 +1075,7 @@ cameras.  The first 4 characters of the data are used as the Tag ID below.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -1109,7 +1116,7 @@ cameras.  The first 4 characters of the data are used as the Tag ID below.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Jan 3, 2011</i>
+<br><i>Last revised Feb 8, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

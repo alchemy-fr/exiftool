@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.09';
+$VERSION = '1.10';
 
 %Image::ExifTool::Sigma::Main = (
     WRITE_PROC => \&Image::ExifTool::Exif::WriteExif,
@@ -72,6 +72,7 @@ $VERSION = '1.09';
         { #PH
             Name => 'Contrast',
             Writable => 'rational64s',
+            Priority => 0,
         },
     ],
     0x000e => [
@@ -81,9 +82,10 @@ $VERSION = '1.09';
             ValueConv => '$val =~ s/Shad:\s*//, $val',
             ValueConvInv => 'IsFloat($val) ? sprintf("Shad:%+.1f",$val) : undef',
         },
-        { #PH
+        { #PH (may be incorrect for the SD1)
             Name => 'Shadow',
             Writable => 'rational64s',
+            Priority => 0,
         },
     ],
     0x000f => [
@@ -93,9 +95,10 @@ $VERSION = '1.09';
             ValueConv => '$val =~ s/High:\s*//, $val',
             ValueConvInv => 'IsFloat($val) ? sprintf("High:%+.1f",$val) : undef',
         },
-        { #PH
+        { #PH (may be incorrect for the SD1)
             Name => 'Highlight',
             Writable => 'rational64s',
+            Priority => 0,
         },
     ],
     0x0010 => [
@@ -105,9 +108,10 @@ $VERSION = '1.09';
             ValueConv => '$val =~ s/Satu:\s*//, $val',
             ValueConvInv => 'IsFloat($val) ? sprintf("Satu:%+.1f",$val) : undef',
         },
-        { #PH
+        { #PH (may be incorrect for the SD1)
             Name => 'Saturation',
             Writable => 'rational64s',
+            Priority => 0,
         },
     ],
     0x0011 => [
@@ -117,9 +121,10 @@ $VERSION = '1.09';
             ValueConv => '$val =~ s/Shar:\s*//, $val',
             ValueConvInv => 'IsFloat($val) ? sprintf("Shar:%+.1f",$val) : undef',
         },
-        { #PH
+        { #PH (may be incorrect for the SD1)
             Name => 'Sharpness',
             Writable => 'rational64s',
+            Priority => 0,
         },
     ],
     0x0012 => [
@@ -154,12 +159,19 @@ $VERSION = '1.09';
         ValueConvInv => 'IsInt($val) ? "Qual:$val" : undef',
     },
     0x0017 => 'Firmware',
-    0x0018 => 'Software',
+    0x0018 => {
+        Name => 'Software',
+        Priority => 0,
+    },
     0x0019 => 'AutoBracket',
     0x001a => [ #PH
         {
             Name => 'PreviewImageStart',
             Condition => '$format eq "int32u"',
+            Notes => q{
+                Sigma Photo Pro writes ChrominanceNoiseReduction here, but various
+                models use this for PreviewImageStart
+            },
             IsOffset => 1,
             OffsetPair => 0x001b,
             DataTag => 'PreviewImage',
@@ -167,49 +179,101 @@ $VERSION = '1.09';
             Protected => 2,
         },{ # (written by Sigma Photo Pro)
             Name => 'ChrominanceNoiseReduction',
+            Condition => '$format eq "string"',
             ValueConv => '$val =~ s/Chro:\s*//, $val',
             ValueConvInv => 'IsFloat($val) ? sprintf("Chro:%+.1f",$val) : undef',
         },
+        # the SD1 writes something else here (rational64s, value 0/10)
+        # (but we can't test by model becaues Sigma Photo Pro writes this too)
     ],
     0x001b => [ #PH
         {
             Name => 'PreviewImageLength',
             Condition => '$format eq "int32u"',
+            Notes => q{
+                Sigma Photo Pro writes LuminanceNoiseReduction here, but various models use
+                this for PreviewImageLength
+            },
             OffsetPair => 0x001a,
             DataTag => 'PreviewImage',
             Writable => 'int32u',
             Protected => 2,
         },{ # (written by Sigma Photo Pro)
             Name => 'LuminanceNoiseReduction',
+            Condition => '$format eq "string"',
             ValueConv => '$val =~ s/Luma:\s*//, $val',
             ValueConvInv => 'IsFloat($val) ? sprintf("Luma:%+.1f",$val) : undef',
         },
+        # the SD1 writes something else here (rational64s, value 0/10)
     ],
-    0x001c => { #PH
-        Name => 'PreviewImageSize',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x001d => { #PH
-        Name => 'MakerNoteVersion',
-        Writable => 'undef',
-    },
+    0x001c => [ #PH
+        {
+            Name => 'PreviewImageSize',
+            Condition => '$$self{Model} ne "SIGMA SD1"',
+            Notes => 'PreviewImageStart for the SD1, PreviewImageSize for other models',
+            Writable => 'int16u',
+            Count => 2,
+        },{
+            Name => 'PreviewImageStart',
+            Condition => '$format eq "int32u"',
+            IsOffset => 1,
+            OffsetPair => 0x001d,
+            DataTag => 'PreviewImage',
+            Writable => 'int32u',
+            Protected => 2,
+        },
+    ],
+    0x001d => [ #PH
+        {
+            Name => 'MakerNoteVersion',
+            Condition => '$$self{Model} ne "SIGMA SD1"',
+            Notes => 'PreviewImageLength for the SD1, MakerNoteVersion for other models',
+            Writable => 'undef',
+        },{
+            Name => 'PreviewImageLength',
+            Condition => '$format eq "int32u"',
+            OffsetPair => 0x001c,
+            DataTag => 'PreviewImage',
+            Writable => 'int32u',
+            Protected => 2,
+        },
+    ],
     # 0x001e - int16u: 0, 4, 13 - flash mode?
-    0x001f => { #PH (NC)
-        Name => 'AFPoint',
-        # values: "", "Center", "Center,Center", "Right,Right"
-    },
+    0x001f => [ #PH
+        {
+            Name => 'AFPoint', # (NC -- invalid for SD9,SD14?)
+            Condition => '$$self{Model} ne "SIGMA SD1"',
+            Notes => 'MakerNoteVersion for the SD1, AFPoint for other models',
+            # values: "", "Center", "Center,Center", "Right,Right"
+        },{
+            Name => 'MakerNoteVersion',
+            Writable => 'undef',
+        },
+    ],
     # 0x0020-21 - string: " "
     0x0022 => { #PH (NC)
         Name => 'FileFormat',
-        # values: "JPG", "JPG-S" or "X3F"
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
+        # values: "JPG", "JPG-S", "JPG-P", "X3F", "X3F-S"
     },
     # 0x0023 - string: "", 10, 83, 131, 145, 150, 152, 169
-    0x0024 => 'Calibration',
+    0x0024 => { # (invalid for SD9,SD14?)
+        Name => 'Calibration',
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
+    },
     # 0x0025 - string: "", "0.70", "0.90"
     # 0x0026-2b - int32u: 0
+    0x0026 => { #PH (NC)
+        Name => 'FileFormat',
+        Condition => '$$self{Model} eq "SIGMA SD1"',
+        Notes => 'SD1 only',
+    },
     0x002c => { #PH
         Name => 'ColorMode',
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
         Writable => 'int32u',
         PrintConv => {
             0 => 'n/a',
@@ -225,24 +289,41 @@ $VERSION = '1.09';
     # 0x002d - int32u: 0
     # 0x002e - rational64s: (the negative of FlashExposureComp, but why?)
     # 0x002f - int32u: 0, 1
-    0x0030 => { #PH
-        Name => 'LensApertureRange',
-        Notes => 'changes with focal length. MaxAperture for some models',
-    },
+    0x0030 => [ #PH
+        {
+            Name => 'LensApertureRange',
+            Condition => '$$self{Model} ne "SIGMA SD1"',
+            Notes => q{
+                Calibration for the SD1, LensApertureRange for other models.  Note that
+                LensApertureRange changes with focal length, and some models report the
+                maximum aperture here
+            },
+        },{
+            Name => 'Calibration',
+        },
+    ],
     0x0031 => { #PH
         Name => 'FNumber',
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
         Writable => 'rational64u',
         PrintConv => 'sprintf("%.1f",$val)',
         PrintConvInv => '$val',
+        Priority => 0,
     },
     0x0032 => { #PH
         Name => 'ExposureTime',
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
         Writable => 'rational64u',
         PrintConv => 'Image::ExifTool::Exif::PrintExposureTime($val)',
         PrintConvInv => 'Image::ExifTool::Exif::ConvertFraction($val)',
+        Priority => 0,
     },
     0x0033 => { #PH
         Name => 'ExposureTime2',
+        Condition => '$$self{Model} !~ / SD(1|9|15)$/',
+        Notes => 'models other than the SD1, SD9 and SD15',
         Writable => 'string',
         ValueConv => '$val * 1e-6',
         ValueConvInv => 'int($val * 1e6 + 0.5)',
@@ -251,11 +332,15 @@ $VERSION = '1.09';
     },
     0x0034 => { #PH
         Name => 'BurstShot',
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
         Writable => 'int32u',
     },
     # 0x0034 - int32u: 0,1,2,3 or 4
     0x0035 => { #PH
         Name => 'ExposureCompensation',
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
         Writable => 'rational64s',
         # add a '+' sign to positive values
         PrintConv => '$val and $val =~ s/^(\d)/\+$1/; $val',
@@ -263,25 +348,104 @@ $VERSION = '1.09';
     },
     # 0x0036 - string: "                    "
     # 0x0037-38 - string: ""
-    0x0039 => { #PH
+    0x0039 => { #PH (invalid for SD9, SD14?)
         Name => 'SensorTemperature',
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
         # (string format)
         PrintConv => 'IsInt($val) ? "$val C" : $val',
         PrintConvInv => '$val=~s/ ?C$//; $val',
     },
     0x003a => { #PH
         Name => 'FlashExposureComp',
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
         Writable => 'rational64s',
     },
     0x003b => { #PH (how is this different from other Firmware?)
         Name => 'Firmware',
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
         Priority => 0,
     },
-    0x003c => 'WhiteBalance', #PH
-    0x003d => { #PH (new for SD15)
+    0x003c => { #PH
+        Name => 'WhiteBalance',
+        Condition => '$$self{Model} ne "SIGMA SD1"',
+        Notes => 'models other than the SD1',
+        Priority => 0,
+    },
+    0x003d => { #PH (new for SD15 and SD1)
         Name => 'PictureMode',
         Notes => 'same as ColorMode, but "Standard" when ColorMode is Sepia or B&W',
     },
+    0x0048 => { #PH
+        Name => 'LensApertureRange',
+        Condition => '$$self{Model} eq "SIGMA SD1"',
+        Notes => 'SD1 only',
+    },
+    0x0049 => { #PH
+        Name => 'FNumber',
+        Condition => '$$self{Model} eq "SIGMA SD1"',
+        Notes => 'SD1 only',
+        Writable => 'rational64u',
+        PrintConv => 'sprintf("%.1f",$val)',
+        PrintConvInv => '$val',
+        Priority => 0,
+    },
+    0x004a => { #PH
+        Name => 'ExposureTime',
+        Condition => '$$self{Model} eq "SIGMA SD1"',
+        Notes => 'SD1 only',
+        Writable => 'rational64u',
+        PrintConv => 'Image::ExifTool::Exif::PrintExposureTime($val)',
+        PrintConvInv => 'Image::ExifTool::Exif::ConvertFraction($val)',
+        Priority => 0,
+    },
+    0x004b => { #PH
+        Name => 'ExposureTime2',
+        Condition => '$$self{Model} eq "SIGMA SD1"',
+        Notes => 'SD1 only',
+        Writable => 'string',
+        PrintConv => 'Image::ExifTool::Exif::PrintExposureTime($val)',
+        PrintConvInv => 'Image::ExifTool::Exif::ConvertFraction($val)',
+    },
+    0x004d => { #PH
+        Name => 'ExposureCompensation',
+        Condition => '$$self{Model} eq "SIGMA SD1"',
+        Notes => 'SD1 only',
+        Writable => 'rational64s',
+        # add a '+' sign to positive values
+        PrintConv => '$val and $val =~ s/^(\d)/\+$1/; $val',
+        PrintConvInv => '$val',
+    },
+    0x0055 => { #PH
+        Name => 'SensorTemperature',
+        Condition => '$$self{Model} eq "SIGMA SD1"',
+        Notes => 'SD1 only',
+        # (string format)
+        PrintConv => 'IsInt($val) ? "$val C" : $val',
+        PrintConvInv => '$val=~s/ ?C$//; $val',
+    },
+    0x0056 => { #PH (NC)
+        Name => 'FlashExposureComp',
+        Condition => '$$self{Model} eq "SIGMA SD1"',
+        Notes => 'SD1 only',
+        Writable => 'rational64s',
+    },
+    0x0057 => { #PH (how is this different from other Firmware?)
+        Name => 'Firmware',
+        Condition => '$$self{Model} eq "SIGMA SD1"',
+        Notes => 'SD1 only',
+        Priority => 0,
+    },
+    0x0058 => { #PH
+        Name => 'WhiteBalance',
+        Condition => '$$self{Model} eq "SIGMA SD1"',
+        Notes => 'SD1 only',
+        Priority => 0,
+    },
+    # 0x0059 = 'Standard' for the SD1
+    # 0x005a/b/c = 0/10 for the SD1
 );
 
 1;  # end
@@ -303,7 +467,7 @@ Sigma and Foveon maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

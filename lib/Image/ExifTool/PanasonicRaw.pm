@@ -162,8 +162,8 @@ my %jpgFromRawMap = (
     },
     # 0x119 undef[32] - lens distortion data? (http://thinkfat.blogspot.com/2009/02/dissecting-panasonic-rw2-files.html)
     0x2bc => { # PH Extension!!
-        Name => 'ApplicationNotes',
-        Writable => 'int8u', # (writable directory!)
+        Name => 'ApplicationNotes', # (writable directory!)
+        Writable => 'int8u',
         Format => 'undef',
         Flags => [ 'Binary', 'Protected' ],
         SubDirectory => {
@@ -362,7 +362,7 @@ write meta information in Panasonic/Leica RAW, RW2 and RWL images.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

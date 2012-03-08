@@ -19,7 +19,7 @@ use Image::ExifTool qw(:DataAccess);
 use Image::ExifTool::Canon;
 use Image::ExifTool::Exif;
 
-$VERSION = '1.40';
+$VERSION = '1.42';
 
 sub ProcessCanonCustom($$$);
 sub ProcessCanonCustom2($$$);
@@ -1437,17 +1437,16 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
         },
         {
             Name => 'FlashSyncSpeedAv',
-            Condition => '$$self{Model} =~ /\b(5D Mark II|500D|T1i|Kiss X3|550D|T2i|Kiss X4)\b/',
-            Notes => '5D Mark II, 500D and 550D',
+            Condition => '$$self{Model} =~ /\bEOS-1Ds? Mark III\b/',
+            Notes => '1D Mark III and 1Ds Mark III',
             PrintConv => {
                 0 => 'Auto',
-                1 => '1/200-1/60 Auto',
-                2 => '1/200 Fixed',
+                1 => '1/300 Fixed',
             },
         },
         {
             Name => 'FlashSyncSpeedAv',
-            Condition => '$$self{Model} =~ /\b(EOS-1D Mark IV)\b/',
+            Condition => '$$self{Model} =~ /\bEOS-1D Mark IV\b/',
             Notes => '1D Mark IV',
             PrintConv => {
                 0 => 'Auto',
@@ -1457,10 +1456,11 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
         },
         {
             Name => 'FlashSyncSpeedAv',
-            Notes => '1D Mark III',
+            Notes => '5D Mark II, 500D, 550D, 600D and 1100D',
             PrintConv => {
                 0 => 'Auto',
-                1 => '1/300 Fixed',
+                1 => '1/200-1/60 Auto',
+                2 => '1/200 Fixed',
             },
         },
     ],
@@ -1486,8 +1486,11 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
     0x0202 => [
         {
             Name => 'HighISONoiseReduction',
-            Condition => '$$self{Model} =~ /\b(50D|60D|5D Mark II|7D|500D|T1i|Kiss X3|550D|T2i|Kiss X4)\b/',
-            Notes => '50D, 60D, 500D, 550D, 5DmkII and 7D',
+            Condition => q{
+                $$self{Model} =~ /\b(50D|60D|5D Mark II|7D|500D|T1i|Kiss X3|550D|T2i|Kiss X4)\b/ or
+                $$self{Model} =~ /\b(600D|T3i|Kiss X5|1100D|T3|Kiss X50)\b/
+            },
+            Notes => '50D, 60D, 500D, 550D, 600D, 1100D, 5DmkII and 7D',
             PrintConv => {
                 0 => 'Standard',
                 1 => 'Low',
@@ -1886,8 +1889,11 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
     0x0701 => [
         {
             Name => 'Shutter-AELock',
-            Condition => '$$self{Model} =~ /\b(1000D|XS|Kiss F|500D|T1i|Kiss X3|550D|T2i|Kiss X4)\b/',
-            Notes => '500D, 550D and 1000D',
+            Condition => q{
+                $$self{Model} =~ /\b(1000D|XS|Kiss F|500D|T1i|Kiss X3|550D|T2i|Kiss X4)\b/ or
+                $$self{Model} =~ /\b(600D|T3i|Kiss X5|1100D|T3|Kiss X50)\b/
+            },
+            Notes => '500D, 550D, 600D, 1000D and 1100D',
             PrintConv => {
                 0 => 'AF/AE lock',
                 1 => 'AE lock/AF',
@@ -1963,8 +1969,8 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
         },
         {
             Name => 'SetButtonWhenShooting',
-            Condition => '$$self{Model} =~ /\b(450D|XSi|Kiss X2|550D|T2i|Kiss X4)\b/',
-            Notes => '450D and 550D; value of 5 is new for 550D',
+            Condition => '$$self{Model} =~ /\b(450D|XSi|Kiss X2|550D|T2i|Kiss X4|600D|T3i|Kiss X5)\b/',
+            Notes => '450D, 550D and 600D; value of 5 is new for 550D',
             PrintConv => {
                 0 => 'Normal (disabled)',
                 1 => 'Image quality',
@@ -1972,6 +1978,19 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
                 3 => 'LCD monitor On/Off',
                 4 => 'Menu display',
                 5 => 'ISO speed',
+            },
+        },
+        {
+            Name => 'SetButtonWhenShooting',
+            Condition => '$$self{Model} =~ /\b(1100D|T3|Kiss X50)\b/',
+            Notes => '1100D',
+            PrintConv => {
+                0 => 'Normal (disabled)',
+                1 => 'Image quality',
+                2 => 'Flash exposure compensation',
+                3 => 'LCD monitor On/Off',
+                4 => 'Menu display',
+                5 => 'Depth-of-field preview',
             },
         },
         {
@@ -2075,6 +2094,13 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
         PrintConv => {
             0 => 'Default (from LV)',
             1 => 'Quick start (FEL button)',
+        },
+    },
+    0x070e => { # new for 1100D
+        Name => 'FlashButtonFunction',
+        PrintConv => {
+            0 => 'Raise built-in flash',
+            1 => 'ISO speed',
         },
     },
     #### 4b) Others
@@ -2234,8 +2260,8 @@ sub ProcessCanonCustom2($$$)
                 my $tagInfo = $$newTags{$tag};
                 next unless $tagInfo;
                 my $nvHash = $exifTool->GetNewValueHash($tagInfo);
-                next unless Image::ExifTool::IsOverwriting($nvHash, $val);
-                my $newVal = Image::ExifTool::GetNewValues($nvHash);
+                next unless $exifTool->IsOverwriting($nvHash, $val);
+                my $newVal = $exifTool->GetNewValues($nvHash);
                 next unless defined $newVal;    # can't delete from a custom table
                 WriteValue($newVal, 'int32s', $num, $dataPt, $recPos);
                 $exifTool->VerboseValue("- CanonCustom:$$tagInfo{Name}", $val);
@@ -2363,8 +2389,8 @@ sub WriteCanonCustom($$$)
         next unless $tagInfo;
         my $nvHash = $exifTool->GetNewValueHash($tagInfo);
         $val = ($val & 0xff);
-        next unless Image::ExifTool::IsOverwriting($nvHash, $val);
-        my $newVal = Image::ExifTool::GetNewValues($nvHash);
+        next unless $exifTool->IsOverwriting($nvHash, $val);
+        my $newVal = $exifTool->GetNewValues($nvHash);
         next unless defined $newVal;    # can't delete from a custom table
         Set16u(($newVal & 0xff) + ($tag << 8), $dataPt, $pos);
         $exifTool->VerboseValue("- $dirName:$$tagInfo{Name}", $val);
@@ -2396,7 +2422,7 @@ Image::ExifTool to read this information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

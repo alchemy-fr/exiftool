@@ -22,7 +22,7 @@ Z7590.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -229,7 +229,7 @@ and Minolta EX1500Z.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='8 = 0x8'>8</td>
@@ -258,7 +258,7 @@ and Minolta EX1500Z.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='12 = 0xc'>12</td>
@@ -307,7 +307,7 @@ and Minolta EX1500Z.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='32 = 0x20'>32</td>
@@ -322,7 +322,7 @@ and CX6230.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='20 = 0x14'>20</td>
@@ -383,7 +383,7 @@ and CX6230.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='16 = 0x10'>16</td>
@@ -433,7 +433,7 @@ by 8 digits.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -521,8 +521,8 @@ with much duplication), but relatively few tags have so far been decoded.</p>
 <td title='0xfa02 = 64002'>0xfa02</td>
 <td>SceneMode</td>
 <td class=c>int16u</td>
-<td><span class=s><span class=n>(may not be valid for some models)</span>
-  <br>1 = Sport
+<td><span class=s><span class=n>(may not be valid for some models)</span></span><table class=cols><tr>
+  <td>1 = Sport
   <br>3 = Portrait
   <br>4 = Landscape
   <br>6 = Beach
@@ -533,8 +533,8 @@ with much duplication), but relatively few tags have so far been decoded.</p>
   <br>11 = Fireworks
   <br>12 = Macro
   <br>13 = Museum
-  <br>16 = Children
-  <br>17 = Program
+  <br>16 = Children</td><td>&nbsp;&nbsp;</td>
+  <td>17 = Program
   <br>18 = Aperture Priority
   <br>19 = Shutter Priority
   <br>20 = Manual
@@ -544,7 +544,8 @@ with much duplication), but relatively few tags have so far been decoded.</p>
   <br>31 = Panorama Left-Right
   <br>32 = Panorama Right-Left
   <br>33 = Smart Scene
-  <br>34 = High ISO</span></td></tr>
+  <br>34 = High ISO</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0xfa19 = 64025'>0xfa19</td>
 <td>SerialNumber</td>
@@ -655,7 +656,8 @@ with much duplication), but relatively few tags have so far been decoded.</p>
 <td title='0x6002 = 24578'>0x6002</td>
 <td>SceneModeUsed</td>
 <td class=c>int32u</td>
-<td><span class=s>0 = Program
+<td><table class=cols><tr>
+  <td>0 = Program
   <br>2 = Aperture Priority
   <br>3 = Shutter Priority
   <br>4 = Manual
@@ -665,8 +667,8 @@ with much duplication), but relatively few tags have so far been decoded.</p>
   <br>8 = Museum
   <br>10 = High ISO
   <br>11 = Text
-  <br>12 = Macro
-  <br>13 = Back Light
+  <br>12 = Macro</td><td>&nbsp;&nbsp;</td>
+  <td>13 = Back Light
   <br>16 = Landscape
   <br>17 = Night Landscape
   <br>18 = Night Portrait
@@ -675,7 +677,8 @@ with much duplication), but relatively few tags have so far been decoded.</p>
   <br>21 = Fireworks
   <br>22 = Sunset
   <br>23 = Candlelight
-  <br>28 = Panorama</span></td></tr>
+  <br>28 = Panorama</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x6006 = 24582'>0x6006</td>
 <td>OpticalZoom</td>
@@ -690,7 +693,8 @@ with much duplication), but relatively few tags have so far been decoded.</p>
 <td title='0xf002 = 61442'>0xf002</td>
 <td>SceneModeUsed</td>
 <td class=c>int32u</td>
-<td><span class=s>0 = Program
+<td><table class=cols><tr>
+  <td>0 = Program
   <br>2 = Aperture Priority
   <br>3 = Shutter Priority
   <br>4 = Manual
@@ -700,8 +704,8 @@ with much duplication), but relatively few tags have so far been decoded.</p>
   <br>8 = Museum
   <br>10 = High ISO
   <br>11 = Text
-  <br>12 = Macro
-  <br>13 = Back Light
+  <br>12 = Macro</td><td>&nbsp;&nbsp;</td>
+  <td>13 = Back Light
   <br>16 = Landscape
   <br>17 = Night Landscape
   <br>18 = Night Portrait
@@ -710,7 +714,8 @@ with much duplication), but relatively few tags have so far been decoded.</p>
   <br>21 = Fireworks
   <br>22 = Sunset
   <br>23 = Candlelight
-  <br>28 = Panorama</span></td></tr>
+  <br>28 = Panorama</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0xf006 = 61446'>0xf006</td>
 <td>OpticalZoom</td>
@@ -853,7 +858,7 @@ M550, as well as various cameras marketed by other manufacturers.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='12 = 0xc'>12</td>
@@ -882,7 +887,12 @@ M550, as well as various cameras marketed by other manufacturers.</p>
 <td><span class=s><span class=n>(Kodak only)</span></span></td></tr>
 <tr class=b>
 <td class=r title='168 = 0xa8'>168</td>
-<td>SerialNumber</td>
+<td>UnknownNumber</td>
+<td class=c>string[12]</td>
+<td><span class=s><span class=n>(Kodak only)</span></span></td></tr>
+<tr>
+<td class=r title='196 = 0xc4'>196</td>
+<td>UnknownNumber</td>
 <td class=c>string[12]</td>
 <td><span class=s><span class=n>(Kodak only)</span></span></td></tr>
 </table></td></tr></table></blockquote>
@@ -926,7 +936,7 @@ indicator instead of a full TIFF header.  These tags are used by the Z980.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr><td colspan=4 class=c><i>[no tags known]</i></td></tr>
 </table></td></tr></table></blockquote>
@@ -1240,7 +1250,7 @@ data, however ExifTool will extract information from any tags found here.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='20 = 0x14'>20</td>
@@ -1545,12 +1555,160 @@ models such as the P880 and Z1015IS.</p>
 <td>&nbsp;</td></tr>
 </table></td></tr></table></blockquote>
 
-<h2><a name='MOV'>Kodak MOV Tags</a></h2>
-<p>This information is found in Kodak MOV videos from models such as the P880.</p>
+<h2><a name='Free'>Kodak Free Tags</a></h2>
+<p>Information stored in the &quot;free&quot; atom of Kodak MP4 videos. (VERY bad form
+for Kodak to store useful information in an atom intended for unused space!)</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td>'AprV'</td>
+<td>ApertureValue</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'BrtV'</td>
+<td>BrightnessValue</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'Expc'</td>
+<td>ExposureCompensation</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'Expo'</td>
+<td>ExposureTime</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'FL35'</td>
+<td>FocalLengthIn35mmFormat</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'FNum'</td>
+<td>FNumber</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'FoLn'</td>
+<td>FocalLength</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'ISOS'</td>
+<td>ISO</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'SVer'</td>
+<td>FirmwareVersion</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'Scrn'</td>
+<td>PreviewInfo</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Kodak.html#Scrn'>Kodak Scrn Tags</a></td></tr>
+<tr>
+<td>'Seri'</td>
+<td>SerialNumber</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'StSV'</td>
+<td>ShutterSpeedValue</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='Scrn'>Kodak Scrn Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index2</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>PreviewImageWidth</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='1 = 0x1'>1</td>
+<td>PreviewImageHeight</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='2 = 0x2'>2</td>
+<td>PreviewImageLength</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='4 = 0x4'>4</td>
+<td>PreviewImage</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='DcMD'>Kodak DcMD Tags</a></h2>
+<p>Metadata directory found in MOV and MP4 videos from some Kodak cameras.</p>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td>'CMbo'</td>
+<td>CameraByteOrder</td>
+<td class=c>N</td>
+<td><span class=s>&#39;II&#39; = Little-endian (Intel, II)
+  <br>&#39;MM&#39; = Big-endian (Motorola, MM)</span></td></tr>
+<tr class=b>
+<td>'Cmbo'</td>
+<td>CameraByteOrder</td>
+<td class=c>N</td>
+<td><span class=s>&#39;II&#39; = Little-endian (Intel, II)
+  <br>&#39;MM&#39; = Big-endian (Motorola, MM)</span></td></tr>
+<tr>
+<td>'DcEM'</td>
+<td>DcEM</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Kodak.html#DcEM'>Kodak DcEM Tags</a></td></tr>
+<tr class=b>
+<td>'DcME'</td>
+<td>DcME</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Kodak.html#DcME'>Kodak DcME Tags</a></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='DcEM'>Kodak DcEM Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr><td colspan=4 class=c><i>[no tags known]</i></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='DcME'>Kodak DcME Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr><td colspan=4 class=c><i>[no tags known]</i></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='MOV'>Kodak MOV Tags</a></h2>
+<p>This information is found in the TAGS atom of MOV videos from Kodak models
+such as the P880.</p>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -1591,7 +1749,7 @@ models such as the P880 and Z1015IS.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Jul 30, 2010</i>
+<br><i>Last revised Jan 31, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

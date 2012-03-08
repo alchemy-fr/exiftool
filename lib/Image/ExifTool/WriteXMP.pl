@@ -56,7 +56,7 @@ sub XMPOpen($)
     my $nv = $exifTool->{NEW_VALUE}->{$Image::ExifTool::XMP::x{xmptk}};
     my $tk;
     if (defined $nv) {
-        $tk = Image::ExifTool::GetNewValues($nv);
+        $tk = $exifTool->GetNewValues($nv);
         $exifTool->VerboseValue(($tk ? '+' : '-') . ' XMP-x:XMPToolkit', $tk);
         ++$exifTool->{CHANGED};
     } else {
@@ -295,7 +295,7 @@ sub SetPropertyPath($$;$$$$)
         # (could happen if we were just writing a structure)
         unless ($tagInfo) {
             $tagInfo = { Name => ucfirst($flatID), Flat => 1 };
-            Image::ExifTool::AddTagToTable($tagTablePtr, $flatID, $tagInfo);
+            AddTagToTable($tagTablePtr, $flatID, $tagInfo);
         }
         # set StructType flag if any containing structure has a TYPE
         $$tagInfo{StructType} = 1 if $isType;
@@ -656,7 +656,7 @@ sub WriteXMP($$;$)
         }
         $tagInfo = $Image::ExifTool::XMP::rdf{about};
         if (defined $exifTool->{NEW_VALUE}->{$tagInfo}) {
-            $about = Image::ExifTool::GetNewValues($exifTool->{NEW_VALUE}->{$tagInfo}) || '';
+            $about = $exifTool->GetNewValues($exifTool->{NEW_VALUE}->{$tagInfo}) || '';
             if ($verbose > 1) {
                 my $wasAbout = $exifTool->{XMP_ABOUT};
                 $exifTool->VerboseValue('- XMP-rdf:About', UnescapeXML($wasAbout)) if defined $wasAbout;
@@ -679,7 +679,7 @@ sub WriteXMP($$;$)
         $tagInfo = $Image::ExifTool::Extra{XMP};
         if ($tagInfo and $exifTool->{NEW_VALUE}->{$tagInfo}) {
             my $rtnVal = 1;
-            my $newVal = Image::ExifTool::GetNewValues($exifTool->{NEW_VALUE}->{$tagInfo});
+            my $newVal = $exifTool->GetNewValues($exifTool->{NEW_VALUE}->{$tagInfo});
             if (defined $newVal and length $newVal) {
                 $exifTool->VPrint(0, "  Writing XMP as a block\n");
                 ++$exifTool->{CHANGED};
@@ -797,7 +797,7 @@ sub WriteXMP($$;$)
                     my $tg = $exifTool->GetGroup($tagInfo, 1) . ':' . $$tagInfo{Name};
                     my $wrn = lc($path) eq lc($matches[0]) ? 'tag ID case' : 'list type';
                     if ($err) {
-                        $exifTool->Warn("Incorrect $wrn for $tg conflicts with existing tag");
+                        $exifTool->Warn("Incorrect $wrn for existing $tg (not changed)");
                     } else {
                         # fix the incorrect property paths for all values of this tag
                         foreach $match (@matches) {
@@ -812,7 +812,7 @@ sub WriteXMP($$;$)
             }
         }
         my $nvHash = $exifTool->GetNewValueHash($tagInfo);
-        my $overwrite = Image::ExifTool::IsOverwriting($nvHash);
+        my $overwrite = $exifTool->IsOverwriting($nvHash);
         my $writable = $$tagInfo{Writable} || '';
         my (%attrs, $deleted, $added);
         # delete existing entry if necessary
@@ -846,7 +846,7 @@ sub WriteXMP($$;$)
                             next unless $oldLang eq $newLang;
                             # only add new tag if we are overwriting this one
                             # (note: this won't match if original XML contains CDATA!)
-                            $addLang = Image::ExifTool::IsOverwriting($nvHash, UnescapeXML($val));
+                            $addLang = $exifTool->IsOverwriting($nvHash, UnescapeXML($val));
                             next unless $addLang;
                         }
                         # delete all if deleting "x-default" and writing with no LangCode
@@ -871,7 +871,7 @@ sub WriteXMP($$;$)
                             }
                         }
                         # (note: this won't match if original XML contains CDATA!)
-                        next unless Image::ExifTool::IsOverwriting($nvHash, UnescapeXML($val));
+                        next unless $exifTool->IsOverwriting($nvHash, UnescapeXML($val));
                     }
                     if ($verbose > 1) {
                         my $grp = $exifTool->GetGroup($tagInfo, 1);
@@ -963,7 +963,7 @@ sub WriteXMP($$;$)
             (not $cap and $isCreating);
 
         # get list of new values (all done if no new values specified)
-        my @newValues = Image::ExifTool::GetNewValues($nvHash) or next;
+        my @newValues = $exifTool->GetNewValues($nvHash) or next;
 
         # set language attribute for lang-alt lists
         $attrs{'xml:lang'} = $$tagInfo{LangCode} || 'x-default' if $writable eq 'lang-alt';
@@ -1009,6 +1009,17 @@ sub WriteXMP($$;$)
                 $subIdx = '10';
             }
             substr($path, $pos, $len) = $idx . $subIdx;
+        }
+        # make sure any empty structures are deleted
+        # (ExifTool shouldn't write these, but other software may)
+        if (defined $$tagInfo{Flat}) {
+            my $p = $path;
+            while ($p =~ s/\/[^\/]+$//) {
+                next unless $capture{$p};
+                # it is an error if this property has a value
+                $exifTool->Error("Improperly structured XMP ($p)",1) if $capture{$p}[0] =~ /\S/;
+                delete $capture{$p};    # delete the (hopefully) empty structure
+            }
         }
     }
     # remove the ExifTool members we created
@@ -1268,7 +1279,7 @@ This file contains routines to write XMP metadata.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -96,7 +96,7 @@ sub FoundTag($$$$;$)
     # add any unknown tags to table
     unless ($$tagTablePtr{$tag}) {
         $exifTool->VPrint(0, "  [adding $tag]\n") if $verbose;
-        Image::ExifTool::AddTagToTable($tagTablePtr, $tag, { Name => ucfirst $tag });
+        AddTagToTable($tagTablePtr, $tag, { Name => ucfirst $tag });
     }
     # save the tag
     $exifTool->HandleTag($tagTablePtr, $tag, $val);
@@ -208,7 +208,7 @@ information from Apple iWork '09 XML+ZIP files.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

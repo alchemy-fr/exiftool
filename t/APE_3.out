@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.30
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.69
 [File, System, Image] FileName - File Name: APE.mpc
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 2.5 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2006:11:14 14:27:03-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2006:11:14 15:06:40-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: MPC
 [File, File, Image] MIMEType - MIME Type: audio/x-musepack
@@ -31,6 +31,7 @@
 [APE, APE, Audio] Cover Art (front) - Cover Art Front: (Binary data 1761 bytes)
 [ID3, ID3v2_2, Audio] TRK - Track: 1/5
 [ID3, ID3v2_2, Audio] TPA - Part Of Set: 1/2
+[ID3, ID3v2_2, Audio] RVA - Relative Volume Adjustment: +18.0% Right, +18.0% Left
 [ID3, ID3v2_2, Audio] ULT - Lyrics: Do-wap she-bang
 [ID3, ID3v2_2, Image] PIC-1 - Picture Format: JPG
 [ID3, ID3v2_2, Image] PIC-2 - Picture Type: Other

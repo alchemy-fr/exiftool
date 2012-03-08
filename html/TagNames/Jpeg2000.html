@@ -51,14 +51,9 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
 <td>&nbsp;</td></tr>
 <tr class=b>
 <td>'colr'</td>
-<td>ICC_Profile
-  <br>Colorspace
-  <br>ColorSpecification</td>
-<td class=c>-<br>N<br>N</td>
-<td>--&gt; <a href='ICC_Profile.html'>ICC_Profile Tags</a>
-  <br>16 = sRGB
-  <br>17 = Grayscale
-  <br>18 = sYCC</td></tr>
+<td>ColorSpecification</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html#ColorSpec'>Jpeg2000 ColorSpec Tags</a></td></tr>
 <tr>
 <td>'comp'</td>
 <td>Composition</td>
@@ -232,15 +227,21 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
 <tr>
 <td>'uuid'</td>
 <td>UUID-EXIF
+  <br>UUID-EXIF2
   <br>UUID-IPTC
+  <br>UUID-IPTC2
   <br>UUID-XMP
   <br>UUID-GeoJP2
+  <br>UUID-Photoshop
   <br>UUID-Unknown</td>
-<td class=c>-<br>-<br>-<br>-<br>N</td>
+<td class=c>-<br>-<br>-<br>-<br>-<br>-<br>-<br>N</td>
 <td>--&gt; <a href='EXIF.html'>EXIF Tags</a>
+  <br>--&gt; <a href='EXIF.html'>EXIF Tags</a>
+  <br>--&gt; <a href='IPTC.html'>IPTC Tags</a>
   <br>--&gt; <a href='IPTC.html'>IPTC Tags</a>
   <br>--&gt; <a href='XMP.html'>XMP Tags</a>
-  <br>--&gt; <a href='EXIF.html'>EXIF Tags</a></td></tr>
+  <br>--&gt; <a href='EXIF.html'>EXIF Tags</a>
+  <br>--&gt; <a href='Photoshop.html'>Photoshop Tags</a></td></tr>
 <tr class=b>
 <td>'xml '</td>
 <td>XML</td>
@@ -248,11 +249,67 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
 <td>--&gt; <a href='XMP.html'>XMP Tags</a></td></tr>
 </table></td></tr></table></blockquote>
 
+<h2><a name='ColorSpec'>Jpeg2000 ColorSpec Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>ColorSpecMethod</td>
+<td class=c>N</td>
+<td><span class=s>1 = Enumerated
+  <br>2 = Restricted ICC
+  <br>3 = Any ICC
+  <br>4 = Vendor Color</span></td></tr>
+<tr class=b>
+<td class=r title='1 = 0x1'>1</td>
+<td>ColorSpecPrecedence</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='2 = 0x2'>2</td>
+<td>ColorSpecApproximation</td>
+<td class=c>N</td>
+<td><span class=s>0 = Not Specified
+  <br>1 = Accurate
+  <br>2 = Exceptional Quality
+  <br>3 = Reasonable Quality
+  <br>4 = Poor Quality</span></td></tr>
+<tr class=b>
+<td class=r title='3 = 0x3'>3</td>
+<td>ICC_Profile
+  <br>ColorSpace
+  <br>ColorSpecData</td>
+<td class=c>-<br>N<br>N</td>
+<td>--&gt; <a href='ICC_Profile.html'>ICC_Profile Tags</a>
+  <br>0 = Bi-level
+  <br>1 = YCbCr(1)
+  <br>3 = YCbCr(2)
+  <br>4 = YCbCr(3)
+  <br>9 = PhotoYCC
+  <br>11 = CMY
+  <br>12 = CMYK
+  <br>13 = YCCK
+  <br>14 = CIELab
+  <br>15 = Bi-level(2)
+  <br>16 = sRGB
+  <br>17 = Grayscale
+  <br>18 = sYCC
+  <br>19 = CIEJab
+  <br>20 = e-sRGB
+  <br>21 = ROMM-RGB
+  <br>22 = YPbPr(1125/60)
+  <br>23 = YPbPr(1250/50)
+  <br>24 = e-sYCC</td></tr>
+</table></td></tr></table></blockquote>
+
 <h2><a name='FileType'>Jpeg2000 FileType Tags</a></h2>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index4</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -277,7 +334,7 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -318,7 +375,7 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -346,24 +403,26 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class='inner sep' cellspacing=1>
-<tr class=h><th>Value</th><th>ResolutionUnit</th><th>Value</th><th>ResolutionUnit</th></tr>
+<tr class=h><th>Value</th><th>ResolutionUnit</th><th>Value</th><th>ResolutionUnit</th><th>Value</th><th>ResolutionUnit</th></tr>
 <tr><td>-3</td><td>= km</td>
-<td class=b>2</td><td class=b>= cm</td>
+<td class=b>1</td><td class=b>= 10 cm</td>
+<td>5</td><td>= 0.01 mm</td>
 </tr><tr><td>-2</td><td>= 100 m</td>
-<td class=b>3</td><td class=b>= mm</td>
+<td class=b>2</td><td class=b>= cm</td>
+<td>6</td><td>= um</td>
 </tr><tr><td>-1</td><td>= 10 m</td>
-<td class=b>4</td><td class=b>= 0.1 mm</td>
+<td class=b>3</td><td class=b>= mm</td>
+<td>&nbsp;</td><td>&nbsp;</td>
 </tr><tr><td>0</td><td>= m</td>
-<td class=b>5</td><td class=b>= 0.01 mm</td>
-</tr><tr><td>1</td><td>= 10 cm</td>
-<td class=b>6</td><td class=b>= um</td>
+<td class=b>4</td><td class=b>= 0.1 mm</td>
+<td>&nbsp;</td><td>&nbsp;</td>
 </tr></table></td></tr></table></blockquote>
 
 <h2><a name='DisplayResolution'>Jpeg2000 DisplayResolution Tags</a></h2>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='0 = 0x0'>0</td>
@@ -389,7 +448,7 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Oct 26, 2009</i>
+<br><i>Last revised Aug 21, 2011</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

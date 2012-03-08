@@ -292,7 +292,7 @@ sub ProcessRTF($$)
             }
             # create tagInfo for unknown tags
             if (not $tagInfo) {
-                Image::ExifTool::AddTagToTable($tagTablePtr, $tag, { Name => ucfirst($tag) });
+                AddTagToTable($tagTablePtr, $tag, { Name => ucfirst($tag) });
             }
             $exifTool->HandleTag($tagTablePtr, $tag, $val);
         }
@@ -331,7 +331,7 @@ sub ProcessRTF($$)
             next unless $tag;
             # create tagInfo for unknown tags
             unless ($$tagTablePtr{$tag}) {
-                Image::ExifTool::AddTagToTable($tagTablePtr, $tag, { Name => $tag });
+                AddTagToTable($tagTablePtr, $tag, { Name => $tag });
             }
             $exifTool->HandleTag($tagTablePtr, $tag, $val);
         }
@@ -359,7 +359,7 @@ information from RTF (Rich Text Format) documents.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

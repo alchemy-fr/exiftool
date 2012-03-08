@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.22';
+$VERSION = '1.24';
 
 sub ProcessICC($$);
 sub ProcessICC_Profile($$$);
@@ -672,7 +672,7 @@ sub ProcessMetadata($$$)
             $name =~ s/\s+(.)/\u$1/g;
             $name =~ tr/-_a-zA-Z0-9//dc;
             next unless length $name;
-            Image::ExifTool::AddTagToTable($tagTablePtr, $tag, { Name => $name });
+            AddTagToTable($tagTablePtr, $tag, { Name => $name });
         }
         $exifTool->HandleTag($tagTablePtr, $tag, $val);
     }
@@ -715,8 +715,8 @@ sub WriteICC_Profile($$;$)
     # (don't write AsShotICCProfile or CurrentICCProfile here)
     return undef unless $dirName eq 'ICC_Profile';
     my $nvHash = $exifTool->GetNewValueHash($Image::ExifTool::Extra{$dirName});
-    return undef unless Image::ExifTool::IsOverwriting($nvHash);
-    my $val = Image::ExifTool::GetNewValues($nvHash);
+    return undef unless $exifTool->IsOverwriting($nvHash);
+    my $val = $exifTool->GetNewValues($nvHash);
     $val = '' unless defined $val;
     ++$exifTool->{CHANGED};
     return $val;
@@ -783,14 +783,15 @@ sub ProcessICC_Profile($$$)
 {
     my ($exifTool, $dirInfo, $tagTablePtr) = @_;
     my $dataPt = $$dirInfo{DataPt};
-    my $dirStart = $$dirInfo{DirStart};
+    my $dirStart = $$dirInfo{DirStart} || 0;
     my $dirLen = $$dirInfo{DirLen};
     my $verbose = $exifTool->Options('Verbose');
 
     return 0 if $dirLen < 4;
 
     # extract binary ICC_Profile data block if binary mode or requested
-    if ($exifTool->{OPTIONS}->{Binary} or $exifTool->{REQ_TAG_LOOKUP}->{icc_profile} and
+    if ((($exifTool->{OPTIONS}{Binary} and not $exifTool->{EXCL_TAG_LOOKUP}{icc_profile}) or
+        $exifTool->{REQ_TAG_LOOKUP}{icc_profile}) and
         # (don't extract from AsShotICCProfile or CurrentICCProfile)
         (not $$dirInfo{Name} or $$dirInfo{Name} eq 'ICC_Profile'))
     {
@@ -846,7 +847,7 @@ sub ProcessICC_Profile($$$)
         # if the tagID's aren't numeric, so we must do this manually:
         if (not $tagInfo and $exifTool->{OPTIONS}->{Unknown}) {
             $tagInfo = { Unknown => 1 };
-            Image::ExifTool::AddTagToTable($tagTablePtr, $tagID, $tagInfo);
+            AddTagToTable($tagTablePtr, $tagID, $tagInfo);
         }
         next unless defined $tagInfo;
 
@@ -973,7 +974,7 @@ data created on one device into another device's native color space.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

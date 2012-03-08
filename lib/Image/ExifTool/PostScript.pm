@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION $AUTOLOAD);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.33';
+$VERSION = '1.34';
 
 sub WritePS($$);
 sub ProcessPS($$;$);
@@ -38,6 +38,7 @@ sub ProcessPS($$;$);
         Groups => { 2 => 'Time' },
         Writable => 'string',
         PrintConv => '$self->ConvertDateTime($val)',
+        PrintConvInv => '$self->InverseDateTime($val)',
     },
     Creator     => { Priority => 0, Writable => 'string' },
     ImageData   => { Priority => 0 },
@@ -49,6 +50,7 @@ sub ProcessPS($$;$);
         Groups => { 2 => 'Time' },
         Writable => 'string',
         PrintConv => '$self->ConvertDateTime($val)',
+        PrintConvInv => '$self->InverseDateTime($val)',
     },
     Pages       => { Priority => 0 },
     Routing     => { Priority => 0, Writable => 'string' }, #2
@@ -664,7 +666,7 @@ This code reads meta information from EPS (Encapsulated PostScript), PS
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

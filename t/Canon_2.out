@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.49
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.69
 [File, System, Image] FileName - File Name: Canon1DmkIII.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 8.1 kB
@@ -318,7 +318,7 @@
 [MakerNotes, Canon, Camera] 54 - Color Temp Flash: 6777
 [MakerNotes, Canon, Camera] 640 - Raw Measured RGGB: 294111 455756 464315 279659
 [MakerNotes, Canon, Camera] 16400 - Custom Picture Style File Name: 
-[MakerNotes, Canon, Camera] 1 - AF Micro Adj Active: No
+[MakerNotes, Canon, Camera] 1 - AF Micro Adj Mode: Disable
 [MakerNotes, Canon, Camera] 2 - AF Micro Adj Value: 0
 [Composite, Composite, Image] Aperture - Aperture: 5.6
 [Composite, Composite, Camera] DriveMode - Drive Mode: Continuous Shooting

@@ -15,7 +15,7 @@ use strict;
 use vars qw($VERSION %sigmaLensTypes);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.16';
+$VERSION = '1.17';
 
 sub ProcessX3FHeader($$$);
 sub ProcessX3FDirectory($$$);
@@ -226,6 +226,7 @@ sub ProcessX3FProperties($$$);
             LensType, and are used by the Composite LensID tag when attempting to
             identify the specific lens model
         },
+        ValueConvInv => '$val=~s/\.\d+$//; $val', # (truncate decimal part)
         PrintConv => \%sigmaLensTypes,
     },
     PMODE => {
@@ -375,7 +376,7 @@ sub ProcessX3FProperties($$$)
                 Writable => 0,  # can't write unknown tags
             };
             # add tag information to table
-            Image::ExifTool::AddTagToTable($tagTablePtr, $tag, $tagInfo);
+            AddTagToTable($tagTablePtr, $tag, $tagInfo);
         }
 
         $exifTool->HandleTag($tagTablePtr, $tag, $val,
@@ -653,7 +654,7 @@ Sigma and Foveon X3F images.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

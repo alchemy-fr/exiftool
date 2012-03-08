@@ -23,7 +23,7 @@ use vars qw($VERSION %convMake);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.06';
+$VERSION = '1.07';
 
 sub ProcessSEI($$);
 
@@ -416,8 +416,10 @@ my $parsePictureTiming; # flag to enable parsing of picture timing information (
     1 => {
         Name => 'Gain',
         Mask => 0x0f,
+        # (0x0f would translate to 42 dB, but this value is used by the Sony
+        #  HXR-NX5U for any out-of-range value such as -6 dB or "hyper gain" - PH)
         ValueConv => '($val - 1) * 3',
-        PrintConv => '"$val dB"',
+        PrintConv => '$val==42 ? "Out of range" : "$val dB"',
     },
     1.1 => {
         Name => 'ExposureProgram',
@@ -1065,7 +1067,7 @@ information from H.264 video streams.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

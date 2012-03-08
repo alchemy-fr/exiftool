@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::de;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.21';
+$VERSION = '1.22';
 
 %Image::ExifTool::Lang::de::Translate = (
    'AEAperture' => 'AE-Blende',
@@ -1938,6 +1938,14 @@ $VERSION = '1.21';
     },
    'FaceDetectArea' => 'Gesichtserkennung Bereich',
    'FaceDetectFrameSize' => 'Bereichsgröße',
+   'FaceOrientation' => {
+      PrintConv => {
+        'Horizontal (normal)' => '0° (oben/links)',
+        'Rotate 180' => '180° (unten/rechts)',
+        'Rotate 270 CW' => '90° im Uhrzeigersinn (links/unten)',
+        'Rotate 90 CW' => '90° gegen den Uhrzeigersinn (rechts/oben)',
+      },
+    },
    'FacesDetected' => 'Gesichter erkannt',
    'FastSeek' => {
       PrintConv => {
@@ -3311,7 +3319,7 @@ $VERSION = '1.21';
    'MinAperture' => 'Kleinste Blende',
    'MinFocalLength' => 'Kleinste Brennweite',
    'MinoltaCameraSettings2' => 'Kameraeinstellungen 2',
-   'MinoltaCameraSettings5D' => 'Kameraeinstellungen (A100)',
+   'MinoltaCameraSettings5D' => 'Kameraeinstellungen (5D)',
    'MinoltaCameraSettings7D' => 'Kameraeinstellungen (7D)',
    'MinoltaDate' => 'Minolta-Datum',
    'MinoltaImageSize' => {
@@ -5461,7 +5469,7 @@ and values.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

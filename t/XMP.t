@@ -1,7 +1,7 @@
 # Before "make install", this script should be runnable with "make test".
 # After "make install" it should work as "perl t/XMP.t".
 
-BEGIN { $| = 1; print "1..38\n"; $Image::ExifTool::noConfig = 1; }
+BEGIN { $| = 1; print "1..39\n"; $Image::ExifTool::noConfig = 1; }
 END {print "not ok 1\n" unless $loaded;}
 
 # definitions for user-defined tag test (#26)
@@ -472,6 +472,15 @@ my $testnum = 1;
     $exifTool->SetNewValuesFromFile('t/images/XMP5.xmp', 'xmp:all');
     my $ok = writeInfo($exifTool,undef,$testfile);
     print 'not ' unless testCompare("t/images/XMP5.xmp",$testfile,$testnum) and $ok;
+    print "ok $testnum\n";
+}
+
+# test 39: Extract information from an INX file
+{
+    ++$testnum;
+    my $exifTool = new Image::ExifTool;
+    my $info = $exifTool->ImageInfo('t/images/XMP.inx', {Duplicates => 1});
+    print 'not ' unless check($exifTool, $info, $testname, $testnum);
     print "ok $testnum\n";
 }
 

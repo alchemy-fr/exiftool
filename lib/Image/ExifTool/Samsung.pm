@@ -7,6 +7,7 @@
 #
 # References:   1) Tae-Sun Park private communication
 #               2) http://www.cybercom.net/~dcoffin/dcraw/
+#               3) Pascal de Bruijn private communication (NX100)
 #------------------------------------------------------------------------------
 
 package Image::ExifTool::Samsung;
@@ -16,20 +17,24 @@ use vars qw($VERSION %samsungLensTypes);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.09';
+$VERSION = '1.13';
 
 sub WriteSTMN($$$);
 sub ProcessINFO($$$);
+sub ProcessSamsungIFD($$$);
 
 %samsungLensTypes = (
-    0 => 'Built-in', #PH (EX1, WB2000)
+    0 => 'Built-in or Manual Lens', #PH (EX1, WB2000)
     1 => 'Samsung 30mm F2 Pancake',
-    2 => 'Samsung Zoom 18-55mm F3.5-5.6 OIS',
+    2 => 'Samsung Zoom 18-55mm F3.5-5.6 OIS', # (also version II, ref 1)
     3 => 'Samsung Zoom 50-200mm F4-5.6 ED OIS',
     # what about the non-OIS version of the 18-55,
     # which was supposed to be available before the 20-50?
     4 => 'Samsung 20-50mm F3.5-5.6 Compact Zoom', #PH
     5 => 'Samsung 20mm F2.8 Pancake', #PH (guess)
+    # 6 - 'Samsung 85mm F1.4 ED SSA', ? (ref 1 guess)
+    7 => 'Samsung 60mm F2.8 Macro ED OIS SSA', #1
+    8 => 'Samsung 16mm F2.4 Ultra Wide Pancake', #1
 );
 
 # range of values for Formats used in encrypted information
@@ -49,6 +54,7 @@ my %formatMinMax = (
     FORMAT => 'int32u',
     FIRST_ENTRY => 0,
     IS_OFFSET => [ 2 ],   # tag 2 is 'IsOffset'
+    IS_SUBDIR => [ 11 ],
     GROUPS => { 0 => 'MakerNotes', 2 => 'Image' },
     NOTES => q{
         Tags found in the binary "STMN" format maker notes written by a number of
@@ -71,6 +77,31 @@ my %formatMinMax = (
         DataTag => 'PreviewImage',
         Protected => 2,
     },
+    11 => {
+        Name => 'SamsungIFD',
+        # Note: this is not always an IFD.  In many models the string
+        # "Park Byeongchan" is found at this location
+        Condition => '$$valPt =~ /^[^\0]\0\0\0/',
+        Format => 'undef[$size - 44]',
+        SubDirectory => { TagTable => 'Image::ExifTool::Samsung::IFD' },
+    },
+);
+
+%Image::ExifTool::Samsung::IFD = (
+    PROCESS_PROC => \&ProcessSamsungIFD,
+    NOTES => q{
+        This is a standard-format IFD found in the Type1 maker notes of some Samsung
+        models, except that the entry count is a 4-byte integer and the offsets are
+        relative to the end of the IFD.  Currently, no tags in this IFD are known,
+        so the Unknown (-u) or Verbose (-v) option must be used to see this
+        information.
+    },
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Image' },
+    # 0x0001 - undef[4000|4100]: starts with "MN_PRV" (or all zeros)
+    # 0x0002 - undef[7000]     : starts with "Kim Miae"
+    # 0x0003 - undef[5000]     : starts with "Lee BK"
+    # 0x0004 - undef[500|2000] : starts with "IPCD"   (or all zeros)
+    # 0x0006 - undef[100|200]  : starts with "MN_ADS" (or all zeros)
 );
 
 # Samsung maker notes (ref PH)
@@ -88,18 +119,7 @@ my %formatMinMax = (
     0x0021 => { #1
         Name => 'PictureWizard',
         Writable => 'int16u',
-        Count => 5,
-        PrintConv => q{
-            my @a = split ' ', $val;
-            return $val unless @a == 5;
-            sprintf("Mode: %d, Col: %d, Sat: %d, Sha: %d, Con: %d",
-                    $a[0], $a[1], $a[2]-4, $a[3]-4, $a[4]-4);
-        },
-        PrintConvInv => q{
-            my @a = ($val =~ /[+-]?\d+/g);
-            return $val unless @a >= 5;
-            sprintf("%d %d %d %d %d", $a[0], $a[1], $a[2]+4, $a[3]+4, $a[4]+4);
-        },
+        SubDirectory => { TagTable => 'Image::ExifTool::Samsung::PictureWizard' },
     },
     # 0x0023 - string: "0123456789" (PH)
     0x0030 => { #1 (NX100 with GPS)
@@ -195,6 +215,7 @@ my %formatMinMax = (
     },
     0xa019 => { #1
         Name => 'FNumber',
+        Priority => 0,
         Writable => 'rational64u',
         PrintConv => 'sprintf("%.1f",$val)',
         PrintConvInv => '$val',
@@ -202,6 +223,7 @@ my %formatMinMax = (
     0xa01a => { #1
         Name => 'FocalLengthIn35mmFormat',
         Groups => { 2 => 'Camera' },
+        Priority => 0,
         Format => 'int32u',
         ValueConv => '$val / 10',
         ValueConvInv => '$val * 10',
@@ -433,6 +455,51 @@ my %formatMinMax = (
     },
 );
 
+# Picture Wizard information (ref 1)
+%Image::ExifTool::Samsung::PictureWizard = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    WRITE_PROC => \&Image::ExifTool::WriteBinaryData,
+    CHECK_PROC => \&Image::ExifTool::CheckBinaryData,
+    WRITABLE => 1,
+    FORMAT => 'int16u',
+    FIRST_ENTRY => 0,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Image' },
+    0 => {
+        Name => 'PictureWizardMode',
+        PrintConvColumns => 3,
+        PrintConv => { #3
+             0 => 'Standard',
+             1 => 'Vivid',
+             2 => 'Portrait',
+             3 => 'Landscape',
+             4 => 'Forest',
+             5 => 'Retro',
+             6 => 'Cool',
+             7 => 'Calm',
+             8 => 'Classic',
+             9 => 'Custom1',
+            10 => 'Custom2',
+            11 => 'Custom3',
+        },
+    },
+    1 => 'PictureWizardColor',
+    2 => {
+        Name => 'PictureWizardSaturation',
+        ValueConv => '$val - 4',
+        ValueConvInv => '$val + 4',
+    },
+    3 => {
+        Name => 'PictureWizardSharpness',
+        ValueConv => '$val - 4',
+        ValueConvInv => '$val + 4',
+    },
+    4 => {
+        Name => 'PictureWizardContrast',
+        ValueConv => '$val - 4',
+        ValueConvInv => '$val + 4',
+    },
+);
+
 # INFO tags in Samsung MP4 videos (ref PH)
 %Image::ExifTool::Samsung::INFO = (
     PROCESS_PROC => \&ProcessINFO,
@@ -489,7 +556,7 @@ my %formatMinMax = (
     0x7d => {
         Name => 'Software',
         Format => 'string[32]',
-        # (these tags are not at a constant offset for Sanyo videos,
+        # (these tags are not at a constant offset for Olympus/Sanyo videos,
         #  so just to be safe use this to validate subsequent tags)
         RawConv => q{
             $val =~ /^SAMSUNG/ or return undef;
@@ -497,28 +564,26 @@ my %formatMinMax = (
             return $val;
         },
     },
-    0xf8 => {
-        Name => 'ThumbnailWidth',
+    0xf4 => {
+        Name => 'Thumbnail',
         Condition => '$$self{SamsungMP4}',
-        Format => 'int32u',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Samsung::Thumbnail',
+            Base => '$start',
+        },
     },
-    0xfc => {
-        Name => 'ThumbnailHeight',
-        Condition => '$$self{SamsungMP4}',
-        Format => 'int32u',
-    },
-    0x100 => {
-        Name => 'ThumbnailLength',
-        Condition => '$$self{SamsungMP4}',
-        Format => 'int32u',
-    },
-    0x104 => {
-        Name => 'ThumbnailOffset',
-        Condition => '$$self{SamsungMP4}',
-        IsOffset => 1,
-        Format => 'int32u',
-        RawConv => '$val + 0xf4',
-    },
+);
+
+# thumbnail image information found in MP4 videos (similar in Olympus,Samsung,Sanyo)
+%Image::ExifTool::Samsung::Thumbnail = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    FIRST_ENTRY => 0,
+    FORMAT => 'int32u',
+    1 => 'ThumbnailWidth',
+    2 => 'ThumbnailHeight',
+    3 => 'ThumbnailLength',
+    4 => { Name => 'ThumbnailOffset', IsOffset => 1 },
 );
 
 # Samsung composite tags
@@ -596,12 +661,46 @@ sub ProcessINFO($$$)
         unless ($$tagTablePtr{$tag}) {
             my $name = "Samsung_INFO_$tag";
             $name =~ tr/-_0-9a-zA-Z//dc;
-            Image::ExifTool::AddTagToTable($tagTablePtr, $tag, { Name => $name }) if $name;
+            AddTagToTable($tagTablePtr, $tag, { Name => $name }) if $name;
         }
         $exifTool->HandleTag($tagTablePtr, $tag, $val);
         $pos += 8;
     }
     return 1;
+}
+
+#------------------------------------------------------------------------------
+# Inputs: 0) ExifTool object ref, 1) source dirInfo ref, 2) tag table ref
+# Returns: true on success
+sub ProcessSamsungIFD($$$)
+{
+    my ($exifTool, $dirInfo, $tagTablePtr) = @_;
+    my $len = $$dirInfo{DataLen};
+    my $pos = $$dirInfo{DirStart};
+    return 0 unless $pos + 4 < $len;
+    my $dataPt = $$dirInfo{DataPt};
+    my $buff = substr($$dataPt, $pos, 4);
+    # this is not an IFD for many models
+    # (the string "Park Byeongchan" is often found here)
+    return 0 unless $buff =~ s/^([^\0])\0\0\0/$1\0$1\0/s;
+    my $numEntries = ord $1;
+    if ($$exifTool{HTML_DUMP}) {
+        my $pt = $$dirInfo{DirStart} + $$dirInfo{DataPos} + $$dirInfo{Base};
+        $exifTool->HDump($pt-44, 44, "MakerNotes header", 'Samsung Type1');
+        $exifTool->HDump($pt, 4, "MakerNotes entries", "Format: int32u\nEntry count: $numEntries");
+        $$dirInfo{NoDumpEntryCount} = 1;
+    }
+    substr($$dataPt, $pos, 4) = $buff;      # insert bogus 2-byte entry count
+    # offset base is at end of IFD
+    my $shift = $$dirInfo{DirStart} + 4 + $numEntries * 12 + 4;
+    $$dirInfo{Base} += $shift;
+    $$dirInfo{DataPos} -= $shift;
+    $$dirInfo{DirStart} += 2;       # start at bogus entry count
+    $$dirInfo{ZeroOffsetOK} = 1;    # disable check for zero offset
+    delete $$exifTool{NO_UNKNOWN};  # (set for BinaryData, but not for EXIF IFD's)
+    my $rtn = Image::ExifTool::Exif::ProcessExif($exifTool, $dirInfo, $tagTablePtr);
+    substr($$dataPt, $pos + 2, 1) = "\0";   # remove bogus count
+    return $rtn;
 }
 
 #------------------------------------------------------------------------------
@@ -638,14 +737,23 @@ Samsung maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
+=head1 REFERENCES
+
+=over 4
+
+=item L<http://www.cybercom.net/~dcoffin/dcraw/>
+
+=back
+
 =head1 ACKNOWLEDGEMENTS
 
-Thanks to Tae-Sun Park for decoding a number of tags.
+Thanks to Tae-Sun Park for decoding a number of tags, and Pascal de Bruijn
+for the PictureWizard values.
 
 =head1 SEE ALSO
 

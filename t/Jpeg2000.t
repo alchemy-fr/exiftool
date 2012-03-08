@@ -1,7 +1,7 @@
 # Before "make install", this script should be runnable with "make test".
 # After "make install" it should work as "perl t/Jpeg2000.t".
 
-BEGIN { $| = 1; print "1..3\n"; $Image::ExifTool::noConfig = 1; }
+BEGIN { $| = 1; print "1..4\n"; $Image::ExifTool::noConfig = 1; }
 END {print "not ok 1\n" unless $loaded;}
 
 # test 1: Load the module(s)
@@ -36,5 +36,13 @@ my $testnum = 1;
     print "ok $testnum\n";
 }
 
+# test 4: Extract information from Jpeg2000.j2c
+{
+    ++$testnum;
+    my $exifTool = new Image::ExifTool;
+    my $info = $exifTool->ImageInfo('t/images/Jpeg2000.j2c');
+    print 'not ' unless check($exifTool, $info, $testname, $testnum);
+    print "ok $testnum\n";
+}
 
 # end

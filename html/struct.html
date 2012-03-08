@@ -33,7 +33,9 @@ tags only.</p>
 <p>To illustrate the concept of a flattened tag, the <code>XMP-exif:Flash</code>
 structure contains <code>Fired</code> and <code>Mode</code> fields (among
 others).  The flattened tags corresponding to these structure fields are
-<code>XMP-exif:FlashFired</code> and <code>XMP-exif:FlashMode</code>.</p>
+<code>XMP-exif:FlashFired</code> and <code>XMP-exif:FlashMode</code>.  In the
+<a href="TagNames/XMP.html">XMP Tags documentation</a>, flattened tags are
+indicated by an underline (<code>_</code>) after the Writable type.</p>
 
 <p>This page describes various techniques used to read and write XMP structures
 using both structured and flattened tags.</p>
@@ -68,8 +70,9 @@ application. However, via the API with the <code>Struct</code> option,
 they are returned as Perl HASH references.)</p>
 
 <p>The <code>-struct</code> option may also be combined with the JSON
-(<code>-j</code>) or XML (<code>-X</code>) output formats to provide a
-structured format which may be more compatible with other applications.</p>
+(<code>-j</code>), PHP (<code>-php</code>) or XML (<code>-X</code>) output
+formats to provide a structured format which may be more compatible with other
+applications.</p>
 
 <a name='Writing'></a>
 <h2>Writing</h2>
@@ -140,15 +143,15 @@ except that the <code>-v3</code> option must be used to see the warnings when
 copying.</p>
 
 <p><b>Programmers:</b> Structured information is written and read as Perl HASH
-references via the ExifTool API, but they may also be written as serialized
-strings.  The following two techniques are equivalent:</p>
+references via the ExifTool API, but it may also be written as a serialized
+string.  The following two techniques are equivalent:</p>
 
 <blockquote><table class='box'><tr><td>
-<pre># as a serialized string
-<span class=code>$exifTool-&gt;SetNewValue('XMP:Flash' =&gt; '{mode=on,fired=true,return=not}');
+<pre># as a HASH reference
+<span class=code>$exifTool-&gt;SetNewValue('XMP:Flash' =&gt; { mode=>'on', fired=>'true', return=>'not' });
 </span>
-# as a HASH reference
-<span class=code>$exifTool-&gt;SetNewValue('XMP:Flash' =&gt; { mode=>'on', fired=>'true', return=>'not' });</span></pre>
+# as a serialized string
+<span class=code>$exifTool-&gt;SetNewValue('XMP:Flash' =&gt; '{mode=on,fired=true,return=not}');</span></pre>
 </td></tr></table></blockquote>
 
 <a name='Copying'></a>
@@ -167,17 +170,18 @@ top-level structure tags may be specified:</p>
 </td></tr></table></blockquote>
 
 <p>The copy-as-structure feature may be disabled with <code>--struct</code> on
-the command line, or by setting the Struct option to 0 via the API.  Here is an
-example command that copies the hierarchical keywords using this technique:</p>
+the command line, or by setting the Struct option to 0 via the API.  This option
+is necessary for copying flattened tags.  Here is an example command that copies
+the hierarchical keywords using this technique:</p>
 
 <blockquote><table class='box'><tr><td>
 <pre class=code>exiftool -tagsfromfile src.jpg --struct "-hierarchicalkeywords*" dst.jpg</pre>
 </td></tr></table></blockquote>
 
-<p class=lt>(Note: Copying as flattened tags, as in the command above, was the
-default behaviour with ExifTool 8.43 and earlier.  But copying as structures has
-been the default since the ability to write structured information was introduced
-in version 8.44.)</p>
+<p class=lt>(Note: This method of copying as flattened tags was the default
+behaviour with ExifTool 8.43 and earlier.  But copying as structures has been
+the default since the ability to write structured information was introduced in
+version 8.44.)</p>
 
 <a name='Deleting'></a>
 <h2>Deleting / Replacing</h2>
@@ -318,7 +322,7 @@ See the NewXMPxxxStruct tag definition in the <a href="config.html#xmp-xxx">XMP-
 examples of the sample config file</a> for more details.</p>
 
 <hr>
-<i>Last revised Jan. 21, 2011</i>
+<i>Last revised Jan. 29, 2012</i>
 <p class='lf'><a href="index.html">&lt;-- Back to ExifTool home page</a></p>
 </body>
 </html>

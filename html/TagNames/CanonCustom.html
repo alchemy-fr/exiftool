@@ -998,7 +998,7 @@ Mark III.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='1 = 0x1'>1</td>
@@ -1151,7 +1151,7 @@ Mark III.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
-<tr class=h><th>Index</th><th>Tag Name</th>
+<tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
 <td class=r title='1 = 0x1'>1</td>
@@ -1414,17 +1414,17 @@ well as newer tags and values added by later models.</p>
   <br><span class=n>(450D and 1000D)</span>
   <br>0 = Auto
   <br>1 = 1/200 Fixed
-  <br><span class=n>(5D Mark II, 500D and 550D)</span>
+  <br><span class=n>(1D Mark III and 1Ds Mark III)</span>
   <br>0 = Auto
-  <br>1 = 1/200-1/60 Auto
-  <br>2 = 1/200 Fixed
+  <br>1 = 1/300 Fixed
   <br><span class=n>(1D Mark IV)</span>
   <br>0 = Auto
   <br>1 = 1/300-1/60 Auto
   <br>2 = 1/300 Fixed
-  <br><span class=n>(1D Mark III)</span>
+  <br><span class=n>(5D Mark II, 500D, 550D, 600D and 1100D)</span>
   <br>0 = Auto
-  <br>1 = 1/300 Fixed</span></td></tr>
+  <br>1 = 1/200-1/60 Auto
+  <br>2 = 1/200 Fixed</span></td></tr>
 <tr class=b>
 <td title='0x0110 = 272'>0x0110</td>
 <td>FEMicroadjustment</td>
@@ -1450,7 +1450,7 @@ well as newer tags and values added by later models.</p>
 <td title='0x0202 = 514'>0x0202</td>
 <td>HighISONoiseReduction</td>
 <td class=c>int32s</td>
-<td><span class=s><span class=n>(50D, 60D, 500D, 550D, 5DmkII and 7D)</span>
+<td><span class=s><span class=n>(50D, 60D, 500D, 550D, 600D, 1100D, 5DmkII and 7D)</span>
   <br>0 = Standard
   <br>1 = Low
   <br>2 = Strong
@@ -1746,7 +1746,7 @@ well as newer tags and values added by later models.</p>
   <br>AFAndMeteringButtons
   <br>ShutterButtonAFOnButton</td>
 <td class=c>int32s<br>int32s<br>int32s</td>
-<td><span class=s><span class=n>(500D, 550D and 1000D)</span>
+<td><span class=s><span class=n>(500D, 550D, 600D, 1000D and 1100D)</span>
   <br>0 = AF/AE lock
   <br>1 = AE lock/AF
   <br>2 = AF/AF lock, No AE lock
@@ -1797,13 +1797,20 @@ well as newer tags and values added by later models.</p>
   <br>3 = White balance
   <br>4 = Flash exposure compensation
   <br>5 = Viewfinder leveling gauge
-  <br><span class=n>(450D and 550D; value of 5 is new for 550D)</span>
+  <br><span class=n>(450D, 550D and 600D; value of 5 is new for 550D)</span>
   <br>0 = Normal (disabled)
   <br>1 = Image quality
   <br>2 = Flash exposure compensation
   <br>3 = LCD monitor On/Off
   <br>4 = Menu display
   <br>5 = ISO speed
+  <br><span class=n>(1100D)</span>
+  <br>0 = Normal (disabled)
+  <br>1 = Image quality
+  <br>2 = Flash exposure compensation
+  <br>3 = LCD monitor On/Off
+  <br>4 = Menu display
+  <br>5 = Depth-of-field preview
   <br><span class=n>(1000D)</span>
   <br>0 = LCD monitor On/Off
   <br>1 = Image quality
@@ -1884,6 +1891,12 @@ well as newer tags and values added by later models.</p>
 <td><span class=s>0 = Default (from LV)
   <br>1 = Quick start (FEL button)</span></td></tr>
 <tr>
+<td title='0x070e = 1806'>0x070e</td>
+<td>FlashButtonFunction</td>
+<td class=c>int32s</td>
+<td><span class=s>0 = Raise built-in flash
+  <br>1 = ISO speed</span></td></tr>
+<tr class=b>
 <td title='0x080b = 2059'>0x080b</td>
 <td>FocusingScreen</td>
 <td class=c>int32s</td>
@@ -1900,20 +1913,20 @@ well as newer tags and values added by later models.</p>
   <br>1 = Ec-A,B,C,CII,CIII,D,H,I,L
   <br>2 = Ec-S
   <br>3 = Ec-N,R</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x080c = 2060'>0x080c</td>
 <td>TimerLength</td>
 <td class=c>int32s[4]</td>
 <td><span class=s>[Value 0]
   <br>0 = Disable
   <br>1 = Enable</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x080d = 2061'>0x080d</td>
 <td>ShortReleaseTimeLag</td>
 <td class=c>int32s</td>
 <td><span class=s>0 = Disable
   <br>1 = Enable</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x080e = 2062'>0x080e</td>
 <td>AddAspectRatioInfo</td>
 <td class=c>int32s</td>
@@ -1924,19 +1937,19 @@ well as newer tags and values added by later models.</p>
   <br>4 = 6:7
   <br>5 = 10:12
   <br>6 = 5:7</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x080f = 2063'>0x080f</td>
 <td>AddOriginalDecisionData</td>
 <td class=c>int32s</td>
 <td><span class=s>0 = Off
   <br>1 = On</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x0810 = 2064'>0x0810</td>
 <td>LiveViewExposureSimulation</td>
 <td class=c>int32s</td>
 <td><span class=s>0 = Disable (LCD auto adjust)
   <br>1 = Enable (simulates exposure)</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x0811 = 2065'>0x0811</td>
 <td>LCDDisplayAtPowerOn</td>
 <td class=c>int32s</td>
@@ -1946,7 +1959,7 @@ well as newer tags and values added by later models.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Sep 7, 2010</i>
+<br><i>Last revised Oct 4, 2011</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

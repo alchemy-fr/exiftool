@@ -23,7 +23,7 @@ require Exporter;
 use Image::ExifTool qw(ImageInfo);
 
 use vars qw($VERSION @ISA @EXPORT);
-$VERSION = '1.17';
+$VERSION = '1.19';
 @ISA = qw(Exporter);
 @EXPORT = qw(check writeCheck writeInfo testCompare binaryCompare testVerbose);
 
@@ -98,8 +98,7 @@ sub testCompare($$$;$)
                 warn "\n  Test $testnum differs beginning at line $linenum:\n";
                 defined $line1 or $line1 = '(null)';
                 defined $line2 or $line2 = '(null)';
-                chomp $line1;
-                chomp $line2;
+                chomp($line1,$line2);
                 warn qq{    Test gave: "$line2"\n};
                 warn qq{    Should be: "$line1"\n};
             }
@@ -154,7 +153,10 @@ sub closeEnough($$)
         last unless defined $tok1 and defined $tok2;
         next if $tok1 eq $tok2;
         # can't compare any more if either line was truncated (ie. ends with '[...]' or '[snip]')
-        return $lenChanged if $tok1 =~ /\[(\.{3}|snip)\]$/ or $tok2 =~ /\[(\.{3}|snip)\]$/;
+        if ($tok1 =~ /\[(\.{3}|snip)\]$/ or $tok2 =~ /\[(\.{3}|snip)\]$/) {
+            return 1 if $tok1=~ /^[-+]?\d+\./ or $tok2=~/^[-+]?\d+\./;  # check for float
+            return $lenChanged
+        }
         # account for different timezones
         if ($tok1 =~ /^(\d{2}:\d{2}:\d{2})(Z|[-+]\d{2}:\d{2})$/i) {
             my $time = $1;  # remove timezone
@@ -162,12 +164,22 @@ sub closeEnough($$)
             next if $tok2 =~ /^(\d{2}:\d{2}:\d{2})(Z|[-+]\d{2}:\d{2})$/i and $time eq $1;
             # date/time may be wrong to if converting GMT value to local time
             last unless $i and $toks1[$i-1] =~ /^\d{4}:\d{2}:\d{2}$/ and
-                               $toks1[$i-1] =~ /^\d{4}:\d{2}:\d{2}$/;
+                               $toks2[$i-1] =~ /^\d{4}:\d{2}:\d{2}$/;
             $tok1 = $toks1[$i-1] . ' ' . $tok1; # add date to give date/time value
             $tok2 = $toks2[$i-1] . ' ' . $tok2;
+CheckTimeDifference:
             my $t1 = Image::ExifTool::GetUnixTime($tok1, 'local') or last;
             my $t2 = Image::ExifTool::GetUnixTime($tok2, 'local') or last;
-            last unless $t1 == $t2;
+            my $td = $t2 - $t1;
+            if ($td) {
+                # patch for the MirBSD leap-second unconformity
+                # (120 leap seconds should cover us until _well_ into the future)
+                last unless $^O eq 'mirbsd' and $td < 0 and $td > -120;
+                warn "\n  Ignoring $td second error due to MirBSD leap-second \"feature\":\n";
+                chomp($line1,$line2);
+                warn qq{    Test gave: "$line2"\n};
+                warn qq{    Should be: "$line1"\n};
+            }
         # date may be different if timezone shifted into next day
         } elsif ($tok1 =~ /^\d{4}:\d{2}:\d{2}$/ and $tok2 =~ /^\d{4}:\d{2}:\d{2}$/ and
                  defined $toks1[$i+1] and defined $toks2[$i+1] and
@@ -175,11 +187,9 @@ sub closeEnough($$)
                  $toks2[$i+1] =~ /^(\d{2}:\d{2}:\d{2})(Z|[-+]\d{2}:\d{2})$/i)
         {
             ++$i;
-            $tok1 .= ' ' . $toks1[$i];          # add time to give date/time value
+            $tok1 .= ' ' . $toks1[$i];      # add time to give date/time value
             $tok2 .= ' ' . $toks2[$i];
-            my $t1 = Image::ExifTool::GetUnixTime($tok1, 'local') or last;
-            my $t2 = Image::ExifTool::GetUnixTime($tok2, 'local') or last;
-            last unless $t1 == $t2;
+            goto CheckTimeDifference;   # GOTO!
         } else {
             # check to see if both tokens are floating point numbers (with decimal points!)
             if ($tok1 =~ s/([^\d.]+)$//) {  # remove trailing units

@@ -20,7 +20,7 @@ sub ProcessGE2($$$);
 sub WriteUnknownOrPreview($$$);
 sub FixLeicaBase($$;$);
 
-$VERSION = '1.68';
+$VERSION = '1.70';
 
 my $debug;          # set to 1 to enable debugging code
 
@@ -107,6 +107,16 @@ my $debug;          # set to 1 to enable debugging code
             # hard patch for crazy offsets
             FixOffsets => '$valuePtr -= 210 if $tagID >= 0x1303',
        },
+    },
+    {
+        Name => 'MakerNoteHasselblad',
+        Condition => '$$self{Make} eq "Hasselblad"',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Unknown::Main',
+            ByteOrder => 'Unknown',
+            Start => '$valuePtr',
+            Base => 0, # (avoids warnings since maker notes are not self-contained)
+        },
     },
     # (the GE X5 has really messed up EXIF-like maker notes starting with
     #  "GENIC\x0c\0" --> currently not decoded)
@@ -608,6 +618,7 @@ my $debug;          # set to 1 to enable debugging code
     {
         Name => 'MakerNotePentax5',
         # (starts with "PENTAX \0")
+        # used by cameras such as the Q, Optio  S1, RS1500 and WG-1
         Condition => '$$valPt=~/^PENTAX \0/',
         SubDirectory => {
             TagTable => 'Image::ExifTool::Pentax::Main',
@@ -1513,7 +1524,7 @@ maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

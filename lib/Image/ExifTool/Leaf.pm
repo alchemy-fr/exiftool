@@ -447,7 +447,7 @@ sub ProcessLeaf($$$)
                 # make tags in main table unknown because they tend to be binary
                 $$tagInfo{Unknown} = 1 if $tagTablePtr eq \%Image::ExifTool::Leaf::Main;
             }
-            $tagInfo and Image::ExifTool::AddTagToTable($tagTablePtr, $tag, $tagInfo);
+            $tagInfo and AddTagToTable($tagTablePtr, $tag, $tagInfo);
         }
         if ($verbose) {
             $exifTool->VerboseInfo($tag, $tagInfo,
@@ -502,7 +502,7 @@ Capture.
 
 =head1 AUTHOR
 
-Copyright 2003-2011, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
