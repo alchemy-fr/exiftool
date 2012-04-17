@@ -34,12 +34,14 @@ languages.</p>
 <p>When reading, <code>struct</code> tags are extracted only if the Struct (-struct)
 option is used.  Otherwise the corresponding &quot;flattened&quot; tags, indicated by
 an underline (<code>_</code>) after the <b>Writable</b> type, are extracted.  When
-copying, the Struct option is in effect by default, so flattened tag names
-may not be copied unless the Struct option is disabled (by setting Struct to
-0 via the API or with --struct on the command line).  When writing, the
-Struct option has no effect, and both structured and flattened tags may be
-written.  See <a href="../struct.html">struct.html</a> for
-more details.</p>
+copying, by default both structured and flattened tags are available, but
+the flattened tags are considered &quot;unsafe&quot; so they they aren&#39;t copied unless
+specified explicitly.  The Struct option may be disabled by setting Struct
+to 0 via the API or with --struct on the command line to copy only flattened
+tags, or enabled by setting Struct to 1 via the API or with -struct on the
+command line to copy only as structures.  When writing, the Struct option
+has no effect, and both structured and flattened tags may be written.  See
+<a href="../struct.html">struct.html</a> for more details.</p>
 
 <p>Individual languages for <code>lang-alt</code> tags are accessed by suffixing the tag
 name with a &#39;-&#39;, followed by an RFC 3066 language code (ie. &quot;XMP:Title-fr&quot;,
@@ -58,8 +60,8 @@ more than one namespace, less common namespaces are avoided when writing.
 However, any namespace may be written by specifying a family 1 group name
 for the tag, ie) XMP-exif:Contrast or XMP-crs:Contrast.  When deciding on
 which tags to add to an image, using standard schemas such as
-<a href="#dc">dc</a>, <a href="#xmp">xmp</a> or <a href="#iptcCore">iptc</a> is
-recommended if possible.</p>
+<a href="#dc">dc</a>, <a href="#xmp">xmp</a>, <a href="#iptcCore">iptcCore</a>
+and <a href="#iptcExt">iptcExt</a> is recommended if possible.</p>
 
 <p>For structures, the heading of the first column is <b>Field Name</b>.  Field
 names are very similar to tag names, except they are used to identify fields
@@ -160,15 +162,15 @@ extensions from various other sources.  See
 <tr class=b>
 <td>mwg-coll</td>
 <td class=c>-</td>
-<td>--&gt; <a href='XMP.html#mwg_coll'>XMP mwg_coll Tags</a></td></tr>
+<td>--&gt; <a href='XMP.html#mwg-coll'>XMP mwg-coll Tags</a></td></tr>
 <tr>
 <td>mwg-kw</td>
 <td class=c>-</td>
-<td>--&gt; <a href='XMP.html#mwg_kw'>XMP mwg_kw Tags</a></td></tr>
+<td>--&gt; <a href='XMP.html#mwg-kw'>XMP mwg-kw Tags</a></td></tr>
 <tr class=b>
 <td>mwg-rs</td>
 <td class=c>-</td>
-<td>--&gt; <a href='XMP.html#mwg_rs'>XMP mwg_rs Tags</a></td></tr>
+<td>--&gt; <a href='XMP.html#mwg-rs'>XMP mwg-rs Tags</a></td></tr>
 <tr>
 <td>pdf</td>
 <td class=c>-</td>
@@ -256,12 +258,13 @@ extensions from various other sources.  See
 </table></td></tr></table></blockquote>
 
 <h2><a name='acdsee'>XMP acdsee Tags</a></h2>
-<p>ACD Systems ACDSee schema tags.</p>
+<p>ACD Systems ACDSee namespace tags.</p>
 
 <p>(A note to software developers: Re-inventing your own private tags instead
-of using the equivalent tags in standard XMP schemas defeats one of the most
-valuable features of metadata: interoperability.  Your applications mumble
-to themselves instead of speaking out for the rest of the world to hear.)</p>
+of using the equivalent tags in standard XMP namespaces defeats one of the
+most valuable features of metadata: interoperability.  Your applications
+mumble to themselves instead of speaking out for the rest of the world to
+hear.)</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -315,7 +318,7 @@ to themselves instead of speaking out for the rest of the world to hear.)</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='Album'>XMP Album Tags</a></h2>
-<p>Adobe Album schema tags.</p>
+<p>Adobe Album namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -328,7 +331,7 @@ to themselves instead of speaking out for the rest of the world to hear.)</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='aux'>XMP aux Tags</a></h2>
-<p>Photoshop Auxiliary schema tags.</p>
+<p>Photoshop Auxiliary namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -373,7 +376,7 @@ to themselves instead of speaking out for the rest of the world to hear.)</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='cc'>XMP cc Tags</a></h2>
-<p>Creative Commons schema tags.  (see
+<p>Creative Commons namespace tags.  (see
 <a href="http://creativecommons.org/technology/xmp">http://creativecommons.org/technology/xmp</a>)</p>
 <blockquote>
 <table class=frame><tr><td>
@@ -432,7 +435,7 @@ to themselves instead of speaking out for the rest of the world to hear.)</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='crs'>XMP crs Tags</a></h2>
-<p>Photoshop Camera Raw Schema tags.</p>
+<p>Photoshop Camera Raw namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -1269,7 +1272,7 @@ to themselves instead of speaking out for the rest of the world to hear.)</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='dc'>XMP dc Tags</a></h2>
-<p>Dublin Core schema tags.</p>
+<p>Dublin Core namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -1338,7 +1341,7 @@ to themselves instead of speaking out for the rest of the world to hear.)</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='dex'>XMP dex Tags</a></h2>
-<p>Description Explorer schema tags.  These tags are not very common.  The
+<p>Description Explorer namespace tags.  These tags are not very common.  The
 Source and Rating tags are avoided when writing due to name conflicts with
 other XMP tags.  (see <a href="http://www.optimasc.com/products/fileid/">http://www.optimasc.com/products/fileid/</a>)</p>
 <blockquote>
@@ -1388,7 +1391,7 @@ other XMP tags.  (see <a href="http://www.optimasc.com/products/fileid/">http://
 </table></td></tr></table></blockquote>
 
 <h2><a name='DICOM'>XMP DICOM Tags</a></h2>
-<p>DICOM schema tags.</p>
+<p>DICOM namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -1453,7 +1456,7 @@ other XMP tags.  (see <a href="http://www.optimasc.com/products/fileid/">http://
 </table></td></tr></table></blockquote>
 
 <h2><a name='digiKam'>XMP digiKam Tags</a></h2>
-<p>DigiKam schema tags.</p>
+<p>DigiKam namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -1482,7 +1485,7 @@ other XMP tags.  (see <a href="http://www.optimasc.com/products/fileid/">http://
 </table></td></tr></table></blockquote>
 
 <h2><a name='exif'>XMP exif Tags</a></h2>
-<p>EXIF schema for EXIF tags.</p>
+<p>EXIF namespace for EXIF tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -2105,7 +2108,7 @@ Composite:GPSDateTime when copying from EXIF)</span></span></td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='iptcCore'>XMP iptcCore Tags</a></h2>
-<p>IPTC Core schema tags.  The actual IPTC Core namespace prefix is
+<p>IPTC Core namespace tags.  The actual IPTC Core namespace prefix is
 &quot;Iptc4xmpCore&quot;, which is the prefix recorded in the file, but ExifTool
 shortens this for the &quot;XMP-iptcCore&quot; family 1 group name. (see
 <a href="http://www.iptc.org/IPTC4XMP/">http://www.iptc.org/IPTC4XMP/</a>)</p>
@@ -2213,9 +2216,9 @@ shortens this for the &quot;XMP-iptcCore&quot; family 1 group name. (see
 </table></td></tr></table></blockquote>
 
 <h2><a name='iptcExt'>XMP iptcExt Tags</a></h2>
-<p>IPTC Extension schema tags.  The actual namespace prefix is &quot;Iptc4xmpExt&quot;,
-but ExifTool shortens this for the &quot;XMP-iptcExt&quot; family 1 group name.
-(see <a href="http://www.iptc.org/IPTC4XMP/">http://www.iptc.org/IPTC4XMP/</a>)</p>
+<p>IPTC Extension namespace tags.  The actual namespace prefix is
+&quot;Iptc4xmpExt&quot;, but ExifTool shortens this for the &quot;XMP-iptcExt&quot; family 1
+group name. (see <a href="http://www.iptc.org/IPTC4XMP/">http://www.iptc.org/IPTC4XMP/</a>)</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -2472,7 +2475,7 @@ but ExifTool shortens this for the &quot;XMP-iptcExt&quot; family 1 group name.
 </table></td></tr></table></blockquote>
 
 <h2><a name='Lightroom'>XMP Lightroom Tags</a></h2>
-<p>Adobe Lightroom &quot;lr&quot; schema tags.</p>
+<p>Adobe Lightroom &quot;lr&quot; namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -2489,7 +2492,7 @@ but ExifTool shortens this for the &quot;XMP-iptcExt&quot; family 1 group name.
 </table></td></tr></table></blockquote>
 
 <h2><a name='MediaPro'>XMP MediaPro Tags</a></h2>
-<p>iView MediaPro schema tags.</p>
+<p>iView MediaPro namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -2521,7 +2524,7 @@ but ExifTool shortens this for the &quot;XMP-iptcExt&quot; family 1 group name.
 <td>&nbsp;</td></tr>
 </table></td></tr></table></blockquote>
 
-<h2><a name='mwg_coll'>XMP mwg_coll Tags</a></h2>
+<h2><a name='mwg-coll'>XMP mwg-coll Tags</a></h2>
 <p>Collections metadata defined by the MWG 2.0 specification.  See
 <a href="http://www.metadataworkinggroup.org/">http://www.metadataworkinggroup.org/</a> for the official specification.</p>
 <blockquote>
@@ -2561,9 +2564,9 @@ but ExifTool shortens this for the &quot;XMP-iptcExt&quot; family 1 group name.
 <td>&nbsp;</td></tr>
 </table></td></tr></table></blockquote>
 
-<h2><a name='mwg_kw'>XMP mwg_kw Tags</a></h2>
+<h2><a name='mwg-kw'>XMP mwg-kw Tags</a></h2>
 <p>Hierarchical keywords metadata defined by the MWG 2.0 specification.
-ExifTool unrolls keyword structures to an arbitrary depth of 4 to allow
+ExifTool unrolls keyword structures to an arbitrary depth of 6 to allow
 individual levels to be accessed with different tag names, and to avoid
 infinite recursion.  See <a href="http://www.metadataworkinggroup.org/">http://www.metadataworkinggroup.org/</a> for the
 official specification.</p>
@@ -2621,6 +2624,38 @@ official specification.</p>
 <td class=c title=' _ = Flattened
  + = List'>boolean_+</td>
 <td><span class=s><span class=n>(KeywordsHierarchyChildrenChildrenChildrenApplied)</span></span></td></tr>
+<tr class=b>
+<td>HierarchicalKeywords4Children</td>
+<td class=c title=' _ = Flattened
+ + = List'>struct_+</td>
+<td>--&gt; <a href='XMP.html#KeywordStruct5'>KeywordStruct5 Struct</a>
+  <br><span class='n s'>(KeywordsHierarchyChildrenChildrenChildrenChildren)</span></td></tr>
+<tr>
+<td>HierarchicalKeywords5Applied</td>
+<td class=c title=' _ = Flattened
+ + = List'>boolean_+</td>
+<td><span class=s><span class=n>(KeywordsHierarchyChildrenChildrenChildrenChildrenApplied)</span></span></td></tr>
+<tr class=b>
+<td>HierarchicalKeywords5Children</td>
+<td class=c title=' _ = Flattened
+ + = List'>struct_+</td>
+<td>--&gt; <a href='XMP.html#KeywordStruct6'>KeywordStruct6 Struct</a>
+  <br><span class='n s'>(KeywordsHierarchyChildrenChildrenChildrenChildrenChildren)</span></td></tr>
+<tr>
+<td>HierarchicalKeywords6Applied</td>
+<td class=c title=' _ = Flattened
+ + = List'>boolean_+</td>
+<td><span class=s><span class=n>(KeywordsHierarchyChildrenChildrenChildrenChildrenChildrenApplied)</span></span></td></tr>
+<tr class=b>
+<td>HierarchicalKeywords6</td>
+<td class=c title=' _ = Flattened
+ + = List'>string_+</td>
+<td><span class=s><span class=n>(KeywordsHierarchyChildrenChildrenChildrenChildrenChildrenKeyword)</span></span></td></tr>
+<tr>
+<td>HierarchicalKeywords5</td>
+<td class=c title=' _ = Flattened
+ + = List'>string_+</td>
+<td><span class=s><span class=n>(KeywordsHierarchyChildrenChildrenChildrenChildrenKeyword)</span></span></td></tr>
 <tr class=b>
 <td>HierarchicalKeywords4</td>
 <td class=c title=' _ = Flattened
@@ -2726,12 +2761,52 @@ official specification.</p>
 <td class=c>boolean</td>
 <td>&nbsp;</td></tr>
 <tr class=b>
+<td>Children</td>
+<td class=c title=' + = List'>KeywordStruct5+</td>
+<td>--&gt; <a href='XMP.html#KeywordStruct5'>KeywordStruct5 Struct</a></td></tr>
+<tr>
 <td>Keyword</td>
 <td class=c>string</td>
 <td>&nbsp;</td></tr>
 </table></td></tr></table></blockquote>
 
-<h2><a name='mwg_rs'>XMP mwg_rs Tags</a></h2>
+<h2><a name='KeywordStruct5'>XMP KeywordStruct5 Struct</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Field Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td>Applied</td>
+<td class=c>boolean</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>Children</td>
+<td class=c title=' + = List'>KeywordStruct6+</td>
+<td>--&gt; <a href='XMP.html#KeywordStruct6'>KeywordStruct6 Struct</a></td></tr>
+<tr>
+<td>Keyword</td>
+<td class=c>string</td>
+<td>&nbsp;</td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='KeywordStruct6'>XMP KeywordStruct6 Struct</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Field Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td>Applied</td>
+<td class=c>boolean</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>Keyword</td>
+<td class=c>string</td>
+<td>&nbsp;</td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='mwg-rs'>XMP mwg-rs Tags</a></h2>
 <p>Image region metadata defined by the MWG 2.0 specification.  See
 <a href="http://www.metadataworkinggroup.org/">http://www.metadataworkinggroup.org/</a> for the official specification.</p>
 <blockquote>
@@ -2973,7 +3048,7 @@ conversion).</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='pdf'>XMP pdf Tags</a></h2>
-<p>Adobe PDF schema tags.  The official XMP specification defines only
+<p>Adobe PDF namespace tags.  The official XMP specification defines only
 Keywords, PDFVersion, Producer and Trapped.  The other tags are included
 because they have been observed in PDF files, but some are avoided when
 writing due to name conflicts with other XMP namespaces.</p>
@@ -3047,7 +3122,7 @@ created to enable writing of XMP-pdfx information.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='photoshop'>XMP photoshop Tags</a></h2>
-<p>Adobe Photoshop schema tags.</p>
+<p>Adobe Photoshop namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -3202,7 +3277,7 @@ created to enable writing of XMP-pdfx information.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='PixelLive'>XMP PixelLive Tags</a></h2>
-<p>PixelLive schema tags.  These tags are not writable becase they are very
+<p>PixelLive namespace tags.  These tags are not writable becase they are very
 uncommon and I haven&#39;t been able to locate a reference which gives the
 namespace URI.</p>
 <blockquote>
@@ -3237,7 +3312,7 @@ namespace URI.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='plus'>XMP plus Tags</a></h2>
-<p>PLUS License Data Format 1.2.0 schema tags.  Note that all
+<p>PLUS License Data Format 1.2.0 namespace tags.  Note that all
 controlled-vocabulary tags in this table (ie. tags with a fixed set of
 values) have raw values which begin with &quot;http://ns.useplus.org/ldf/vocab/&quot;,
 but to reduce clutter this prefix has been removed from the values shown
@@ -3823,8 +3898,8 @@ below.  (see <a href="http://ns.useplus.org/">http://ns.useplus.org/</a>)</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='prism'>XMP prism Tags</a></h2>
-<p>Publishing Requirements for Industry Standard Metadata 2.1 schema tags. (see
-<a href="http://www.prismstandard.org/">http://www.prismstandard.org/</a>)</p>
+<p>Publishing Requirements for Industry Standard Metadata 2.1 namespace
+tags.  (see <a href="http://www.prismstandard.org/">http://www.prismstandard.org/</a>)</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -4089,7 +4164,7 @@ below.  (see <a href="http://ns.useplus.org/">http://ns.useplus.org/</a>)</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='prl'>XMP prl Tags</a></h2>
-<p>PRISM Rights Language 2.1 schema tags.  (see
+<p>PRISM Rights Language 2.1 namespace tags.  (see
 <a href="http://www.prismstandard.org/">http://www.prismstandard.org/</a>)</p>
 <blockquote>
 <table class=frame><tr><td>
@@ -4114,7 +4189,8 @@ below.  (see <a href="http://ns.useplus.org/">http://ns.useplus.org/</a>)</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='pur'>XMP pur Tags</a></h2>
-<p>Prism Usage Rights 2.1 schema tags.  (see <a href="http://www.prismstandard.org/">http://www.prismstandard.org/</a>)</p>
+<p>Prism Usage Rights 2.1 namespace tags.  (see
+<a href="http://www.prismstandard.org/">http://www.prismstandard.org/</a>)</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -4207,7 +4283,7 @@ treated specially to allow it to be set to a specific value if required.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='swf'>XMP swf Tags</a></h2>
-<p>Adobe SWF schema tags.</p>
+<p>Adobe SWF namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -4232,7 +4308,7 @@ treated specially to allow it to be set to a specific value if required.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='tiff'>XMP tiff Tags</a></h2>
-<p>EXIF schema for TIFF tags.</p>
+<p>EXIF namespace for TIFF tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -4395,7 +4471,7 @@ specifically set to another value.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='xmp'>XMP xmp Tags</a></h2>
-<p>XMP Basic schema tags.  If the older &quot;xap&quot;, &quot;xapBJ&quot;, &quot;xapMM&quot; or &quot;xapRights&quot;
+<p>XMP namespace tags.  If the older &quot;xap&quot;, &quot;xapBJ&quot;, &quot;xapMM&quot; or &quot;xapRights&quot;
 namespace prefixes are found, they are translated to the newer &quot;xmp&quot;,
 &quot;xmpBJ&quot;, &quot;xmpMM&quot; and &quot;xmpRights&quot; prefixes for use in family 1 group names.</p>
 <blockquote>
@@ -4573,7 +4649,7 @@ namespace prefixes are found, they are translated to the newer &quot;xmp&quot;,
 </table></td></tr></table></blockquote>
 
 <h2><a name='xmpBJ'>XMP xmpBJ Tags</a></h2>
-<p>XMP Basic Job Ticket schema tags.</p>
+<p>XMP Basic Job Ticket namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -4621,7 +4697,7 @@ namespace prefixes are found, they are translated to the newer &quot;xmp&quot;,
 </table></td></tr></table></blockquote>
 
 <h2><a name='xmpDM'>XMP xmpDM Tags</a></h2>
-<p>XMP Dynamic Media schema tags.</p>
+<p>XMP Dynamic Media namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -5669,7 +5745,7 @@ namespace prefixes are found, they are translated to the newer &quot;xmp&quot;,
 </table></td></tr></table></blockquote>
 
 <h2><a name='xmpMM'>XMP xmpMM Tags</a></h2>
-<p>XMP Media Management schema tags.</p>
+<p>XMP Media Management namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -6437,7 +6513,7 @@ XMP properties.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='xmpNote'>XMP xmpNote Tags</a></h2>
-<p>XMP Note schema tags.</p>
+<p>XMP Note namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -6450,7 +6526,7 @@ XMP properties.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='xmpPLUS'>XMP xmpPLUS Tags</a></h2>
-<p>XMP Picture Licensing Universal System (PLUS) schema tags.</p>
+<p>XMP Picture Licensing Universal System (PLUS) namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -6467,7 +6543,7 @@ XMP properties.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='xmpRights'>XMP xmpRights Tags</a></h2>
-<p>XMP Rights Management schema tags.</p>
+<p>XMP Rights Management namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -6496,7 +6572,7 @@ XMP properties.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='xmpTPg'>XMP xmpTPg Tags</a></h2>
-<p>XMP Paged-Text schema tags.</p>
+<p>XMP Paged-Text namespace tags.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
@@ -6729,7 +6805,7 @@ XMP module for convenience.  (see <a href="http://www.w3.org/TR/SVG11/">http://w
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Feb 8, 2012</i>
+<br><i>Last revised Apr 2, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

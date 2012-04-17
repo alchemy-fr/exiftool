@@ -150,7 +150,9 @@ value.</p>
     exist or if it was deleted).  Calculated only if a value of 'new' is being written/deleted
     to/from the Photoshop:IPTCDigest tag</td></tr>
 
-<tr><td>NO_LIST</td><td>Set if List tags shouldn't be accumulated into a list</td></tr>
+<tr><td>NO_LIST</td><td>Set if List tags shouldn't be accumulated into a list.  Undefined to
+    accumulate lists as usual, or 0 to accumulate lists in TAG_EXTRA "NoList" element (and
+    set a TAG_EXTRA "NoListDel" flag for tags that wouldn't have been created).</td></tr>
 
 <tr><td>NO_UNKNOWN</td><td>Don't generate unknown tags automatically even if Unknown option is set</td></tr>
 

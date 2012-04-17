@@ -50,7 +50,7 @@ use vars qw($VERSION %minoltaLensTypes %minoltaTeleconverters %minoltaColorMode
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.86';
+$VERSION = '1.88';
 
 # Full list of product codes for Sony-compatible Minolta lenses
 # (ref http://www.kb.sony.com/selfservice/documentLink.do?externalId=C1000570)
@@ -250,13 +250,15 @@ $VERSION = '1.86';
     50 => 'Sony DT 18-250mm F3.5-6.3 (SAL18250)', #11/25
     51 => 'Sony DT 16-105mm F3.5-5.6 (SAL16105)', #11/25
     #51.1 => 'Sony AF DT 55-200mm F4-5.5', #11 (anomaly? - PH)
-    52 => 'Sony 70-300mm F4.5-5.6 G SSM (SAL70300G)', #JD/25
+    52 => 'Sony 70-300mm F4.5-5.6 G SSM (SAL70300G) or Tamron Lens', #JD/25
+    52.1 => 'Tamron SP 70-300mm F4-5.6 Di VC USD', #25
     53 => 'Sony 70-400mm F4-5.6 G SSM (SAL70400G)', #17(/w correction by Stephen Bishop)/25
     54 => 'Carl Zeiss Vario-Sonnar T* 16-35mm F2.8 ZA SSM (SAL1635Z)', #17/25
     55 => 'Sony DT 18-55mm F3.5-5.6 SAM (SAL1855)', #PH/25
     56 => 'Sony DT 55-200mm F4-5.6 SAM (SAL55200-2)', #22/25
     57 => 'Sony DT 50mm F1.8 SAM (SAL50F18) or Tamron Lens', #22/25
     57.1 => 'Tamron SP AF 60mm F2 Di II LD [IF] Macro 1:1', # model G005 (ref http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3858.0.html)
+    57.2 => 'Tamron 18-270mm F3.5-6.3 Di II PZD', #27
     58 => 'Sony DT 30mm F2.8 Macro SAM (SAL30M28)', #22/25
     59 => 'Sony 28-75 F2.8 SAM (SAL2875)', #21/25
     60 => 'Carl Zeiss Distagon T* 24mm F2 ZA SSM (SAL24F20Z)', #17/25
@@ -277,6 +279,7 @@ $VERSION = '1.86';
    '128.10' => 'Sigma 50mm F1.4 EX DG HSM', #Florian Knorn
    '128.11' => 'Sigma 85mm F1.4 EX DG HSM', #27
    '128.12' => 'Sigma 24-70mm F2.8 IF EX DG HSM', #27
+   '128.13' => 'Sigma 18-250mm F3.5-6.3 DC OS HSM', #27
     129 => 'Tamron Lens (129)',
     129.1 => 'Tamron 200-400mm F5.6 LD', #12 (LD ref 23)
     129.2 => 'Tamron 70-300mm F4-5.6 LD', #12
@@ -417,7 +420,7 @@ $VERSION = '1.86';
     45741.3 => 'Tokina 300mm F2.8 x2',
     45751 => '1.4x Teleconverter', #18
     45851 => 'Tamron SP AF 300mm F2.8 LD IF', #11
-    45871 => 'Tamron AF 70-210mm f/2.8 SP LD', #Fabio Suprani
+    45871 => 'Tamron AF 70-210mm F2.8 SP LD', #Fabio Suprani
     # all M42-type lenses give a value of 65535 (and FocalLength=0, FNumber=1)
     65535 => 'E-Mount, T-Mount, Other Lens or no lens', #JD/25
     65535.1 => 'Arax MC 35mm F2.8 Tilt+Shift', #JD
@@ -1676,7 +1679,8 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
         },
     },
     0x0d => { #20
-        Name => 'LocalAFAreaPoint',
+        Name => 'AFPointSelected', # (v8.88: renamed from LocalAFAreaPoint)
+        # (9-point centre-cross AF system, ref 25)
         PrintConv => {
             1 => 'Center',
             2 => 'Top',
@@ -1707,7 +1711,7 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
         },
     },
     0x10 => { #20
-        Name => 'FlashExposureCompSetting',
+        Name => 'FlashExposureCompSet',
         Description => 'Flash Exposure Comp. Setting',
         # (may differ from FlashExposureComp for flash bracketing shots)
         ValueConv => '$val / 100 - 3',

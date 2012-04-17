@@ -33,7 +33,7 @@ use vars qw($VERSION);
 use Image::ExifTool::Exif;
 use Image::ExifTool::APP12;
 
-$VERSION = '1.85';
+$VERSION = '1.87';
 
 sub PrintLensInfo($$$);
 
@@ -63,10 +63,10 @@ my %olympusLensTypes = (
     '0 8 1'  => 'Olympus Zuiko Digital 70-300mm F4.0-5.6', #7 (seen as release 1 - PH)
     '0 8 16' => 'Olympus M.Zuiko Digital ED 75-300mm F4.8-6.7', #PH
     '0 9 16' => 'Olympus M.Zuiko Digital 14-42mm F3.5-5.6 II', #PH (E-PL2)
+    '0 16 16'=> 'Olympus M.Zuiko Digital ED 12-50mm F3.5-6.3 EZ', #PH
     '0 17 16'=> 'Olympus M.Zuiko Digital 45mm F1.8', #17
     '0 19 16'=> 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6 II R', #PH
     '0 20 16'=> 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6 II', #11
-    # (missing:  Olympus M.Zuiko Digital ED 12-50mm F3.5-6.3 EZ)
     '0 21 0' => 'Olympus Zuiko Digital ED 7-14mm F4.0',
     '0 23 0' => 'Olympus Zuiko Digital Pro ED 35-100mm F2.0', #7
     '0 24 0' => 'Olympus Zuiko Digital 14-45mm F3.5-5.6',
@@ -242,6 +242,7 @@ my %olympusCameraTypes = (
     D4424 => 'FE47,X43',
     D4426 => 'FE4030,X950',
     D4428 => 'FE5030,X965,X960',
+    D4430 => 'u7030,S7030',
     D4432 => 'SP600UZ',
     D4434 => 'SP800UZ',
     D4439 => 'FE4020,X940',
@@ -259,6 +260,7 @@ my %olympusCameraTypes = (
     D4480 => 'VG120,D705',
     D4482 => 'VR310,D720',
     D4484 => 'VR320,D725',
+    D4486 => 'VR330,D730',
     D4488 => 'VG110,D700',
     D4490 => 'SP-610UZ',
     D4492 => 'SZ-10',
@@ -267,7 +269,14 @@ my %olympusCameraTypes = (
     D4498 => 'SP-810UZ',
     D4500 => 'SZ-11',
     D4504 => 'TG-615',
+    D4508 => 'TG-620',
+    D4510 => 'TG-820',
+    D4516 => 'SH-21',
+    D4519 => 'SZ-14',
     D4529 => 'VG170',
+    D4535 => 'SP-620UZ',
+    D4536 => 'TG-320',
+    D4537 => 'VR340,D750',
     D4809 => 'C2500L',
     D4842 => 'E-10',
     D4856 => 'C-1',
@@ -292,6 +301,7 @@ my %olympusCameraTypes = (
     S0032 => 'E-P3',
     S0033 => 'E-5',
     S0034 => 'E-PL2',
+    S0036 => 'E-M5',
     S0038 => 'E-PL3',
     S0039 => 'E-PM1',
     S0040 => 'E-PL1s',
@@ -413,6 +423,8 @@ my %filters = (
     22 => 'Soft Focus 2', # (SZ-10 magic filter 5)
     23 => 'Sparkle', # (SZ-10 magic filter 7)
     24 => 'Watercolor', # (SZ-10 magic filter 8)
+    28 => 'Reflection', # (TG-820)
+    29 => 'Fragmented', # (TG-820)
 );
 
 # tag information for WAV "Index" tags
@@ -680,6 +692,8 @@ my %indexInfo = (
             33 => 'Pet',
             34 => 'Smile Shot',
             35 => 'Quick Shutter',
+            43 => 'Hand-held Starlight', #PH (SH-21)
+            100 => 'Panorama', #PH (SH-21)
             101 => 'Magic Filter', #PH
         },
     },
@@ -1629,7 +1643,7 @@ my %indexInfo = (
         Writable => 'int16u',
     },
     0x20a => { #9
-        Name => 'MaxApertureAtCurrentFocal',
+        Name => 'MaxAperture', # (at current focal length)
         Writable => 'int16u',
         ValueConv => '$val ? sqrt(2)**($val/256) : 0',
         ValueConvInv => '$val>0 ? int(512*log($val)/log(2)+0.5) : 0',
@@ -2067,6 +2081,7 @@ my %indexInfo = (
             65 => 'Multiple Exposure', #11
             66 => 'e-Portrait', #11
             67 => 'Soft Background Shot', #11
+            142 => 'Hand-held Starlight', #PH (SH-21)
         },
     },
     0x50a => { #PH/4/6
@@ -3120,6 +3135,11 @@ my %indexInfo = (
             return "On ($b strength)";
         },
     },
+    0x120a => { #PH
+        Name => 'MacroLED',
+        Writable => 'int16u',
+        PrintConv => \%offOn,
+    },
     0x1500 => { #6
         Name => 'SensorTemperature',
         Writable => 'int16s',
@@ -3491,6 +3511,7 @@ my %indexInfo = (
             SG553 => 'SP-610UZ',
             SG554 => 'SZ-10',
             SG555 => 'SZ-20',
+            SG575 => 'SP-620UZ',
         },
     },
     0x28 => {
@@ -3547,7 +3568,7 @@ my %indexInfo = (
     },
 );
 
-# thumbnail image information found in MP4 videos (similar in Olympus,Samsung,Sanyo)
+# thumbnail image information found in MP4 videos (similar in Olympus,Samsung,Sanyo) (ref PH)
 %Image::ExifTool::Olympus::Thumbnail = (
     PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
@@ -3557,6 +3578,82 @@ my %indexInfo = (
     2 => 'ThumbnailHeight',
     3 => 'ThumbnailLength',
     4 => { Name => 'ThumbnailOffset', IsOffset => 1 },
+);
+
+# thumbnail information found in 'thmb' atom of MP4 videos from the TG-810 (ref PH)
+%Image::ExifTool::Olympus::thmb = (
+    NOTES => 'Information extracted from the "thmb" atom of Olympus MP4 videos.',
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    0 => {
+        Name => 'ThumbnailLength',
+        Format => 'int32u',
+    },
+    4 => {
+        Name => 'ThumbnailImage',
+        Format => 'undef[$val{0}]',
+        Notes => '160x120 JPEG thumbnail image',
+        RawConv => '$self->ValidateImage(\$val,$tag)',
+    },
+);
+
+# thumbnail information found in 'scrn' atom of MP4 videos from the TG-810 (ref PH)
+%Image::ExifTool::Olympus::scrn = (
+    NOTES => 'Information extracted from the "scrn" atom of Olympus MP4 videos.',
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    0 => {
+        Name => 'PreviewImageLength',
+        Format => 'int32u',
+    },
+    4 => {
+        Name => 'PreviewImage',
+        Format => 'undef[$val{0}]',
+        Notes => '640x480 JPEG preview image',
+        RawConv => '$self->ValidateImage(\$val,$tag)',
+    },
+);
+
+# information in OLYM atom of MP4 videos from the TG-810 (ref PH)
+%Image::ExifTool::Olympus::OLYM = (
+    NOTES => 'Tags found in the OLYM atom of MP4 videos from the TG-810.',
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    0x0e => {
+        Name => 'Make',
+        Format => 'string[26]',
+    },
+    0x28 => {
+        Name => 'Model',
+        Description => 'Camera Model Name',
+        Format => 'string[24]',
+        SeparateTable => 'CameraType',
+        PrintConv => \%olympusCameraTypes,
+    },
+    0x5a => {
+        Name => 'FNumber',
+        Format => 'rational64u',
+        PrintConv => 'sprintf("%.1f",$val)',
+    },
+    0x7f => {
+        Name => 'DateTimeOriginal', #(NC)
+        Format => 'string[24]',
+        Groups => { 2 => 'Time' },
+        PrintConv => '$self->ConvertDateTime($val)',
+    },
+    0x99 => {
+        Name => 'DateTime2',
+        Format => 'string[24]',
+        Groups => { 2 => 'Time' },
+    },
+    0x109 => {
+        Name => 'ThumbnailWidth',
+        Format => 'int16u',
+    },
+    0x10b => {
+        Name => 'ThumbnailHeight',
+        Format => 'int16u',
+    },
 );
 
 # tags in Olympus AVI videos (ref PH)

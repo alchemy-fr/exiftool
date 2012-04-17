@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.60
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.84
 [File, System, Image] FileName - File Name: DNG.dng
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 13 kB
@@ -103,7 +103,7 @@
 [EXIF, ExifIFD, Camera] 41990 - Scene Capture Type: Standard
 [EXIF, IFD0, Image] 37393 - Image Number: 24
 [EXIF, IFD0, Image] 50706 - DNG Version: 1.1.0.0
-[EXIF, IFD0, Image] 50707 - DNG Backward Version: 1 1 0 0
+[EXIF, IFD0, Image] 50707 - DNG Backward Version: 1.1.0.0
 [EXIF, IFD0, Image] 50708 - Unique Camera Model: Canon EOS 350D
 [EXIF, IFD0, Image] 50709 - Localized Camera Model: Canon EOS 350D Digital
 [EXIF, IFD0, Image] 50721 - Color Matrix 1: 0.6159 -0.0945 -0.0745 -0.6846 1.3563 0.3684 -0.0802 0.1086 0.7555

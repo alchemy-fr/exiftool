@@ -79,16 +79,18 @@ explicitly.</p>
 <td class=r title='24 = 0x18'>24</td>
 <td>WhiteBalanceAdj</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Auto
+<td><table class=cols><tr>
+  <td>0 = Auto
   <br>1 = Daylight
   <br>2 = Cloudy
   <br>3 = Tungsten
-  <br>4 = Fluorescent
-  <br>5 = Flash
+  <br>4 = Fluorescent</td><td>&nbsp;&nbsp;</td>
+  <td>5 = Flash
   <br>8 = Shade
   <br>9 = Kelvin
   <br>30 = Manual (Click)
-  <br>31 = Shot Settings</span></td></tr>
+  <br>31 = Shot Settings</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='26 = 0x1a'>26</td>
 <td>WBAdjColorTemp</td>
@@ -136,13 +138,15 @@ explicitly.</p>
 <td class=r title='60 = 0x3c'>60</td>
 <td>ToneCurveProperty</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Shot Settings
+<td><table class=cols><tr>
+  <td>0 = Shot Settings
   <br>1 = Linear
   <br>2 = Custom 1
-  <br>3 = Custom 2
-  <br>4 = Custom 3
+  <br>3 = Custom 2</td><td>&nbsp;&nbsp;</td>
+  <td>4 = Custom 3
   <br>5 = Custom 4
-  <br>6 = Custom 5</span></td></tr>
+  <br>6 = Custom 5</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='122 = 0x7a'>122</td>
 <td>DynamicRangeMin</td>
@@ -287,7 +291,9 @@ explicitly.</p>
   <br>8 = Letter-size Portrait
   <br>9 = 4:5
   <br>10 = 5:4
-  <br>11 = 1:1</span></td></tr>
+  <br>11 = 1:1
+  <br>12 = Circle
+  <br>65535 = Custom</span></td></tr>
 <tr>
 <td class=r title='610 = 0x262'>610</td>
 <td>ConstrainedCropWidth</td>
@@ -349,14 +355,16 @@ explicitly.</p>
 <td class=r title='2 = 0x2'>2</td>
 <td>PictureStyle</td>
 <td class=c>int16s</td>
-<td><span class=s>0 = Standard
+<td><table class=cols><tr>
+  <td>0 = Standard
   <br>1 = Portrait
   <br>2 = Landscape
-  <br>3 = Neutral
-  <br>4 = Faithful
+  <br>3 = Neutral</td><td>&nbsp;&nbsp;</td>
+  <td>4 = Faithful
   <br>5 = Monochrome
   <br>6 = Unknown?
-  <br>7 = Custom</span></td></tr>
+  <br>7 = Custom</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='3 = 0x3'>3</td>
 <td>IsCustomPictureStyle</td>
@@ -728,11 +736,11 @@ explicitly.</p>
 <td class=r title='94 = 0x5e'>94</td>
 <td>ChrominanceNoiseReduction</td>
 <td class=c>int16s</td>
-<td><span class=s><span class=n>(VRDVersion prior to 3.30)</span>
+<td><span class=s><span class=n>(VRDVersion prior to 3.3.0)</span>
   <br>0 = Off
   <br>58 = Low
   <br>100 = High
-  <br><span class=n>(VRDVersion 3.30 or later)</span></span><table class=cols><tr>
+  <br><span class=n>(VRDVersion 3.3.0 or later)</span></span><table class=cols><tr>
   <td>0x0 = 0
   <br>0x10 = 1
   <br>0x21 = 2
@@ -759,11 +767,11 @@ explicitly.</p>
 <td class=r title='95 = 0x5f'>95</td>
 <td>LuminanceNoiseReduction</td>
 <td class=c>int16s</td>
-<td><span class=s><span class=n>(VRDVersion prior to 3.30)</span>
+<td><span class=s><span class=n>(VRDVersion prior to 3.3.0)</span>
   <br>0 = Off
   <br>65 = Low
   <br>100 = High
-  <br><span class=n>(VRDVersion 3.30 or later)</span></span><table class=cols><tr>
+  <br><span class=n>(VRDVersion 3.3.0 or later)</span></span><table class=cols><tr>
   <td>0x0 = 0
   <br>0x41 = 1
   <br>0x64 = 2
@@ -790,11 +798,11 @@ explicitly.</p>
 <td class=r title='96 = 0x60'>96</td>
 <td>ChrominanceNR_TIFF_JPEG</td>
 <td class=c>int16s</td>
-<td><span class=s><span class=n>(VRDVersion prior to 3.30)</span>
+<td><span class=s><span class=n>(VRDVersion prior to 3.3.0)</span>
   <br>0 = Off
   <br>33 = Low
   <br>100 = High
-  <br><span class=n>(VRDVersion 3.30 or later)</span></span><table class=cols><tr>
+  <br><span class=n>(VRDVersion 3.3.0 or later)</span></span><table class=cols><tr>
   <td>0x0 = 0
   <br>0x10 = 1
   <br>0x21 = 2
@@ -975,12 +983,14 @@ explicitly.</p>
 <td class=r title='142 = 0x8e'>142</td>
 <td>CheckMark2</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Clear
+<td><table class=cols><tr>
+  <td>0 = Clear
   <br>1 = 1
-  <br>2 = 2
-  <br>3 = 3
+  <br>2 = 2</td><td>&nbsp;&nbsp;</td>
+  <td>3 = 3
   <br>4 = 4
-  <br>5 = 5</span></td></tr>
+  <br>5 = 5</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='144 = 0x90'>144</td>
 <td>UnsharpMask</td>
@@ -989,19 +999,181 @@ explicitly.</p>
   <br>1 = On</span></td></tr>
 <tr>
 <td class=r title='146 = 0x92'>146</td>
-<td>UnsharpMaskStrength</td>
+<td>StandardUnsharpMaskStrength</td>
 <td class=c>int16s</td>
 <td>&nbsp;</td></tr>
 <tr class=b>
 <td class=r title='148 = 0x94'>148</td>
-<td>UnsharpMaskFineness</td>
+<td>StandardUnsharpMaskFineness</td>
 <td class=c>int16s</td>
 <td>&nbsp;</td></tr>
 <tr>
 <td class=r title='150 = 0x96'>150</td>
-<td>UnsharpMaskThreshold</td>
+<td>StandardUnsharpMaskThreshold</td>
 <td class=c>int16s</td>
 <td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='152 = 0x98'>152</td>
+<td>PortraitUnsharpMaskStrength</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='154 = 0x9a'>154</td>
+<td>PortraitUnsharpMaskFineness</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='156 = 0x9c'>156</td>
+<td>PortraitUnsharpMaskThreshold</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='158 = 0x9e'>158</td>
+<td>LandscapeUnsharpMaskStrength</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='160 = 0xa0'>160</td>
+<td>LandscapeUnsharpMaskFineness</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='162 = 0xa2'>162</td>
+<td>LandscapeUnsharpMaskThreshold</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='164 = 0xa4'>164</td>
+<td>NeutraUnsharpMaskStrength</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='166 = 0xa6'>166</td>
+<td>NeutralUnsharpMaskFineness</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='168 = 0xa8'>168</td>
+<td>NeutralUnsharpMaskThreshold</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='170 = 0xaa'>170</td>
+<td>FaithfulUnsharpMaskStrength</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='172 = 0xac'>172</td>
+<td>FaithfulUnsharpMaskFineness</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='174 = 0xae'>174</td>
+<td>FaithfulUnsharpMaskThreshold</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='176 = 0xb0'>176</td>
+<td>MonochromeUnsharpMaskStrength</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='178 = 0xb2'>178</td>
+<td>MonochromeUnsharpMaskFineness</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='180 = 0xb4'>180</td>
+<td>MonochromeUnsharpMaskThreshold</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='182 = 0xb6'>182</td>
+<td>CustomUnsharpMaskStrength</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='184 = 0xb8'>184</td>
+<td>CustomUnsharpMaskFineness</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='186 = 0xba'>186</td>
+<td>CustomUnsharpMaskThreshold</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='188 = 0xbc'>188</td>
+<td>CustomDefaultUnsharpStrength</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='190 = 0xbe'>190</td>
+<td>CustomDefaultUnsharpFineness</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='192 = 0xc0'>192</td>
+<td>CustomDefaultUnsharpThreshold</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='214 = 0xd6'>214</td>
+<td>CropCircleActive</td>
+<td class=c>int16s</td>
+<td><span class=s>0 = No
+  <br>1 = Yes</span></td></tr>
+<tr class=b>
+<td class=r title='215 = 0xd7'>215</td>
+<td>CropCircleX</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='216 = 0xd8'>216</td>
+<td>CropCircleY</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='217 = 0xd9'>217</td>
+<td>CropCircleRadius</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='220 = 0xdc'>220</td>
+<td>DLOOn</td>
+<td class=c>int16s</td>
+<td><span class=s>0 = No
+  <br>1 = Yes</span></td></tr>
+<tr class=b>
+<td class=r title='221 = 0xdd'>221</td>
+<td>DLOSetting</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='222 = 0xde'>222</td>
+<td>DLOShootingDistance</td>
+<td class=c>int16s</td>
+<td><span class=s><span class=n>(100% = infinity)</span></span></td></tr>
+<tr class=b>
+<td class=r title='223 = 0xdf'>223</td>
+<td>DLODataLength</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='228 = 0xe4'>228</td>
+<td>DLOSettingApplied</td>
+<td class=c>int16s</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='229 = 0xe5'>229</td>
+<td>DLOVersion</td>
+<td class=c>string[10]</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='234 = 0xea'>234</td>
+<td>DLOData</td>
+<td class=c>N</td>
+<td><span class=s><span class=n>(variable-length Digital Lens Optimizer data, stored in JPEG-like format)</span></span></td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='IHL'>CanonVRD IHL Tags</a></h2>
@@ -1042,7 +1214,7 @@ first sub-document with the ExtractEmbedded option)</span></td></tr>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Jun 3, 2011</i>
+<br><i>Last revised Apr 9, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

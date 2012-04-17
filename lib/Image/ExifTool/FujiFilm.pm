@@ -13,6 +13,7 @@
 #               5) http://www.cybercom.net/~dcoffin/dcraw/
 #               6) http://forums.dpreview.com/forums/readflat.asp?forum=1012&thread=31350384
 #                  and http://forum.photome.de/viewtopic.php?f=2&t=353&p=742#p740
+#               7) Kai Lappalainen private communication
 #               JD) Jens Duttke private communication
 #------------------------------------------------------------------------------
 
@@ -23,7 +24,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.34';
+$VERSION = '1.35';
 
 sub ProcessFujiDir($$$);
 sub ProcessFaceRec($$$);
@@ -270,7 +271,13 @@ my %faceCategories = (
             0x11 => 'Snow', #3
             0x12 => 'Fireworks', #3
             0x13 => 'Underwater', #3
+            0x14 => 'Portrait with Skin Correction', #7
             0x16 => 'Panorama', #PH (X100)
+            0x17 => 'Night (tripod)', #7
+            0x18 => 'Pro Low-light', #7
+            0x19 => 'Pro Focus', #7
+            0x1b => 'Dog Face Detection', #7
+            0x1c => 'Cat Face Detection', #7
             0x100 => 'Aperture-priority AE',
             0x200 => 'Shutter speed priority AE',
             0x300 => 'Manual',
@@ -312,6 +319,10 @@ my %faceCategories = (
         Name => 'SequenceNumber',
         Writable => 'int16u',
     },
+    # (0x1150-0x1152 exist only for Pro Low-light and Pro Focus PictureModes)
+    # 0x1150 - Pro Low-light - val=1; Pro Focus - val=2 (ref 7)
+    # 0x1151 - Pro Low-light - val=4 (number of pictures taken?); Pro Focus - val=2,3 (ref 7)
+    # 0x1152 - Pro Low-light - val=1,3,4 (stacked pictures used?); Pro Focus - val=1,2 (ref 7)
     0x1210 => { #2
         Name => 'ColorMode',
         Writable => 'int16u',
@@ -366,14 +377,16 @@ my %faceCategories = (
         Writable => 'int16u',
         PrintHex => 1,
         PrintConv => {
-            0x000 => 'F0/Standard',
+            0x000 => 'F0/Standard (PROVIA)',
             0x100 => 'F1/Studio Portrait',
             0x110 => 'F1a/Studio Portrait Enhanced Saturation',
-            0x120 => 'F1b/Studio Portrait Smooth Skin Tone',
+            0x120 => 'F1b/Studio Portrait Smooth Skin Tone (ASTIA)',
             0x130 => 'F1c/Studio Portrait Increased Sharpness',
-            0x200 => 'F2/Fujichrome',
+            0x200 => 'F2/Fujichrome (Velvia)',
             0x300 => 'F3/Studio Portrait Ex',
             0x400 => 'F4/Velvia',
+            0x500 => 'Pro Neg. Std', #PH (X-Pro1)
+            0x501 => 'Pro Neg. Hi', #PH (X-Pro1)
         },
     },
     0x1402 => { #2
@@ -801,9 +814,9 @@ sub WriteRAF($$)
             return 1;
         }
         # make sure padding is only zero bytes (can be >100k for HS10)
+        # (have seen non-null padding in X-Pro1)
         if ($buff =~ /[^\0]/) {
-            $exifTool->Error('Non-null bytes found in padding');
-            return 1;
+            return 1 if $exifTool->Error('Non-null bytes found in padding', 1);
         }
     }
     # calculate offset difference due to change in JPEG size

@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::zh_tw;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 %Image::ExifTool::Lang::zh_tw::Translate = (
    'Album' => '相簿',
@@ -238,6 +238,7 @@ $VERSION = '1.05';
       },
     },
    'FileType' => '檔案格式',
+   'Filename' => '檔案名稱',
    'FillOrder' => '填寫訂單',
    'Flash' => {
       Description => '閃光燈',
@@ -436,6 +437,7 @@ $VERSION = '1.05';
     },
    'HostComputer' => '主機',
    'Hue' => '色相',
+   'ICCProfile' => 'ICC 色彩設定檔',
    'IPTC-NAA' => 'IPTC-NAA 元資料',
    'ImageDescription' => '影像標題',
    'ImageHeight' => '影像高度',

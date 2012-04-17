@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.59
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.86
 [File, System, Image] FileName - File Name: CanonVRD.vrd
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 1768 bytes
@@ -6,7 +6,7 @@
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: VRD
 [File, File, Image] MIMEType - MIME Type: application/unknown
-[CanonVRD, CanonVRD, Image] 2 - VRD Version: 2.00
+[CanonVRD, CanonVRD, Image] 2 - VRD Version: 2.0.0
 [CanonVRD, CanonVRD, Image] 6 - WB Adj RGGB Levels: 1856 832 832 928
 [CanonVRD, CanonVRD, Image] 24 - White Balance Adj: Manual (Click)
 [CanonVRD, CanonVRD, Image] 26 - WB Adj Color Temp: 5600

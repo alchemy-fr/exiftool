@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::de;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.22';
+$VERSION = '1.23';
 
 %Image::ExifTool::Lang::de::Translate = (
    'AEAperture' => 'AE-Blende',
@@ -220,12 +220,6 @@ $VERSION = '1.22';
    'AFInfo2' => 'AF-Informationen',
    'AFInfo2Version' => 'AF-Info-Version',
    'AFIntegrationTime' => 'AF-Messzeit',
-   'AFMicroAdjActive' => {
-      PrintConv => {
-        'No' => 'Nein',
-        'Yes' => 'Ja',
-      },
-    },
    'AFMicroadjustment' => {
       Description => 'AF Feinabstimmung',
       PrintConv => {
@@ -1053,6 +1047,7 @@ $VERSION = '1.22';
         'On' => 'Ein',
       },
     },
+   'ColorCompensationFilter' => 'Farbkorrektur-Filter',
    'ColorComponents' => 'Anzahl der Bildkomponenten',
    'ColorDataVersion' => 'Farbdaten Version',
    'ColorEffect' => {
@@ -1287,6 +1282,7 @@ $VERSION = '1.22';
    'Contact' => 'Kontakt',
    'ContentLocationCode' => 'Inhaltspositionscode',
    'ContentLocationName' => 'Inhaltspositionsname',
+   'ContinuousBracketing' => 'Serienbild-Belichtungsreihe',
    'ContinuousDrive' => {
       Description => 'Aufnahme-Modus',
       PrintConv => {
@@ -1381,6 +1377,8 @@ $VERSION = '1.22';
     },
    'Custom1' => 'Benutzerdefiniert 1',
    'Custom2' => 'Benutzerdefiniert 2',
+   'Custom3' => 'Benutzerdefiniert 3',
+   'Custom4' => 'Benutzerdefiniert 4',
    'CustomRendered' => {
       Description => 'Benutzerdefinierte Bildverarbeitung',
       PrintConv => {
@@ -1733,6 +1731,7 @@ $VERSION = '1.22';
    'EnvelopeRecordVersion' => 'IPTC-Modell-1-Version',
    'EpsonImageHeight' => 'Epson-Bildhöhe',
    'EpsonImageWidth' => 'Epson-Bildbreite',
+   'Equipment' => 'Equipment-IFD-Zeiger',
    'EquipmentVersion' => 'Equipment-Version',
    'Error' => 'Fehler',
    'ExifByteOrder' => 'Exif Byte-Reihenfolge',
@@ -1810,6 +1809,7 @@ $VERSION = '1.22';
         'Program-shift S' => 'Programmverschiebung S',
         'Shutter Priority' => 'Verschlusspriorität',
         'Shutter speed priority AE' => 'Verschlusspriorität',
+        'n/a' => 'Nicht gesetzt',
       },
     },
    'ExposureModeInManual' => {
@@ -1929,6 +1929,7 @@ $VERSION = '1.22';
    'Face6Position' => 'Position, 6. Gesicht',
    'Face7Position' => 'Position, 7. Gesicht',
    'Face8Position' => 'Position, 8. Gesicht',
+   'Face9Position' => 'Position, 9. Gesicht',
    'FaceDetect' => {
       Description => 'Gesichtserkennung',
       PrintConv => {
@@ -1946,6 +1947,7 @@ $VERSION = '1.22';
         'Rotate 90 CW' => '90° gegen den Uhrzeigersinn (rechts/oben)',
       },
     },
+   'FacePositions' => 'Positionen der Gesichter',
    'FacesDetected' => 'Gesichter erkannt',
    'FastSeek' => {
       PrintConv => {
@@ -1995,6 +1997,7 @@ $VERSION = '1.22';
     },
    'FileType' => 'Dateityp',
    'FileVersion' => 'Dateiformatversion',
+   'Filename' => 'Dateiname',
    'FillFlashAutoReduction' => {
       Description => 'E-TTL II-Automatikblitz-System',
       PrintConv => {
@@ -2007,7 +2010,7 @@ $VERSION = '1.22';
       PrintConv => {
         'F1/Studio Portrait' => 'F1/Studio-Porträt',
         'F1a/Studio Portrait Enhanced Saturation' => 'F1a/Studio-Porträt Erweiterte Sättigung',
-        'F1b/Studio Portrait Smooth Skin Tone' => 'F1b/Studio-Porträt Weiche Hauttöne',
+        'F1b/Studio Portrait Smooth Skin Tone (ASTIA)' => 'F1b/Studio-Porträt Weiche Hauttöne',
         'F1c/Studio Portrait Increased Sharpness' => 'F1c/Studio-Porträt Erhöhte Schärfe',
         'F3/Studio Portrait Ex' => 'F3/Studio Porträt Ex',
       },
@@ -2082,6 +2085,7 @@ $VERSION = '1.22';
     },
    'FlashActivity' => 'Blitz-Leistung',
    'FlashBatteryLevel' => 'Blitz Batteriestatus',
+   'FlashBias' => 'Blitzkorrektur',
    'FlashBits' => 'Blitz-Details',
    'FlashCommanderMode' => {
       Description => 'Master-Steuerung',
@@ -2212,6 +2216,7 @@ $VERSION = '1.22';
         'Fired, Manual' => 'Ausgelöst, Manuell',
         'Fired, TTL Mode' => 'Ausgelöst, TTL-Modus',
         'Internal' => 'Intern',
+        'Not Ready' => 'Nicht bereit',
         'Off' => 'Aus',
         'Off, Did not fire' => 'Aus',
         'Off?' => 'Aus?',
@@ -2467,9 +2472,11 @@ $VERSION = '1.22';
     },
    'FocusingScreen' => 'Mattscheibe',
    'FolderName' => 'Ordner-Name',
+   'FrameHeight' => 'Bereichshöhe',
    'FrameNumber' => 'Bildnummer',
    'FrameRate' => 'Bildwechselfrequenz',
    'FrameSize' => 'Einzelbildgröße',
+   'FrameWidth' => 'Bereichsbreite',
    'FreeByteCounts' => 'Anzahl Bytes des leeren Datenbereiches',
    'FreeMemoryCardImages' => 'Platz auf Speicherkarten für',
    'FreeOffsets' => 'Leerdatenposition',
@@ -2531,7 +2538,7 @@ $VERSION = '1.22';
    'GPSDestLatitudeRef' => {
       Description => 'Referenz für die Breite des Zieles',
       PrintConv => {
-        'North' => 'Nordliche Breite',
+        'North' => 'Nördliche Breite',
         'South' => 'Südliche Breite',
       },
     },
@@ -2705,6 +2712,7 @@ $VERSION = '1.22';
    'HueSetting' => 'Farbtoneinstellung',
    'HuffmanTable' => 'Huffman Tabelle',
    'HyperfocalDistance' => 'Hyperfokale Entfernung',
+   'ICCProfile' => 'ICC-Profil',
    'ICCProfileName' => 'Name des ICC Profils',
    'IPTC-NAA' => 'IPTC-NAA Metadaten',
    'IPTCImageHeight' => 'IPTC-Bildhöhe',
@@ -2714,6 +2722,7 @@ $VERSION = '1.22';
    'IPTCPixelWidth' => 'IPTC-Pixelbreite',
    'ISO' => 'ISO-Empfindlichkeit',
    'ISO2' => 'ISO-Empfindlichkeit (2)',
+   'ISOAuto' => 'ISO-Automatik',
    'ISODisplay' => 'ISO-Anzeige',
    'ISOExpansion' => {
       Description => 'ISO-Erweiterung',
@@ -2828,6 +2837,7 @@ $VERSION = '1.22';
         'Square' => 'Quadratisch',
       },
     },
+   'ImageProcessing' => 'Bildverarbeitung',
    'ImageProcessingVersion' => 'Bildverarbeitung Version',
    'ImageQuality' => {
       Description => 'Bildqualität',
@@ -3133,6 +3143,7 @@ $VERSION = '1.22';
         'Auto' => 'Automatisch',
         'Off' => 'Aus',
         'On' => 'Ein',
+        'n/a' => 'Nicht gesetzt',
       },
     },
    'LongFocal' => 'Größte Brennweite',
@@ -3153,6 +3164,7 @@ $VERSION = '1.22';
         'ZR6 (AA Ni-Mn)' => 'ZR6 (Mignon, NiMn)',
       },
     },
+   'MB-D10BatteryType' => 'Akku-/Batterietyp',
    'MB-D80Batteries' => {
       Description => 'Akku-/Batterietyp',
       PrintConv => {
@@ -3180,6 +3192,7 @@ $VERSION = '1.22';
         'Off' => 'Aus',
         'On' => 'Ein',
         'Super Macro' => 'Super-Makro',
+        'n/a' => 'Nicht gesetzt',
       },
     },
    'MacroMode' => {
@@ -3500,6 +3513,7 @@ $VERSION = '1.22';
       },
     },
    'MyColorMode' => {
+      Description => 'My Color-Modus',
       PrintConv => {
         'B&W' => 'Schwarz-Weiß',
         'Custom' => 'Benutzerdefiniert',
@@ -3523,6 +3537,7 @@ $VERSION = '1.22';
         'Uncompressed' => 'Nicht komprimiert',
       },
     },
+   'NEFLinearizationTable' => 'Linearisierungstabelle',
    'NewsPhotoVersion' => 'IPTC-Modell-3-Version',
    'NikonCaptureData' => 'Nikon Capture-Daten',
    'NikonCaptureOutput' => 'Nikon Capture-Ausgabe',
@@ -3915,6 +3930,7 @@ $VERSION = '1.22';
         'Tungsten' => 'Glühbirne',
       },
     },
+   'Preview' => 'Preview-IFD-Zeiger',
    'Preview0' => 'Vorschau 0',
    'Preview1' => 'Vorschau 1',
    'Preview2' => 'Vorschau 2',
@@ -4036,6 +4052,7 @@ $VERSION = '1.22';
         'RAW + JPEG' => 'RAW+JPEG',
         'Super Fine' => 'Super-Fein',
         'Superfine' => 'Superfein',
+        'n/a' => 'Nicht gesetzt',
       },
     },
    'QualityMode' => {
@@ -4043,6 +4060,7 @@ $VERSION = '1.22';
         'Fine' => 'Fein',
       },
     },
+   'QuickAdjust' => 'Schnelleinstellung',
    'QuickControlDialInMeter' => {
       Description => 'Schnelleinstellrad bei Messung',
       PrintConv => {
@@ -4903,6 +4921,7 @@ $VERSION = '1.22';
    'TimeSent' => 'Absendezeit',
    'TimeStamp' => 'Zeitstempel',
    'TimeStamp1' => 'Zeitstempel (1)',
+   'TimeZone' => 'Zeitzone',
    'TimeZoneOffset' => 'Zeitzonen-Offset',
    'TimerFunctionButton' => {
       Description => 'Funktionstaste',
@@ -5280,6 +5299,7 @@ $VERSION = '1.22';
    'WB_RGGBLevelsUnknown9' => 'Weißabgleich RGGB-Farbverteilung Unbekannt 9',
    'WCSProfiles' => 'Windows Color System-Profil',
    'Warning' => 'Warnung',
+   'Watermark' => 'Wasserzeichen',
    'WhiteBalance' => {
       Description => 'Weißabgleich',
       PrintConv => {
@@ -5448,6 +5468,7 @@ $VERSION = '1.22';
         'On' => 'Ein',
       },
     },
+   'Zoom' => 'Zoom-Objektiv',
    'ZoomPos' => 'Zoom Position',
    'ZoomSourceWidth' => 'Vergrößerungs-Ursprungsgröße',
    'ZoomTargetWidth' => 'Vergrößerungs-Endgröße',

@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::zh_cn;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.06';
+$VERSION = '1.07';
 
 %Image::ExifTool::Lang::zh_cn::Translate = (
    'AEProgramMode' => {
@@ -339,6 +339,7 @@ $VERSION = '1.06';
         'Portrait' => '人物',
         'Shutter Priority' => '快门优先',
         'Shutter speed priority AE' => '快门优先',
+        'n/a' => '未设置',
       },
     },
    'ExposureProgram' => {
@@ -652,6 +653,7 @@ $VERSION = '1.06';
       },
     },
    'Hue' => '色相',
+   'ICCProfile' => 'ICC 规范',
    'IPTC-NAA' => 'IPTC-NAA 元数据',
    'ISOSetting' => {
       PrintConv => {
@@ -731,12 +733,14 @@ $VERSION = '1.06';
         'Auto' => '自动',
         'Off' => '关',
         'On' => '开',
+        'n/a' => '未设置',
       },
     },
    'MIEVersion' => 'MIE 版本',
    'Macro' => {
       PrintConv => {
         'Manual' => '手动',
+        'n/a' => '未设置',
       },
     },
    'Make' => '厂商',
@@ -915,6 +919,7 @@ $VERSION = '1.06';
         'Normal' => '标准画质',
         'RAW + JPEG' => 'RAW+JPEG',
         'Standard' => '标准',
+        'n/a' => '未设置',
       },
     },
    'RAFVersion' => 'RAF 版本',

@@ -14,7 +14,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 # Information decoded from Mac OS resources
 %Image::ExifTool::RSRC::Main = (
@@ -35,6 +35,12 @@ $VERSION = '1.05';
     'sfnt' => {
         Name => 'Font',
         SubDirectory => { TagTable => 'Image::ExifTool::Font::Name' },
+    },
+    # my samples of postscript-type DFONT files have a POST resource
+    # with ID 0x1f5 and the same format as a PostScript file
+    'POST_0x01f5' => {
+        Name => 'PostscriptFont',
+        SubDirectory => { TagTable => 'Image::ExifTool::PostScript::Main' },
     },
     'usro_0x0000' => 'OpenWithApplication',
     'vers_0x0001' => 'ApplicationVersion',
@@ -144,7 +150,8 @@ sub ProcessRSRC($$)
                 unless (Image::ExifTool::Font::ProcessOTF($exifTool, $dirInfo)) {
                     $exifTool->Warn('Unrecognized sfnt resource format');
                 }
-                $exifTool->OverrideFileType('DFONT');
+                # assume this is a DFONT file unless processing the rsrc fork
+                $exifTool->OverrideFileType('DFONT') unless $$exifTool{DOC_NUM};
                 next;
             } elsif ($resType eq '8BIM') {
                 my $ttPtr = GetTagTable('Image::ExifTool::Photoshop::Main');
@@ -179,6 +186,10 @@ sub ProcessRSRC($$)
                     $pos += $len;
                 }
                 $val = \@vals;
+            } elsif ($resType eq 'POST') {
+                # assume this is a DFONT file unless processing the rsrc fork
+                $exifTool->OverrideFileType('DFONT') unless $$exifTool{DOC_NUM};
+                $val = substr $val, 2;
             } elsif ($resType ne 'TEXT') {
                 next;
             }

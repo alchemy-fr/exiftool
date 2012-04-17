@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::cs;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 %Image::ExifTool::Lang::cs::Translate = (
    'AEMeteringMode' => {
@@ -226,6 +226,7 @@ $VERSION = '1.05';
    'ColorSpace' => {
       Description => 'Barevný prostor',
       PrintConv => {
+        'ICC Profile' => 'ICC Profil',
         'Uncalibrated' => 'Nekalibrován',
       },
     },
@@ -478,6 +479,7 @@ $VERSION = '1.05';
       },
     },
    'FileType' => 'Typ',
+   'Filename' => 'Jméno',
    'FillOrder' => {
       Description => 'Pořadí výplně',
       PrintConv => {
@@ -795,6 +797,7 @@ $VERSION = '1.05';
     },
    'HostComputer' => 'Host',
    'Hue' => 'Odstín',
+   'ICCProfile' => 'ICC-Profil',
    'IPTC-NAA' => 'IPTC-NAA metadata',
    'ISO' => 'Citlivost ISO',
    'ISOSetting' => {
@@ -1178,7 +1181,7 @@ $VERSION = '1.05';
       Description => 'Jednotka X a Y rozlišení',
       PrintConv => {
         'None' => 'Žádná',
-        'cm' => 'pixely/cm',
+        'cm' => 'Pixely/cm',
         'inches' => 'Palce',
       },
     },

@@ -16,7 +16,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.19';
+$VERSION = '1.21';
 
 sub ProcessRicohText($$$);
 sub ProcessRicohRMETA($$$);
@@ -66,8 +66,8 @@ my %ricohLensIDs = (
             Name => 'InternalSerialNumber',
             Writable => 'undef',
             Count => 16,
-            PrintConv => 'unpack("H*", $val)',
-            PrintConvInv => 'pack("H*", $val)',
+            ValueConv => 'unpack("H*", $val)',
+            ValueConvInv => 'pack("H*", $val)',
         },
     ],
     0x0e00 => {
@@ -168,10 +168,10 @@ my %ricohLensIDs = (
         OffsetPair => 30,   # associated byte count tagID
         DataTag => 'PreviewImage',
         Protected => 2,
-        # prevent preview from being written to raw images
+        # prevent preview from being written to MakerNotes of DNG images
         RawConvInv => q{
             return $val if $$self{FILE_TYPE} eq "JPEG";
-            warn "Can't write PreviewImage to $$self{TIFF_TYPE} file\n";
+            warn "\n"; # suppress warning
             return undef;
         },
     },
@@ -183,7 +183,7 @@ my %ricohLensIDs = (
         Protected => 2,
         RawConvInv => q{
             return $val if $$self{FILE_TYPE} eq "JPEG";
-            warn "\n"; # suppress warning (already issued for PreviewImageStart)
+            warn "\n"; # suppress warning
             return undef;
         },
     },

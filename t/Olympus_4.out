@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.72
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.85
 [File, System, Image] FileName - File Name: OlympusE1.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 7.2 kB
@@ -93,7 +93,7 @@
 [MakerNotes, Olympus, Camera] 518 - Max Aperture At Max Focal: 3.5
 [MakerNotes, Olympus, Camera] 519 - Min Focal Length: 14
 [MakerNotes, Olympus, Camera] 520 - Max Focal Length: 54
-[MakerNotes, Olympus, Camera] 522 - Max Aperture At Current Focal: 2.8
+[MakerNotes, Olympus, Camera] 522 - Max Aperture: 2.8
 [MakerNotes, Olympus, Camera] 523 - Lens Properties: 0xc043
 [MakerNotes, Olympus, Camera] 769 - Extender: None
 [MakerNotes, Olympus, Camera] 770 - Extender Serial Number: 

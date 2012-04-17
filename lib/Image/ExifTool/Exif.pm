@@ -37,6 +37,7 @@
 #              24) http://www.cipa.jp/english/hyoujunka/kikaku/pdf/DC-008-2010_E.pdf (Exif 2.3)
 #              25) Vesa Kivisto private communication (7D)
 #              26) Jeremy Brown private communication
+#              27) Gregg Lee private communication
 #              JD) Jens Duttke private communication
 #------------------------------------------------------------------------------
 
@@ -49,7 +50,7 @@ use vars qw($VERSION $AUTOLOAD @formatSize @formatName %formatNumber %intFormat
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::MakerNotes;
 
-$VERSION = '3.34';
+$VERSION = '3.40';
 
 sub ProcessExif($$$);
 sub WriteExif($$$);
@@ -1618,7 +1619,7 @@ my %sampleFormat = (
         Name => 'UserComment',
         # may consider forcing a Format of 'undef' for this tag because I have
         # seen other applications write it incorrectly as 'string' or 'int8u'
-        RawConv => 'Image::ExifTool::Exif::ConvertExifText($self,$val)',
+        RawConv => 'Image::ExifTool::Exif::ConvertExifText($self,$val,1)',
     },
     0x9290 => {
         Name => 'SubSecTime',
@@ -2097,7 +2098,10 @@ my %sampleFormat = (
         RawConv => '$$self{DNGVersion} = $val',
         PrintConv => '$val =~ tr/ /./; $val',
     },
-    0xc613 => 'DNGBackwardVersion',
+    0xc613 => {
+        Name => 'DNGBackwardVersion',
+        PrintConv => '$val =~ tr/ /./; $val',
+    },
     0xc614 => 'UniqueCameraModel',
     0xc615 => {
         Name => 'LocalizedCameraModel',
@@ -2651,9 +2655,9 @@ my %sampleFormat = (
             1 => 'DateCreated',
             2 => 'TimeCreated',
         },
+        RawConv => '($val[1] and $val[2]) ? $val : undef',
         ValueConv => q{
             return $val[0] if $val[0] and $val[0]=~/ /;
-            return undef unless $val[1] and $val[2];
             return "$val[1] $val[2]";
         },
         PrintConv => '$self->ConvertDateTime($val)',
@@ -2743,8 +2747,8 @@ my %sampleFormat = (
             1 => 'SubSecTimeOriginal',
         },
         # be careful here just in case there is a timezone following the seconds
+        RawConv => '$val[1]=~/\d/ ? $val : undef',
         ValueConv => q{
-            return undef if $val[1] eq '';
             $_ = $val[0]; s/( \d{2}:\d{2}:\d{2})/$1\.$val[1]/; $_;
         },
         PrintConv => '$self->ConvertDateTime($val)',
@@ -2756,8 +2760,8 @@ my %sampleFormat = (
             0 => 'EXIF:CreateDate',
             1 => 'SubSecTimeDigitized',
         },
+        RawConv => '$val[1]=~/\d/ ? $val : undef',
         ValueConv => q{
-            return undef if $val[1] eq '';
             $_ = $val[0]; s/( \d{2}:\d{2}:\d{2})/$1\.$val[1]/; $_;
         },
         PrintConv => '$self->ConvertDateTime($val)',
@@ -2769,8 +2773,8 @@ my %sampleFormat = (
             0 => 'EXIF:ModifyDate',
             1 => 'SubSecTime',
         },
+        RawConv => '$val[1]=~/\d/ ? $val : undef',
         ValueConv => q{
-            return undef if $val[1] eq '';
             $_ = $val[0]; s/( \d{2}:\d{2}:\d{2})/$1\.$val[1]/; $_;
         },
         PrintConv => '$self->ConvertDateTime($val)',
@@ -2847,6 +2851,7 @@ my %sampleFormat = (
             5 => 'LongFocal',
             6 => 'LensModel',
             7 => 'LensFocalRange',
+            8 => 'LensSpec',
         },
         Notes => q{
             attempt to identify the actual lens from all lenses with a given LensType.
@@ -2854,12 +2859,13 @@ my %sampleFormat = (
             by adding user-defined lenses
         },
         # this LensID is only valid if the LensType has a PrintConv or is a model name
-        ValueConv => q{
-            return $val[0] if ref $$self{TAG_INFO}{LensType}{PrintConv} eq "HASH" or
-                              $prt[0] =~ /(mm|\d\/F)/;
+        RawConv => q{
+            return $val if ref $$self{TAG_INFO}{LensType}{PrintConv} eq "HASH" or
+                              $val[0] =~ /(mm|\d\/F)/;
             return undef;
         },
-        PrintConv => 'Image::ExifTool::Exif::PrintLensID($self, $prt[0], @val)',
+        ValueConv => '$val',
+        PrintConv => 'Image::ExifTool::Exif::PrintLensID($self, $prt[0], $prt[8], @val)',
     },
 );
 
@@ -3017,11 +3023,12 @@ sub ConvertFraction($)
 
 #------------------------------------------------------------------------------
 # Convert EXIF text to something readable
-# Inputs: 0) ExifTool object reference, 1) EXIF text
+# Inputs: 0) ExifTool object reference, 1) EXIF text,
+#         2) flag to apply CharsetEXIF to ASCII text
 # Returns: text encoded according to Charset option (with trailing spaces removed)
-sub ConvertExifText($$)
+sub ConvertExifText($$;$)
 {
-    my ($exifTool, $val) = @_;
+    my ($exifTool, $val, $asciiFlex) = @_;
     return $val if length($val) < 8;
     my $id = substr($val, 0, 8);
     my $str = substr($val, 8);
@@ -3031,6 +3038,11 @@ sub ConvertExifText($$)
         # truncate at null terminator (shouldn't have a null based on the
         # EXIF spec, but it seems that few people actually read the spec)
         $str =~ s/\0.*//s;
+        # allow ASCII text to contain any other specified encoding
+        if ($asciiFlex) {
+            my $enc = $exifTool->Options('CharsetEXIF');
+            $str = $exifTool->Decode($str, $enc) if $enc;
+        }
     # by the EXIF spec, the following string should be "UNICODE\0", but
     # apparently Kodak sometimes uses "Unicode\0" in the APP3 "Meta" information.
     # However, unfortunately Ricoh uses "Unicode\0" in the RR30 EXIF UserComment
@@ -3269,14 +3281,15 @@ sub GetLensInfo($;$)
 
 #------------------------------------------------------------------------------
 # Attempt to identify the specific lens if multiple lenses have the same LensType
-# Inputs: 0) ExifTool object ref, 1) LensType string, 2) LensType value,
-#         3) FocalLength, 4) MaxAperture, 5) MaxApertureValue, 6) ShortFocal,
-#         7) LongFocal, 8) LensModel, 9) LensFocalRange, 10) optional PrintConv hash ref
+# Inputs: 0) ExifTool object ref, 1) LensType print value, 2) LensSpec print value
+#         3) LensType numerical value, 4) FocalLength, 5) MaxAperture,
+#         6) MaxApertureValue, 7) ShortFocal, 8) LongFocal, 9) LensModel,
+#         10) LensFocalRange, 11) LensSpec, 12) optional PrintConv hash ref
 sub PrintLensID($$@)
 {
-    my ($exifTool, $lensTypePrt, $lensType, $focalLength, $maxAperture,
-        $maxApertureValue, $shortFocal, $longFocal, $lensModel, $lensFocalRange,
-        $printConv) = @_;
+    my ($exifTool, $lensTypePrt, $lensSpecPrt, $lensType, $focalLength,
+        $maxAperture, $maxApertureValue, $shortFocal, $longFocal, $lensModel,
+        $lensFocalRange, $lensSpec, $printConv) = @_;
     # the rest of the logic relies on the LensType lookup:
     return undef unless defined $lensType;
     # get print conversion hash if necessary
@@ -3287,6 +3300,12 @@ sub PrintLensID($$@)
         return $lensTypePrt if $lensTypePrt =~ /mm/;
         return $lensTypePrt if $lensTypePrt =~ s/(\d)\/F/$1mm F/;
         return undef;
+    }
+    # get LensSpec information if available (Sony)
+    my ($sf0, $lf0, $sa0, $la0);
+    if ($lensSpecPrt) {
+        ($sf0, $lf0, $sa0, $la0) = GetLensInfo($lensSpecPrt);
+        undef $sf0 unless $sa0; # (make sure aperture isn't zero)
     }
     # use MaxApertureValue if MaxAperture is not available
     $maxAperture = $maxApertureValue unless $maxAperture;
@@ -3316,8 +3335,19 @@ sub PrintLensID($$@)
             push @user, $lens;
             next;
         }
+        # sf = short focal
+        # lf = long focal
+        # sa = max aperture at short focal
+        # la = max aperture at long focal
         my ($sf, $lf, $sa, $la) = GetLensInfo($lens);
         next unless $sf;
+        # check against LensSpec parameters if available
+        if ($sf0) {
+            next if abs($sf - $sf0) > 0.5 or abs($sa - $sa0) > 0.15 or
+                    abs($lf - $lf0) > 0.5 or abs($la - $la0) > 0.15;
+            push @best, $lens;
+            next;
+        }
         # adjust focal length and aperture if teleconverter is attached (Minolta)
         if ($lens =~ / \+ .*? (\d+(\.\d+)?)x( |$)/) {
             $sf *= $1;  $lf *= $1;
@@ -3338,13 +3368,18 @@ sub PrintLensID($$@)
             next if $maxAperture > $la + 0.15;
             # now determine the best match for this aperture
             my $aa; # approximate maximum aperture at this focal length
-            if ($sf == $lf or $sa == $la) {
+            if ($sf == $lf or $sa == $la or $focalLength <= $sf) {
+                # either 1) prime lens, 2) fixed-aperture zoom, or 3) zoom at min focal
                 $aa = $sa;
+            } elsif ($focalLength >= $lf) {
+                $aa = $la;
             } else {
                 # assume a log-log variation of max aperture with focal length
                 # (see http://regex.info/blog/2006-10-05/263)
                 $aa = exp(log($sa) + (log($la)-log($sa)) / (log($lf)-log($sf)) *
                                      (log($focalLength)-log($sf)));
+                # a linear relationship between 1/FocalLength and 1/MaxAperture fits Sony better (ref 27)
+                #$aa = 1 / (1/$sa + (1/$focalLength - 1/$sf) * (1/$la - 1/$sa) / (1/$lf - 1/$sf));
             }
             my $d = abs($maxAperture - $aa);
             if (defined $diff) {
@@ -3532,7 +3567,7 @@ sub ProcessExif($$$)
     my $bytesFromEnd = $dataLen - $dirEnd;
     if ($bytesFromEnd < 4) {
         unless ($bytesFromEnd==2 or $bytesFromEnd==0) {
-            $exifTool->Warn(sprintf"Illegal $name directory size (0x%x entries)",$numEntries);
+            $exifTool->Warn("Illegal $name directory size ($numEntries entries)");
             return 0;
         }
     }
@@ -3593,7 +3628,7 @@ sub ProcessExif($$$)
                      "Bad format type: $format", 1);
             # warn unless the IFD was just padded with zeros
             if ($format) {
-                $exifTool->Warn(sprintf("Unknown format ($format) for $name tag 0x%x",$tagID));
+                $exifTool->Warn("Bad format ($format) for $name entry $index", $inMakerNotes);
                 ++$warnCount;
             }
             return 0 unless $index; # assume corrupted IFD if this is our first entry
@@ -3621,7 +3656,7 @@ sub ProcessExif($$$)
         my $readSize = $size;
         if ($size > 4) {
             if ($size > 0x7fffffff) {
-                $exifTool->Warn(sprintf("Invalid size ($size) for $name tag 0x%x",$tagID));
+                $exifTool->Warn(sprintf("Invalid size (%u) for %s tag 0x%.4x", $size, $name, $tagID));
                 ++$warnCount;
                 next;
             }

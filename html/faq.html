@@ -18,7 +18,7 @@ ol.index { margin: 0; padding: 0 0 0 2em }
 <ol class='index'>
 <li><a href="#Q1">Discussion forum</a></li>
 <li><a href="#Q2">Determining tag names</a></li>
-<li><a href="#Q3">Problems with duplicate tags</a></li>
+<li><a href="#Q3">ExifTool doesn't read/write properly</a></li>
 <li><a href="#Q4">Aperture and shutter speed</a></li>
 <li><a href="#Q5">Date and time formats</a></li>
 <li><a href="#Q6">"Can't convert TAG" errors</a></li>
@@ -50,7 +50,7 @@ ol.index { margin: 0; padding: 0 0 0 2em }
 
 <blockquote>
 ExifTool issues can be discussed on the ExifTool forum at
-<a href="http://owl.phy.queensu.ca/~phil/exiftool/forum/">http://owl.phy.queensu.ca/~phil/exiftool/forum/</a>
+<a href="http://u88.n24.queensu.ca/exiftool/forum/">http://u88.n24.queensu.ca/exiftool/forum/</a>
 </blockquote>
 
 <a name="Q2"></a>
@@ -81,15 +81,17 @@ information to see the corresponding group names.
 <blockquote><i>[Also see <a href="#Q23">FAQ number 23</a> for reasons why
 ExifTool may not write some tags to certain file types.]</i></blockquote>
 
-<blockquote>Make sure you are looking at the right information. Information
-may be duplicated in different locations within an image.  When in doubt, use
-"<code>exiftool -a -G1 FILENAME</code>" to show all information and the
-locations in the file.  In this command, <code>-a</code> allows duplicate tags
-to be extracted, <code>-G1</code> shows the family 1 group name (ie. the
-location) of each tag, and <code>FILENAME</code> is the name of your image file.
- Also, it may be helpful to add <code>-s</code> to show the actual tag names
-instead of the descriptions (and possibly <code>-D</code> or <code>-H</code> to
-show the tag ID numbers if you are familiar with these).</blockquote>
+<blockquote>First, make sure you are looking at the right information.  Use
+ExifTool with a command like this to extract all information from the file,
+along with the location it was written:
+
+<pre>exiftool -a -G1 -s c:\images\test.jpg</pre>
+
+In this command, <code>-a</code> allows duplicate tags to be extracted,
+<code>-G1</code> shows the family 1 group name (ie. the location) of each tag,
+and <code>-s</code> shows the tag names instead of their descriptions.
+(Substitute the path name of your file in place of
+"<code>c:\images\test.jpg</code>".)</blockquote>
 
 <blockquote>When duplicate tags exist, only one is extracted unless the
 <code>-a</code> option is used. Beware that options like <code>-EXIF:all</code>
@@ -317,29 +319,28 @@ freedom allows ExifTool to write or copy information to files of different
 formats without requiring the user to know details about where the information
 is stored.</blockquote>
 
-<blockquote>The preferred locations for information written to JPEG images are
-1) EXIF, 2) IPTC and 3) XMP.  As an example, information extracted from the
-maker notes will be preferentially written (on a tag-by-tag basis) in EXIF
-format when copying information between two JPEG images.  But if a specific tag
-doesn't exist in EXIF, then the tag is written to the first valid group in the
-order specified above.  The advantage of "translating" the information to EXIF
-is that it then becomes readable by applications which only support standard
-EXIF.  The disadvantage is that you don't get an exact copy of the original
-information structure.</blockquote>
+<blockquote>The preferred general locations for information written to JPEG
+images are 1) EXIF, 2) IPTC and 3) XMP.  As an example, information extracted
+from the maker notes will be preferentially written (on a tag-by-tag basis) in
+EXIF format when copying information between two JPEG images.  But if a specific
+tag doesn't exist in EXIF, then the tag is written to the first valid group in
+the order specified above.  The advantage of "translating" the information to
+EXIF is that it then becomes readable by applications which only support
+standard EXIF.  The disadvantage is that you don't get an exact copy of the
+original information structure.</blockquote>
 
 <blockquote>But ExifTool gives you the ability to customize this behaviour to
 write the information to wherever you want.  This is done by specifying a group
 name for the tag(s) to be copied.  This applies even if the group name is
-"<code>all</code>", in which case the original group is preserved.  So to copy
-all information and preserve the original structure, use this syntax:
+"<code>all</code>", in which case the original family 1 group is preserved. So
+to copy all information and preserve the original structure, use this syntax:
 
 <pre>exiftool -tagsfromfile src.jpg -all:all dst.jpg
 </pre>
 
-By specifying a group name with "<code>-all:all</code>", the location of the
-information is preserved.  (Specifically, since no destination tag was
-specified the source group "<code>all</code>" was assumed, thus preserving
-the original group.)</blockquote>
+In this command, since no destination tag was specified, the destination is the
+same as the source (ie. "<code>-all:all>all:all</code>"), so the information is
+copied to the same family 1 group.</blockquote>
 
 <blockquote>Here are some examples to show you the type of control you have over
 where the information is written. All commands in each example are equivalent:
@@ -350,24 +351,29 @@ exiftool -tagsfromfile src.jpg -all dst.jpg
 exiftool -tagsfromfile src.jpg "-all&gt;all" dst.jpg
 exiftool -tagsfromfile src.jpg "-all:all&gt;all" dst.jpg
 
-<span class='blk'># copy all tags, preserving original group (destination group 'all')</span>
+<span class='blk'># copy all tags, preserving family 1 group (destination group 'all')</span>
 exiftool -tagsfromfile src.jpg -all:all dst.jpg
 exiftool -tagsfromfile src.jpg "-all&gt;all:all" dst.jpg
 exiftool -tagsfromfile src.jpg "-all:all&gt;all:all" dst.jpg
 
-<span class='blk'># copy all tags to EXIF group only (destination group 'exif')</span>
+<span class='blk'># copy all tags to EXIF group (destination group 'exif')
+# [the destination family 1 group is the preferred EXIF IFD]</span>
 exiftool -tagsfromfile src.jpg "-all&gt;exif:all" dst.jpg
 exiftool -tagsfromfile src.jpg "-all:all&gt;exif:all" dst.jpg
 
-<span class='blk'># copy XMP tags to XMP group (destination group 'xmp' or 'all')</span>
+<span class='blk'># copy XMP tags to XMP group (destination group 'xmp')
+# [the destination family 1 group is the preferred XMP namespace]</span>
 exiftool -tagsfromfile src.jpg "-xmp:all" dst.jpg
 exiftool -tagsfromfile src.jpg "-xmp:all&gt;xmp:all" dst.jpg
+
+<span class='blk'># copy XMP tags, preserving family 1 group (destination group 'all')</span>
 exiftool -tagsfromfile src.jpg "-xmp:all&gt;all:all" dst.jpg
 
 <span class='blk'># copy XMP tags to preferred groups (no destination group)</span>
 exiftool -tagsfromfile src.jpg "-xmp:all&gt;all" dst.jpg
 
-<span class='blk'># copy XMP tags to EXIF only (destination group 'exif')</span>
+<span class='blk'># copy XMP tags to EXIF only (destination group 'exif')
+# [the destination family 1 group is the preferred EXIF IFD]</span>
 exiftool -tagsfromfile src.jpg "-xmp:all&gt;exif:all" dst.jpg
 </pre>
 
@@ -471,15 +477,15 @@ specified external character set.</blockquote>
 value of the IPTC:CodedCharacterSet tag determines how the internal IPTC string
 values are interpreted.  If CodedCharacterSet exists and has a value of
 "<code>UTF8</code>" (or "<code>ESC&nbsp;%&nbsp;G</code>") then string values are
-assumed to be stored as UTF&#8209;8, otherwise Windows Latin1 (cp1252) coding is
-assumed by default, but this can be changed with "<code>-charset
-iptc=CHARSET</code>".  When reading, these strings are converted to UTF&#8209;8
-by default, or to the character set specified by the <code>-charset</code> or
-<code>-L</code> option.  When writing, the inverse conversions are performed. 
-No conversion is done if the internal (IPTC) and external (ExifTool) character
-sets are the same.  Note that ISO 2022 character set shifting is not supported.
-Instead, a warning is issued and the string is not converted if an ISO 2022
-shift code is encountered.  See the
+assumed to be stored as UTF&#8209;8.  Otherwise the internal IPTC encoding is
+assumed to be Windows Latin1 (cp1252), but this can be changed with
+"<code>-charset iptc=CHARSET</code>". When reading, these strings are converted
+to UTF&#8209;8 by default, or to the character set specified by the
+<code>-charset</code> or <code>-L</code> option. When writing, the inverse
+conversions are performed. No conversion is done if the internal (IPTC) and
+external (ExifTool) character sets are the same.  Note that ISO 2022 character
+set shifting is not supported. Instead, a warning is issued and the string is
+not converted if an ISO 2022 shift code is encountered.  See the
 <a href="http://www.iptc.org/std/IIM/4.1/specification/IIMV4.1.pdf">IPTC IIM
 specification</a> for more information about IPTC character coding.</blockquote>
 
@@ -492,8 +498,10 @@ internal IPTC encoding to UTF&#8209;8:
 <pre>exiftool -tagsfromfile @ -iptc:all -codedcharacterset= a.jpg
 </pre>or this command changes it back from UTF&#8209;8 to Windows Latin2 (cp1250):
 <pre>exiftool -tagsfromfile @ -iptc:all -codedcharacterset= -charset iptc=latin2 a.jpg
-</pre>But note that unless UTF&#8209;8 is used, applications have no reliable
-way to determine the IPTC character encoding.</blockquote>
+</pre>Note that unless UTF&#8209;8 is used, applications have no reliable
+way to determine the IPTC character encoding.  For this reason, it is
+recommended that CodedCharacterSet be set to "<code>UTF8</code>" when creating
+new IPTC.</blockquote>
 
 <blockquote class='sm'><sup>&dagger;</sup> <span class=lt>Refers to the older
 <a href="http://www.iptc.org/site/News_Exchange_Formats/IIM/">IPTC IIM</a> format.
@@ -1316,7 +1324,7 @@ exiftool -alldates+=1 "-filemodifydate&lt;datetimeoriginal" c:\images
 </pre></blockquote>
 
 <hr>
-<i>Last revised Feb. 17, 2012</i>
+<i>Last revised Apr. 10, 2012</i>
 <p class='lf'><a href="index.html">&lt;-- Back to ExifTool home page</a></p>
 </body>
 </html>

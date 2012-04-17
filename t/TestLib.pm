@@ -13,6 +13,7 @@
 #               Feb. 02/08 - P. Harvey Allow different timezones in time values
 #               Sep. 16/08 - P. Harvey Improve timezone testing
 #               Jul. 14/10 - P. Harvey Added writeInfo()
+#               Jan. 06/12 - P. Harvey Patched MirBSD leap second "feature"
 #------------------------------------------------------------------------------
 
 package t::TestLib;
@@ -23,11 +24,12 @@ require Exporter;
 use Image::ExifTool qw(ImageInfo);
 
 use vars qw($VERSION @ISA @EXPORT);
-$VERSION = '1.19';
+$VERSION = '1.20';
 @ISA = qw(Exporter);
 @EXPORT = qw(check writeCheck writeInfo testCompare binaryCompare testVerbose);
 
-sub closeEnough($$);
+sub nearEnough($$);
+sub nearTime($$$$);
 sub formatValue($);
 sub writeInfo($$;$$);
 
@@ -81,7 +83,7 @@ sub testCompare($$$;$)
                 $line2 = <FILE2>;
                 if (defined $line2) {
                     next if $line1 eq $line2;
-                    next if closeEnough($line1, $line2);
+                    next if nearEnough($line1, $line2);
                 }
                 $success = 0;
                 last;
@@ -116,9 +118,9 @@ sub testCompare($$$;$)
 
 #------------------------------------------------------------------------------
 # Return true if two test lines are close enough
-# Inputs: 1) line 1, 2) line 2
+# Inputs: 0) line1, 1) line2
 # Returns: true if lines are similar enough to pass test
-sub closeEnough($$)
+sub nearEnough($$)
 {
     my ($line1, $line2) = @_;
 
@@ -167,19 +169,7 @@ sub closeEnough($$)
                                $toks2[$i-1] =~ /^\d{4}:\d{2}:\d{2}$/;
             $tok1 = $toks1[$i-1] . ' ' . $tok1; # add date to give date/time value
             $tok2 = $toks2[$i-1] . ' ' . $tok2;
-CheckTimeDifference:
-            my $t1 = Image::ExifTool::GetUnixTime($tok1, 'local') or last;
-            my $t2 = Image::ExifTool::GetUnixTime($tok2, 'local') or last;
-            my $td = $t2 - $t1;
-            if ($td) {
-                # patch for the MirBSD leap-second unconformity
-                # (120 leap seconds should cover us until _well_ into the future)
-                last unless $^O eq 'mirbsd' and $td < 0 and $td > -120;
-                warn "\n  Ignoring $td second error due to MirBSD leap-second \"feature\":\n";
-                chomp($line1,$line2);
-                warn qq{    Test gave: "$line2"\n};
-                warn qq{    Should be: "$line1"\n};
-            }
+            last unless nearTime($tok1, $tok2, $line1, $line2);
         # date may be different if timezone shifted into next day
         } elsif ($tok1 =~ /^\d{4}:\d{2}:\d{2}$/ and $tok2 =~ /^\d{4}:\d{2}:\d{2}$/ and
                  defined $toks1[$i+1] and defined $toks2[$i+1] and
@@ -189,7 +179,7 @@ CheckTimeDifference:
             ++$i;
             $tok1 .= ' ' . $toks1[$i];      # add time to give date/time value
             $tok2 .= ' ' . $toks2[$i];
-            goto CheckTimeDifference;   # GOTO!
+            last unless nearTime($tok1, $tok2, $line1, $line2);
         } else {
             # check to see if both tokens are floating point numbers (with decimal points!)
             if ($tok1 =~ s/([^\d.]+)$//) {  # remove trailing units
@@ -226,6 +216,28 @@ CheckTimeDifference:
         $lenChanged = 1 if length($tok1) ne length($tok2);
     }
     return 0;
+}
+
+#------------------------------------------------------------------------------
+# Check two time strings to see if they are the same
+# Inputs: 0) time1, 1) time2, 2) line1, 3) line2
+# Returns: true on success
+sub nearTime($$$$)
+{
+    my ($tok1, $tok2, $line1, $line2) = @_;
+    my $t1 = Image::ExifTool::GetUnixTime($tok1, 'local') or return 0;
+    my $t2 = Image::ExifTool::GetUnixTime($tok2, 'local') or return 0;
+    my $td = $t2 - $t1;
+    if ($td) {
+        # patch for the MirBSD leap-second unconformity
+        # (120 leap seconds should cover us until _well_ into the future)
+        return 0 unless $^O eq 'mirbsd' and $td < 0 and $td > -120;
+        warn "\n  Ignoring $td second error due to MirBSD leap-second \"feature\":\n";
+        chomp($line1,$line2);
+        warn qq{    Test gave: "$line2"\n};
+        warn qq{    Should be: "$line1"\n};
+    }
+    return 1;
 }
 
 #------------------------------------------------------------------------------

@@ -19,7 +19,7 @@ use Image::ExifTool qw(:DataAccess);
 use Image::ExifTool::Canon;
 use Image::ExifTool::Exif;
 
-$VERSION = '1.42';
+$VERSION = '1.43';
 
 sub ProcessCanonCustom($$$);
 sub ProcessCanonCustom2($$$);
@@ -1295,7 +1295,7 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
     0x0106 => {
         Name => 'AEBShotCount',
         Count => -1,
-        Notes => '1 value for the 1DmkIII, 2 for the 1DmkIV',
+        Notes => '1 value for the 1DmkIII and 5DmkIII, 2 for the 1DmkIV',
         PrintConv => [{
             0 => 3,
             1 => 2,
@@ -1456,7 +1456,7 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
         },
         {
             Name => 'FlashSyncSpeedAv',
-            Notes => '5D Mark II, 500D, 550D, 600D and 1100D',
+            Notes => '5D Mark II, 5D Mark III, 500D, 550D, 600D and 1100D',
             PrintConv => {
                 0 => 'Auto',
                 1 => '1/200-1/60 Auto',
@@ -1578,6 +1578,23 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
             },
         },
     ],
+    0x040a => { # new for 5DmkIII
+        Name => 'ViewfinderWarnings',
+        PrintConv => { BITMASK => { # (NC)
+            0 => 'Monochrome',
+            1 => 'WB corrected',
+            2 => 'One-touch image quality',
+            3 => 'ISO expansion',
+            4 => 'Spot metering',
+        }},
+    },
+    0x040b => { # new for 5DmkIII
+        Name => 'LVShootingAreaDisplay',
+        PrintConv => {
+            0 => 'Masked',
+            1 => 'Outlined',
+        },
+    },
     #### 3a) Auto focus
     0x0501 => {
         Name => 'USMLensElectronicMF',
@@ -2103,6 +2120,17 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
             1 => 'ISO speed',
         },
     },
+    0x070f => { # new for 5DmkIII
+        Name => 'MultiFunctionLock',
+        PrintConv => [
+            \%offOn, # (NC)
+            { BITMASK => { # (NC)
+                0 => 'Main dial',
+                1 => 'Quick control dial',
+                2 => 'Multi-controller',
+            }},
+        ],
+    },
     #### 4b) Others
     0x080b => [
         {
@@ -2184,6 +2212,13 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
         PrintConv => {
             0 => 'Display',
             1 => 'Retain power off status',
+        },
+    },
+    0x0813 => { # new for 5DmkIII
+        Name => 'DefaultEraseOption',
+        PrintConv => {
+            0 => 'Cancel selected',
+            1 => 'Erase selected',
         },
     },
 );

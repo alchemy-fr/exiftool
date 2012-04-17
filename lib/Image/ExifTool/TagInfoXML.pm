@@ -15,7 +15,7 @@ use vars qw($VERSION @ISA);
 use Image::ExifTool qw(:Utils :Vars);
 use Image::ExifTool::XMP;
 
-$VERSION = '1.15';
+$VERSION = '1.17';
 @ISA = qw(Exporter);
 
 # set this to a language code to generate Lang module with 'MISSING' entries
@@ -33,6 +33,7 @@ my %credits = (
     cs   => 'Jens Duttke and Petr MichE<aacute>lek',
     de   => 'Jens Duttke and Herbert Kauer',
     es   => 'Jens Duttke and Santiago del BrE<iacute>o GonzE<aacute>lez',
+    fi   => 'Jens Duttke and Jarkko ME<auml>kineva',
     fr   => 'Jens Duttke, Bernard Guillotin, Jean Glasser, Jean Piquemal and Harry Nizard',
     it   => 'Jens Duttke, Ferdinando Agovino and Emilio Dati',
     ja   => 'Jens Duttke and Kazunari Nishina',
@@ -265,32 +266,6 @@ PTILoop:    for ($index=0; $index<@infoArray; ++$index) {
     print $fp "</taginfo>\n" or $success = 0;
     close $fp or $success = 0 if defined $file;
     return $success;
-}
-
-#------------------------------------------------------------------------------
-# Perl-ize this constant
-# Inputs: string
-# Returns: constant string for Perl
-sub Perlize($)
-{
-    my $str = shift;
-    unless (($str =~ /^[+-]?(?=\d|\.\d)\d*(\.\d*)?$/ and # int or float
-             not $str =~ /^[+-]?0\d+$/) or # not octal
-            $str =~ /^0x[0-9a-f]+$/i) # hexadecimal
-    {
-        # translate unprintable characters
-        $str =~ s/\\/\\\\/g; # escape backslashes
-        if ($str =~ /([\x00-\x1f\x80-\xff])/) {
-            $str =~ s/"/\\"/g; # escape double quotes
-            # escape unprintable characters
-            $str =~ s/([\x00-\x1f\x80-\xff])/sprintf("\\x%.2x",ord $1)/eg;
-            $str = qq{"$str"};
-        } else {
-            $str =~ s/'/\\'/g; # escape single quotes
-            $str = qq{'$str'};
-        }
-    }
-    return $str;
 }
 
 #------------------------------------------------------------------------------

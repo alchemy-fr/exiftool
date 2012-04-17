@@ -532,14 +532,17 @@ distribution for examples.</p>
     <td align='center'>undef</td></tr>
 <tr><td>GeoMaxIntSecs</td>
     <td><a name="GeoMaxIntSecs"></a>Maximum interpolation time in seconds for
-    geotagging.  Geotagging fails if the Geotime value lies between two fixes in
-    the same track which are separated by a number of seconds greater than this.</td>
+    geotagging.  Geotagging is treated as an extrapolation if the Geotime value
+    lies between two fixes in the same track which are separated by a number of
+    seconds greater than this. Otherwise, the coordinates are calculated as a
+    linear interpolation between the two nearest fixes.</td>
     <td align='center'>A floating point number</td>
     <td align='center'>1800</td></tr>
 <tr><td>GeoMaxExtSecs</td>
     <td><a name="GeoMaxExtSecs"></a>Maximum extrapolation time in seconds for
     geotagging.  Geotagging fails if the Geotime value lies outside a GPS track
-    by a number of seconds greater than this.</td>
+    by a number of seconds greater than this.  Otherwise, the coordinates of the
+    nearest fix are taken.</td>
     <td align='center'>A floating point number</td>
     <td align='center'>1800</td></tr>
 <tr><td>GeoMaxHDOP</td>
@@ -590,7 +593,7 @@ distribution for examples.</p>
 <tr><td>Lang</td><td><a name="Lang"></a>Localized language for exiftool tag descriptions, etc.  If the
     specified language isn't available, the option is not changed.  May be set to
     undef to select the built-in default language.</td>
-    <td align='left'>Image::ExifTool::Lang module name (ie. 'fr'), or 'en' or undef for the default language.</td>
+    <td align='left'>Image::ExifTool::Lang module name (ie. 'fr', 'zh_cn'), or 'en' or undef for the default language.</td>
     <td align='center'>'en'</td></tr>
 <tr><td>LargeFileSupport</td><td><a name="LargeFileSupport"></a>Flag to indicate that 64-bit file offsets are supported on this system.</td>
     <td align='center'>0 or 1</td><td align='center'>0</td></tr>
@@ -650,17 +653,17 @@ distribution for examples.</p>
 <tr><td>StrictDate</td><td><a name="StrictDate"></a>Flag to return undefined value for any date which can't be
     converted when the DateFormat option is used.</td>
     <td align='center'>0 or 1</td><td align=center>0</td></tr>
-<tr><td>Struct</td><td><a name="Struct"></a>Flag to return XMP structures as HASH references instead of flattening
-    into individual tags.  If not defined, tags are flattened when reading (with
-    <a href="#ExtractInfo">ExtractInfo</a>), and structured when copying (with
-    <a href="#SetNewValuesFromFile">SetNewValuesFromFile</a>). This setting has no effect
+<tr><td>Struct</td><td>Flag to return XMP structures as HASH references
+    instead of flattening into individual tags.  This setting has no effect
     when writing since both flattened or structured tags may always be written.
     See the <a href="struct.html">Structured Information documentation</a> for
     more details about structured information.</td>
-    <td><table class='clear'>
-    <tr><td valign='top' align=right><b>undef</b>&nbsp;=</td><td>Read flat tags, copy struct</td></tr>
-    <tr><td valign='top' align=right><b>0</b>&nbsp;=</td><td>Read and copy flat tags</td></tr>
-    <tr><td valign='top' align=right><b>1</b>&nbsp;=</td><td>Read and copy structures</td></tr>
+    <td><a name="Struct"></a><table class='clear'>
+    <tr><td valign='top' align=right><b>undef</b>&nbsp;=</td><td>Same as 0 for reading and 2 for copying</td></tr>
+    <tr><td valign='top' align=right><b>0</b>&nbsp;=</td><td>Read/copy flattened tags</td></tr>
+    <tr><td valign='top' align=right><b>1</b>&nbsp;=</td><td>Read/copy structures</td></tr>
+    <tr><td valign='top' align=right><b>2</b>&nbsp;=</td><td>Read/copy both flattened and structured tags,
+    but flag flattened tags as "unsafe" for copying</td></tr>
     </table></td><td align=center>undef</td></tr>
 <tr><td>TextOut</td><td><a name="TextOut"></a>Output file for Verbose and HtmlDump options.</td>
     <td align='center'>File reference</td><td align=center>\*STDOUT</td></tr>
@@ -1057,6 +1060,7 @@ errors are printed to STDERR.
     If not specified, tag is written to highest priority group as specified
     by <a href="#SetNewGroups">SetNewGroups</a>.  Case is not significant</td>
     <td align=center>Any family 0 or 1 group name</td><td align=center>undef</td></tr>
+<tr><td>NoFlat</td><td>Treat flattened tags as 'unsafe'</td><td align=center>0 or 1</td><td align=center>0</td></tr>
 <tr><td>NoShortcut</td><td>Disables default behaviour of looking up tag in
     shortcuts if not found otherwise.</td><td align=center>0 or 1</td><td align=center>0</td></tr>
 <tr><td>Protected</td><td>Allow protected tags to be written</td>
@@ -1182,6 +1186,10 @@ example above to exclude specific groups from a mass delete. However, this
 technique may not be used to exclude individual tags.  Instead, use
 <a href="#SetNewValuesFromFile">SetNewValuesFromFile</a> to recover the values
 of individual tags after deleting a group.</p>
+<p>When deleting all tags from a JPEG image, the APP14 "Adobe" information is
+not deleted by default because doing so may affect the appearance of the image.
+However, this information may be deleted by specifying it explicitly, either by
+group (with '<code>Adobe:*</code>') or as a block (with '<code>Adobe</code>').</p>
 <p>The following ExifTool options are effective in the call to
 <a href="#SetNewValue">SetNewValue</a>:</p>
 <blockquote>

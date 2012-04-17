@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.16
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.84
 [File, System, Image] FileName - File Name: Casio2.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 1699 bytes
@@ -19,7 +19,7 @@
 [EXIF, IFD0, Image] 282 - X Resolution: 72
 [EXIF, IFD0, Image] 283 - Y Resolution: 72
 [EXIF, IFD0, Image] 296 - Resolution Unit: inches
-[EXIF, IFD0, Image] 305 - Software: 1.00                 
+[EXIF, IFD0, Image] 305 - Software: 1.00
 [EXIF, IFD0, Time] 306 - Modify Date: 2003:06:18 16:54:37
 [EXIF, IFD0, Image] 531 - Y Cb Cr Positioning: Centered
 [EXIF, ExifIFD, Image] 33434 - Exposure Time: 1/80
@@ -82,6 +82,7 @@
 [MakerNotes, Casio, Camera] 12309 - Color Mode: Off
 [MakerNotes, Casio, Camera] 12310 - Enhancement: Off
 [MakerNotes, Casio, Camera] 12311 - Color Filter: Off
+[MakerNotes, Casio, Camera] 12315 - Art Mode: Normal
 [PrintIM, PrintIM, Printing] PrintIMVersion - PrintIM Version: 0250
 [Composite, Composite, Image] Aperture - Aperture: 3.9
 [Composite, Composite, Image] ImageSize - Image Size: 8x8

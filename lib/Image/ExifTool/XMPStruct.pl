@@ -589,14 +589,16 @@ sub ConvertStruct($$$$;$)
 
 #------------------------------------------------------------------------------
 # Restore XMP structures in extracted information
-# Inputs: 0) ExifTool object ref
+# Inputs: 0) ExifTool object ref, 1) flag to keep original flattened tags
 # Notes: also restores lists (including multi-dimensional)
-sub RestoreStruct($)
+sub RestoreStruct($;$)
 {
     local $_;
-    my $exifTool = shift;
+    my ($exifTool, $keepFlat) = @_;
     my ($key, %structs, %var, %lists, $si, %listKeys);
     my $ex = $$exifTool{TAG_EXTRA};
+    my $valueHash = $$exifTool{VALUE};
+    my $tagExtra = $$exifTool{TAG_EXTRA};
     foreach $key (keys %{$$exifTool{TAG_INFO}}) {
         $$ex{$key} or next;
         my ($err, $i);
@@ -693,7 +695,7 @@ sub RestoreStruct($)
                     $struct = $$struct[$index] = { };
                 } else {
                     $lists{$struct} = $struct;
-                    $$struct[$index] = $$exifTool{VALUE}{$key};
+                    $$struct[$index] = $$valueHash{$key};
                     last;
                 }
             } else {
@@ -703,7 +705,7 @@ sub RestoreStruct($)
                 } elsif (@$structProps) {
                     $struct = $$struct{$tag} = { };
                 } else {
-                    $$struct{$tag} = $$exifTool{VALUE}{$key};
+                    $$struct{$tag} = $$valueHash{$key};
                     last;
                 }
             }
@@ -736,12 +738,32 @@ sub RestoreStruct($)
                 $exifTool->DeleteTag($k);   # remove tag with greater copy number
             }
             # replace existing value with new list
-            $$exifTool{VALUE}{$key} = $structs{$strInfo};
+            $$valueHash{$key} = $structs{$strInfo};
             $listKeys{$structs{$strInfo}} = $key;   # save key for this list tag
         } else {
             # save strInfo ref and file order
-            $var{$strInfo} = [ $strInfo, $$exifTool{FILE_ORDER}{$key} ];
-            $exifTool->DeleteTag($key);
+            if ($var{$strInfo}) {
+                # set file order to just before the first associated flattened tag
+                if ($var{$strInfo}[1] > $$exifTool{FILE_ORDER}{$key}) {
+                    $var{$strInfo}[1] = $$exifTool{FILE_ORDER}{$key} - 0.5;
+                }
+            } else {
+                $var{$strInfo} = [ $strInfo, $$exifTool{FILE_ORDER}{$key} - 0.5 ];
+            }
+            # preserve original flattened tags if requested
+            if ($keepFlat) {
+                my $extra = $$tagExtra{$key} or next;
+                # restore list behaviour of this flattened tag
+                if ($$extra{NoList}) {
+                    $$valueHash{$key} = $$extra{NoList};
+                    delete $$extra{NoList};
+                } elsif ($$extra{NoListDel}) {
+                    # delete this tag since its value was included another list
+                    $exifTool->DeleteTag($key);
+                }
+            } else {
+                $exifTool->DeleteTag($key); # delete the flattened tag
+            }
         }
     }
     # fill in undefined items in lists.  In theory, undefined list items should
@@ -754,7 +776,7 @@ sub RestoreStruct($)
     foreach $si (keys %structs) {
         next unless $var{$si};  # already handled regular lists
         $key = $exifTool->FoundTag($var{$si}[0], '');
-        $$exifTool{VALUE}{$key} = $structs{$si};
+        $$valueHash{$key} = $structs{$si};
         $$exifTool{FILE_ORDER}{$key} = $var{$si}[1];
     }
 }

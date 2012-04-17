@@ -579,15 +579,18 @@ or undef (the default) for no base adjustment.
 
 =item GeoMaxIntSecs
 
-Maximum interpolation time in seconds for geotagging.  Geotagging fails if
-the Geotime value lies between two fixes in the same track which are
-separated by a number of seconds greater than this.  Default is 1800.
+Maximum interpolation time in seconds for geotagging.  Geotagging is treated
+as an extrapolation if the Geotime value lies between two fixes in the same
+track which are separated by a number of seconds greater than this. 
+Otherwise, the coordinates are calculated as a linear interpolation between
+the two nearest fixes.  Default is 1800.
 
 =item GeoMaxExtSecs
 
 Maximum extrapolation time in seconds for geotagging.  Geotagging fails if
 the Geotime value lies outside a GPS track by a number of seconds greater
-than this.  Default is 1800.
+than this.  Otherwise, the coordinates of the nearest fix are taken. 
+Default is 1800.
 
 =item GeoMaxHDOP
 
@@ -637,9 +640,9 @@ errors/warnings are denoted by '[minor]' at the start of the message.
 =item Lang
 
 Localized language for exiftool tag descriptions, etc.  Available languages
-are given by the Image::ExifTool::Lang module names (ie. 'fr').  If the
-specified language isn't available, the option is not changed.  May be set
-to undef to select the built-in default language.  Default is 'en'.
+are given by the Image::ExifTool::Lang module names (ie. 'fr', 'zh_cn').  If
+the specified language isn't available, the option is not changed.  May be
+set to undef to select the built-in default language.  Default is 'en'.
 
 =item LargeFileSupport
 
@@ -735,14 +738,14 @@ the DateFormat option is used.  Default is undef.
 =item Struct
 
 Flag to return XMP structures as hash references instead of flattening into
-individual tags.  If not defined (the default), tags are flattened when
-reading (with L</ExtractInfo>), and structured when copying (with
-L</SetNewValuesFromFile>).  Has no effect when writing since both flattened
-and structured tags may always be written.  Possible values are:
+individual tags.  Has no effect when writing since both flattened and
+structured tags may always be written.  Possible values are:
 
-  undef - Read flattened tags, copy structured tags (default)
-    0   - Read and copy flattened tags
-    1   - Read and copy structured tags
+  undef - Same as 0 for reading, 2 for copying
+    0   - Read/copy flattened tags
+    1   - Read/copy structured tags
+    2   - Read/copy both flattened and structured tags, but flag
+          flattened tags as "unsafe" for copying
 
 =item TextOut
 
@@ -1227,6 +1230,10 @@ Specifies group name where tag should be written.  If not specified, tag is
 written to highest priority group as specified by L</SetNewGroups>.  Any
 family 0 or 1 group name may be used.  Case is not significant.
 
+=item NoFlat
+
+Treat flattened tags as 'unsafe'.
+
 =item NoShortcut
 
 Disables default behaviour of looking up tag in shortcuts if not found
@@ -1280,13 +1287,18 @@ In scalar context, returns the number of tags set and error messages are
 printed to STDERR.  In list context, returns the number of tags set, and the
 error string (which is undefined if there was no error).
 
-=item Note:
+=item Notes:
 
 When deleting groups of tags, the Replace option may be used as in the last
 example above to exclude specific groups from a mass delete.  However, this
 technique may not be used to exclude individual tags.  Instead, use
 L</SetNewValuesFromFile> to recover the values of individual tags after
 deleting a group.
+
+When deleting all tags from a JPEG image, the APP14 "Adobe" information is
+not deleted by default because doing so may affect the appearance of the
+image.  However, this information may be deleted by specifying it
+explicitly, either by group (with 'Adobe:*') or as a block (with 'Adobe').
 
 =back
 

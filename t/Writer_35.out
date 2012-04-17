@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.79
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.86
 [File, System, Image] FileName - File Name: Writer_35_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 9.5 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:02:20 10:04:41-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:04:02 16:55:06-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -84,7 +84,7 @@
 [Photoshop, Photoshop, Author] 1035 - URL: http://owl.phy.queensu.ca/~phil/exiftool/
 [Photoshop, Photoshop, Image] 1037 - Global Angle: 30
 [Photoshop, Photoshop, Image] 1049 - Global Altitude: 30
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.79
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.86
 [XMP, XMP-dc, Author] creator - Creator: Phil Harvey
 [XMP, XMP-dc, Image] description - Description: UTF-16 (big-endian) encoded XMP
 [XMP, XMP-dc, Author] rights - Rights: Copyright 2004 Phil Harvey
@@ -140,7 +140,7 @@
 [APP14, Adobe, Image] 1 - APP14 Flags 0: (none)
 [APP14, Adobe, Image] 2 - APP14 Flags 1: (none)
 [APP14, Adobe, Image] 3 - Color Transform: YCbCr
-[CanonVRD, CanonVRD, Image] 2 - VRD Version: 1.00
+[CanonVRD, CanonVRD, Image] 2 - VRD Version: 1.0.0
 [CanonVRD, CanonVRD, Image] 6 - WB Adj RGGB Levels: 0 0 0 0
 [CanonVRD, CanonVRD, Image] 24 - White Balance Adj: Shot Settings
 [CanonVRD, CanonVRD, Image] 26 - WB Adj Color Temp: 5600

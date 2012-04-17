@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.35
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.81
 [File, System, Image] FileName - File Name: Writer_15_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 2.4 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2010:10:11 08:48:11-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:03:04 15:24:18-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -152,7 +152,6 @@
 [Composite, Composite, Camera] DriveMode - Drive Mode: Continuous Shooting
 [Composite, Composite, Camera] ISO - ISO: 100
 [Composite, Composite, Camera] Lens - Lens: 18.0 - 55.0 mm
-[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
 [Composite, Composite, Camera] ScaleFactor35efl - Scale Factor To 35 mm Equivalent: 1.6
 [Composite, Composite, Camera] ShootingMode - Shooting Mode: Bulb
 [Composite, Composite, Image] ShutterSpeed - Shutter Speed: 4
@@ -164,5 +163,6 @@
 [Composite, Composite, Camera] HyperfocalDistance - Hyperfocal Distance: 1.26 m
 [Composite, Composite, Image] ImageSize - Image Size: 8x8
 [Composite, Composite, Camera] Lens35efl - Lens: 18.0 - 55.0 mm (35 mm equivalent: 27.9 - 85.3 mm)
+[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
 [Composite, Composite, Image] LightValue - Light Value: 0.0
 [Composite, Composite, Camera] RedBalance - Red Balance: 2.067348

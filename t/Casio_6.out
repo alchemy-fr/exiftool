@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.16
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.84
 [File, System, Image] FileName - File Name: Casio_6_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 1699 bytes
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2010:03:19 11:36:35-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:03:16 09:16:54-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -19,7 +19,7 @@
 [EXIF, IFD0, Image] 282 - X Resolution: 300
 [EXIF, IFD0, Image] 283 - Y Resolution: 300
 [EXIF, IFD0, Image] 296 - Resolution Unit: inches
-[EXIF, IFD0, Image] 305 - Software: 1.00                 
+[EXIF, IFD0, Image] 305 - Software: 1.00
 [EXIF, IFD0, Time] 306 - Modify Date: 2003:06:18 16:54:37
 [EXIF, IFD0, Image] 531 - Y Cb Cr Positioning: Centered
 [EXIF, ExifIFD, Image] 33434 - Exposure Time: 1/80
@@ -93,7 +93,7 @@
 [MakerNotes, Casio, Camera] 12312 - Casio Type 2 0x3018: 0
 [MakerNotes, Casio, Camera] 12313 - Casio Type 2 0x3019: 1
 [MakerNotes, Casio, Camera] 12314 - Casio Type 2 0x301a: 0
-[MakerNotes, Casio, Camera] 12315 - Unknown Mode: Normal
+[MakerNotes, Casio, Camera] 12315 - Art Mode: Normal
 [PrintIM, PrintIM, Printing] PrintIMVersion - PrintIM Version: 0250
 [PrintIM, PrintIM, Printing] 1 - Print IM 0x0001: 0x00140014
 [PrintIM, PrintIM, Printing] 2 - Print IM 0x0002: 0x01000000

@@ -15,7 +15,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 sub ProcessItemID($$$);
 sub ProcessLinkInfo($$$);
@@ -24,6 +24,7 @@ sub ProcessLinkInfo($$$);
 %Image::ExifTool::LNK::Main = (
     PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
     GROUPS => { 2 => 'Other' },
+    VARS => { HEX_ID => 1 },    # print hex ID's in documentation
     NOTES => 'Information extracted from MS Shell Link (Windows shortcut) files.',
     # maybe the Flags aren't very useful to the user (since they are
     # mainly structural), but extract them anyway for completeness

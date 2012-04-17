@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.35
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.81
 [File, System, Image] FileName - File Name: CanonRaw_6_failed.cr2
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 8.6 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2010:10:11 08:47:49-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:03:04 15:24:03-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: CR2
 [File, File, Image] MIMEType - MIME Type: image/x-canon-cr2
@@ -211,7 +211,6 @@
 [Composite, Composite, Camera] DriveMode - Drive Mode: Single-frame Shooting
 [Composite, Composite, Camera] ISO - ISO: 400
 [Composite, Composite, Camera] Lens - Lens: 18.0 - 55.0 mm
-[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
 [Composite, Composite, Image] PreviewImage - Preview Image: (Binary data 26 bytes)
 [Composite, Composite, Camera] ScaleFactor35efl - Scale Factor To 35 mm Equivalent: 1.6
 [Composite, Composite, Camera] ShootingMode - Shooting Mode: Aperture-priority AE
@@ -225,5 +224,6 @@
 [Composite, Composite, Camera] HyperfocalDistance - Hyperfocal Distance: 20.42 m
 [Composite, Composite, Image] ImageSize - Image Size: 3456x2304
 [Composite, Composite, Camera] Lens35efl - Lens: 18.0 - 55.0 mm (35 mm equivalent: 29.2 - 89.2 mm)
+[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
 [Composite, Composite, Image] LightValue - Light Value: 7.9
 [Composite, Composite, Camera] RedBalance - Red Balance: 1.688027

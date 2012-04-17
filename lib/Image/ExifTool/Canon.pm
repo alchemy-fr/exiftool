@@ -78,10 +78,12 @@ sub ProcessSerialData($$$);
 sub ProcessFilters($$$);
 sub SwapWords($);
 
-$VERSION = '2.84';
+$VERSION = '2.89';
 
 # Note: Removed 'USM' from 'L' lenses since it is redundant - PH
 # (or is it?  Ref 32 shows 5 non-USM L-type lenses)
+# --> have relaxed this for new lenses because Canon has been
+#     consistent about keeping "USM" in the model name
 %canonLensTypes = ( #4
      Notes => q{
         Decimal values differentiate lenses which would otherwise have the same
@@ -131,6 +133,7 @@ $VERSION = '2.84';
     26.3 => 'Tamron SP AF 180mm f/3.5 Di Macro', #15
     26.4 => 'Carl Zeiss Planar T* 50mm f/1.4', #PH
     27 => 'Canon EF 35-80mm f/4-5.6', #32
+    # 27 => 'Carl Zeiss Distagon T* 28mm f/2 ZF', #PH (must be with an adapter, because the ZF version is a Nikon mount)
     28 => 'Canon EF 80-200mm f/4.5-5.6 or Tamron Lens', #32
     28.1 => 'Tamron SP AF 28-105mm f/2.8 LD Aspherical IF', #15
     28.2 => 'Tamron SP AF 28-75mm f/2.8 XR Di LD Aspherical [IF] Macro', #4
@@ -142,9 +145,13 @@ $VERSION = '2.84';
     31.1 => 'Tamron SP AF 300mm f/2.8 LD IF', #15
     32 => 'Canon EF 24mm f/2.8 or Sigma Lens', #10
     32.1 => 'Sigma 15mm f/2.8 EX Fisheye', #11
-    33 => 'Voigtlander or Zeiss Lens',
+    33 => 'Voigtlander or Carl Zeiss Lens',
     33.1 => 'Voigtlander Ultron 40mm f/2 SLII Aspherical', #45
-    33.2 => 'Zeiss Distagon 35mm T* f/2 ZE', #PH
+    33.2 => 'Carl Zeiss Distagon T* 15mm f/2.8 ZE', #PH
+    33.3 => 'Carl Zeiss Distagon T* 18mm f/3.5 ZE', #PH
+    33.4 => 'Carl Zeiss Distagon T* 21mm f/2.8 ZE', #PH
+    33.5 => 'Carl Zeiss Distagon T* 28mm f/2 ZE', #PH
+    33.6 => 'Carl Zeiss Distagon T* 35mm f/2 ZE', #PH
     35 => 'Canon EF 35-80mm f/4-5.6', #32
     36 => 'Canon EF 38-76mm f/4.5-5.6', #32
     37 => 'Canon EF 35-80mm f/4-5.6 or Tamron Lens', #32
@@ -202,6 +209,7 @@ $VERSION = '2.84';
    '137.10' => 'Sigma 8-16mm f/4.5-5.6 DC HSM', #50-Zwielicht
    '137.11' => 'Tamron SP 17-50mm f/2.8 XR Di II VC', #50 (model B005)
    '137.12' => 'Tamron SP 60mm f/2 Macro Di II', #50 (model G005)
+   '137.13' => 'Sigma 10-20mm f/3.5 EX DC HSM', #Gerald Erdmann
     138 => 'Canon EF 28-80mm f/2.8-4L', #32
     139 => 'Canon EF 400mm f/2.8L',
     140 => 'Canon EF 500mm f/4.5L', #32
@@ -237,6 +245,7 @@ $VERSION = '2.84';
     160.1 => 'Tamron AF 19-35mm f/3.5-4.5', #44
     160.2 => 'Tokina AT-X 124 AF 12-24mm f/4 DX', #49 (not sure about specific model - PH)
     160.3 => 'Tokina AT-X 107 AF DX 10-17mm f/3.5-4.5 Fisheye', #PH (http://osdir.com/ml/digikam-devel/2011-04/msg00275.html)
+    160.4 => 'Tokina AF 11-16mm f/2.8 AT-X Pro DX', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3967.0.html
     161 => 'Canon EF 28-70mm f/2.8L or Sigma or Tamron Lens',
     161.1 => 'Sigma 24-70mm f/2.8 EX',
     161.2 => 'Sigma 28-70mm f/2.8 EX', #PH (http://www.breezesys.com/forum/showthread.php?t=3718)
@@ -264,6 +273,7 @@ $VERSION = '2.84';
     173.2 => 'Sigma APO Macro 150mm f/2.8 EX DG HSM', #14
     174 => 'Canon EF 135mm f/2L or Sigma Lens', #9
     174.1 => 'Sigma 70-200mm f/2.8 EX DG APO OS HSM', #PH (probably version II of this lens)
+    174.2 => 'Sigma 50-500mm f/4.5-6.3 APO DG OS HSM', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4031.0.html
     175 => 'Canon EF 400mm f/2.8L', #32
     176 => 'Canon EF 24-85mm f/3.5-4.5 USM',
     177 => 'Canon EF 300mm f/4L IS', #9
@@ -327,6 +337,8 @@ $VERSION = '2.84';
     249 => 'Canon EF 800mm f/5.6L IS', #35
     250 => 'Canon EF 24 f/1.4L II', #41
     251 => 'Canon EF 70-200mm f/2.8L IS II USM',
+    252 => 'Canon EF 70-200mm f/2.8L IS II USM + 1.4x', #50 (1.4x Mk II)
+    253 => 'Canon EF 70-200mm f/2.8L IS II USM + 2x', #PH (NC)
     254 => 'Canon EF 100mm f/2.8L Macro IS USM', #42
     # Note: LensType 488 (0x1e8) is reported as 232 (0xe8) in 7D CameraSettings
     488 => 'Canon EF-S 15-85mm f/3.5-5.6 IS USM', #PH
@@ -490,14 +502,17 @@ $VERSION = '2.84';
     0x3140000 => 'PowerShot ELPH 500 HS / IXUS 320 HS / IXY 32S', # (duplicate PowerShot model???)
     0x3190000 => 'PowerShot ELPH 110 HS / IXUS 125 HS / IXY 220F',
     0x3200000 => 'PowerShot D20',
+    0x3210000 => 'PowerShot A4000 IS',
     0x3220000 => 'PowerShot SX260 HS',
+    0x3240000 => 'PowerShot ELPH 530 HS / IXUS 510 HS / IXY 1',
     0x3250000 => 'PowerShot ELPH 520 HS / IXUS 500 HS / IXY 3',
-    0x3260000 => 'A3400IS',
+    0x3260000 => 'PowerShot A3400 IS',
+    0x3270000 => 'PowerShot A2400 IS',
     0x3280000 => 'PowerShot A2300',
-    # ??? => 'PowerShot ELPH 530 HS / IXUS 510 HS / IXY 1',
     # ??? => 'PowerShot ELPH 320 HS / IXUS 240 HS / IXY 420F',
     0x4040000 => 'PowerShot G1',
     0x6040000 => 'PowerShot S100 / Digital IXUS / IXY Digital',
+
     0x4007d673 => 'DC19/DC21/DC22',
     0x4007d674 => 'XH A1',
     0x4007d675 => 'HV10',
@@ -526,6 +541,7 @@ $VERSION = '2.84';
     0x4007da8f => 'HF M30/M31/M36/M300/M306', # (LEGRIA/VIXIA)
     0x4007da90 => 'HF S20/S21/S200', # (LEGRIA/VIXIA)
     0x4007da92 => 'FS31/FS36/FS37/FS300/FS305/FS306/FS307',
+
     # NOTE: some pre-production models may have a model name of
     # "Canon EOS Kxxx", where "xxx" is the last 3 digits of the model ID below.
     # This has been observed for the 1DSmkIII/K215 and 400D/K236.
@@ -558,6 +574,7 @@ $VERSION = '2.84';
     0x80000271 => 'WFT-E4',
     0x80000273 => 'WFT-E5',
     0x80000281 => 'EOS-1D Mark IV',
+    0x80000285 => 'EOS 5D Mark III',
     0x80000286 => 'EOS Rebel T3i / 600D / Kiss X5',
     0x80000287 => 'EOS 60D',
     0x80000288 => 'EOS Rebel T3 / 1100D / Kiss X50',
@@ -3078,8 +3095,13 @@ my %ciLongFocal = (
         Name => 'ShortOwnerName',
         Format => 'string[16]',
     },
+    0xcc => { #PH (NC)
+        Name => 'DirectoryIndex',
+        Groups => { 2 => 'Image' },
+        Format => 'int32u',
+    },
     0xd0 => {
-        Name => 'ImageNumber',
+        Name => 'FileIndex',
         Format => 'int16u',
         Groups => { 2 => 'Image' },
         ValueConv => '$val + 1',
@@ -4430,6 +4452,12 @@ my %ciLongFocal = (
     PRIORITY => 0,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
     NOTES => 'Unknown CameraInfo tags are divided into 3 tables based on format size.',
+    # This tag may be uncommented, and is useful for generating
+    # lists of models in the "Notes" below...
+    # 0 => {
+    #     Name => 'CameraInfoCount',
+    #     ValueConv => '$$self{CameraInfoCount}',
+    # },
     71 => { # [-1] <-- index relative to CameraInfoCount
         Name => 'CameraTemperature',
         Condition => '$$self{CameraInfoCount} == 72',
@@ -4468,7 +4496,7 @@ my %ciLongFocal = (
     466 => { # [-3]
         Name => 'CameraTemperature',
         Condition => '$$self{CameraInfoCount} == 469',
-        Notes => 'A1200, A2200, A3200, A3300, 100HS, 300HS and 500HS',
+        Notes => '100HS, 300HS, 500HS, A1200, A2200, A3200 and A3300',
         PrintConv => '"$val C"',
         PrintConvInv => '$val=~s/ ?C//; $val',
     },
@@ -4483,6 +4511,20 @@ my %ciLongFocal = (
         Name => 'CameraTemperature',
         Condition => '$$self{CameraInfoCount} == 509',
         Notes => 'SX230HS',
+        PrintConv => '"$val C"',
+        PrintConvInv => '$val=~s/ ?C//; $val',
+    },
+    520 => { # [-3]
+        Name => 'CameraTemperature',
+        Condition => '$$self{CameraInfoCount} == 523',
+        Notes => '310HS, 510HS, G1X, S100 (new), SX40HS and SX150',
+        PrintConv => '"$val C"',
+        PrintConvInv => '$val=~s/ ?C//; $val',
+    },
+    524 => { # [-3]
+        Name => 'CameraTemperature',
+        Condition => '$$self{CameraInfoCount} == 527',
+        Notes => '110HS, 520HS, A2300, A2400, A3400, A4000, D20 and SX260HS',
         PrintConv => '"$val C"',
         PrintConvInv => '$val=~s/ ?C//; $val',
     },

@@ -561,10 +561,10 @@ This module is perhaps more complicated than it needs to be because it is
 designed to be very flexible in the way time shifts are specified and
 applied...
 
-The ability to shift dates by Y years, M months, etc, is somewhat
-contradictory to the goal of maintaining a constant shift for all time
-values when applying a batch shift.  This is because shifting by 1 month can
-be equivalent to anything from 28 to 31 days, and 1 year can be 365 or 366
+The ability to shift dates by Y years, M months, etc, conflicts with the
+design goal of maintaining a constant shift for all time values when
+applying a batch shift.  This is because shifting by 1 month can be
+equivalent to anything from 28 to 31 days, and 1 year can be 365 or 366
 days, depending on the starting date.
 
 The inconsistency is handled by shifting the first tag found with the actual

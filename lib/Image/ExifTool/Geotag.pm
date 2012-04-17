@@ -18,7 +18,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:Public);
 
-$VERSION = '1.29';
+$VERSION = '1.31';
 
 sub JITTER() { return 2 }       # maximum time jitter
 
@@ -574,6 +574,61 @@ sub ApplySyncCorr($$)
 }
 
 #------------------------------------------------------------------------------
+# Scan outwards for a fix containing the requested parameter
+# Inputs: 0) name of fix parameter, 1) reference to list of fix times,
+#         2) reference to fix points hash, 3) index of starting time,
+#         4) direction to scan (-1 or +1), 5) maximum time difference
+# Returns: 0) time for fix containing requested information (or undef)
+#          1) the corresponding fix, 2) the value of the requested fix parameter
+sub ScanOutwards($$$$$$)
+{
+    my ($key, $times, $points, $i, $dir, $maxSecs) = @_;
+    my $t0 = $$times[$i];
+    for (;;) {
+        $i += $dir;
+        last if $i < 0 or $i >= scalar @$times;
+        my $t = $$times[$i];
+        last if abs($t - $t0) > $maxSecs;   # don't look too far
+        my $p = $$points{$t};
+        my $v = $$p{$key};
+        return($t,$p,$v) if defined $v;
+    }
+    return();
+}
+
+#------------------------------------------------------------------------------
+# Find nearest fix containing the specified parameter
+# Inputs: 0) ExifTool ref, 1) name of fix parameter, 2) reference to list of fix times,
+#         3) reference to fix points hash, 4) index of starting time,
+#         5) direction to scan (-1, +1 or undef), 6) maximum time difference
+# Returns: reference to fix hash or undef
+sub FindFix($$$$$$$)
+{
+    my ($exifTool, $key, $times, $points, $i, $dir, $maxSecs) = @_;
+    my ($t,$p);
+    if ($dir) {
+        ($t,$p) = ScanOutwards($key, $times, $points, $i, $dir, $maxSecs);
+    } else {
+        my ($t1, $p1) = ScanOutwards($key, $times, $points, $i, -1, $maxSecs);
+        my ($t2, $p2) = ScanOutwards($key, $times, $points, $i, 1, $maxSecs);
+        if (defined $t1) {
+            if (defined $t2) {
+                # both surrounding points are valid, so take the closest one
+                ($t, $p) = ($t - $t1 < $t2 - $t) ? ($t1, $p1) : ($t2, $p2);
+            } else {
+                ($t, $p) = ($t1, $p1);
+            }
+        } elsif (defined $t2) {
+            ($t, $p) = ($t2, $p2);
+        }
+    }
+    if (defined $p and $$exifTool{OPTIONS}{Verbose} > 2) {
+        $exifTool->VPrint(2, "  Taking $key from fix:\n", PrintFix($points, $t))
+    }
+    return $p;
+}
+
+#------------------------------------------------------------------------------
 # Set new geotagging values according to date/time
 # Inputs: 0) ExifTool object ref, 1) date/time value (or undef to delete tags)
 #         2) optional write group
@@ -585,7 +640,7 @@ sub SetGeoValues($$;$)
     my ($exifTool, $val, $writeGroup) = @_;
     my $geotag = $exifTool->GetNewValues('Geotag');
     my $verbose = $exifTool->Options('Verbose');
-    my ($fix, $time, $fsec, $noDate, $secondTry);
+    my ($fix, $time, $fsec, $noDate, $secondTry, $iExt, $iDir);
 
     # remove date if none of our fixes had date information
     $val =~ s/^\S+\s+// if $val and $geotag and not $$geotag{IsDate};
@@ -597,6 +652,7 @@ sub SetGeoValues($$;$)
     defined $geoMaxIntSecs or $geoMaxIntSecs = 1800;
     defined $geoMaxExtSecs or $geoMaxExtSecs = 1800;
 
+    my $times = $$geotag{Times};
     my $points = $$geotag{Points};
     my $has = $$geotag{Has};
     my $err = '';
@@ -606,7 +662,6 @@ sub SetGeoValues($$;$)
             $err = 'No GPS track loaded';
             last;
         }
-        my $times = $$geotag{Times};
         unless ($times) {
             # generate sorted timestamp list for binary search
             my @times = sort { $a <=> $b } keys %$points;
@@ -662,6 +717,10 @@ sub SetGeoValues($$;$)
             my $out = $exifTool->Options('TextOut');
             my $str = "$fsec UTC";
             $str .= sprintf(" (incl. Geosync offset of %+.3f sec)", $sync) if defined $sync;
+            unless ($tz) {
+                my $tzs = Image::ExifTool::TimeZoneString([$sec,$min,$hr,$day,$mon-1,$year-1900],$time);
+                $str .= " (local timezone is $tzs)";
+            }
             print $out '  Geotime value:   ' . Image::ExifTool::ConvertUnixTime(int $time) . "$str\n";
         }
         # interpolate GPS track at $time
@@ -670,7 +729,8 @@ sub SetGeoValues($$;$)
                 $err or $err = 'Time is too far before track';
             } else {
                 $fix = $$points{$$times[0]};
-                $exifTool->VPrint(2, "  Pos taken from fix:\n",
+                $iExt = 0;  $iDir = 1;
+                $exifTool->VPrint(2, "  Taking pos from fix:\n",
                     PrintFix($points, $$times[0])) if $verbose > 2;
             }
         } elsif ($time > $$times[-1]) {
@@ -678,7 +738,8 @@ sub SetGeoValues($$;$)
                 $err or $err = 'Time is too far beyond track';
             } else {
                 $fix = $$points{$$times[-1]};
-                $exifTool->VPrint(2, "  Pos taken from fix:\n",
+                $iExt = $#$times;  $iDir = -1;
+                $exifTool->VPrint(2, "  Taking pos from fix:\n",
                     PrintFix($points, $$times[-1])) if $verbose > 2;
             }
         } else {
@@ -701,18 +762,25 @@ sub SetGeoValues($$;$)
             # don't interpolate if fixes are too far apart
             if ($t1 - $t0 > $maxSecs) {
                 # treat as an extrapolation -- use nearest fix if close enough
-                my $tn = ($time - $t0 < $t1 - $time) ? $t0 : $t1;
+                my $tn;
+                if ($time - $t0 < $t1 - $time) {
+                    $tn = $t0;
+                    $iExt = $i0;
+                } else {
+                    $tn = $t1;
+                    $iExt = $i1;
+                }
                 if (abs($time - $tn) > $geoMaxExtSecs) {
                     $err or $err = 'Time is too far from nearest GPS fix';
                 } else {
                     $fix = $$points{$tn};
-                    $exifTool->VPrint(2, "  Pos taken from fix:\n",
+                    $exifTool->VPrint(2, "  Taking pos from fix:\n",
                         PrintFix($points, $tn)) if $verbose > 2;
                 }
             } else {
                 my $f0 = $t1 == $t0 ? 0 : ($time - $t0) / ($t1 - $t0);
                 my $p0 = $$points{$t0};
-                $exifTool->VPrint(2, "  Interpolated pos between fixes (f=$f0):\n",
+                $exifTool->VPrint(2, "  Interpolating pos between fixes (f=$f0):\n",
                     PrintFix($points, $t0, $t1)) if $verbose > 2;
                 $fix = { };
                 # loop through available fix information categories
@@ -736,34 +804,22 @@ Category:       foreach $category (qw{pos track alt orient}) {
                         } else {
                             # scan outwards looking for fixes with the required information
                             # (NOTE: SHOULD EVENTUALLY DO THIS FOR EXTRAPOLATION TOO!)
-                            my ($t0b, $t1b, $i);
+                            my ($t0b, $t1b);
                             if (defined $v0) {
                                 $t0b = $t0;  $p0b = $p0;
                             } else {
-                                for ($i=$i0-1; ; --$i) {
-                                    next Category if $i < 0;
-                                    $t0b = $$times[$i];
-                                    next Category if $t1 - $t0b > $maxSecs; # don't look too far
-                                    $p0b = $$points{$t0b};
-                                    $v0 = $$p0b{$key};
-                                    last if defined $v0;
-                                }
+                                ($t0b,$p0b,$v0) = ScanOutwards($key,$times,$points,$i0,-1,$maxSecs);
+                                next Category unless defined $t0b;
                             }
                             if (defined $v1) {
                                 $t1b = $t1;  $p1b = $p1;
                             } else {
-                                for ($i=$i1+1; ; ++$i) {
-                                    next Category if $i >= scalar(@$times);
-                                    $t1b = $$times[$i];
-                                    next Category if $t1b - $t0b > $maxSecs;
-                                    $p1b = $$points{$t1b};
-                                    $v1 = $$p1b{$key};
-                                    last if defined $v1;
-                                }
+                                ($t1b,$p1b,$v1) = ScanOutwards($key,$times,$points,$i1,1,$maxSecs);
+                                next Category unless defined $t1b;
                             }
                             # re-calculate the interpolation factor
                             $f = $f0b = $t1b == $t0b ? 0 : ($time - $t0b) / ($t1b - $t0b);
-                            $exifTool->VPrint(2, "  Interpolated $category between fixes (f=$f):\n",
+                            $exifTool->VPrint(2, "  Interpolating $category between fixes (f=$f):\n",
                                 PrintFix($points, $t0b, $t1b)) if $verbose > 2;
                         }
                         # must interpolate cyclical values differently
@@ -802,6 +858,12 @@ Category:       foreach $category (qw{pos track alt orient}) {
         if (defined $$fix{alt}) {
             $gpsAlt = abs $$fix{alt};
             $gpsAltRef = ($$fix{alt} < 0 ? 1 : 0);
+        } elsif ($$has{alt} and defined $iExt) {
+            my $tFix = FindFix($exifTool,'alt',$times,$points,$iExt,$iDir,$geoMaxExtSecs);
+            if ($tFix) {
+                $gpsAlt = abs $$tFix{alt};
+                $gpsAltRef = ($$tFix{alt} < 0 ? 1 : 0);
+            }
         }
         # set new GPS tag values (EXIF, or XMP if write group is 'xmp')
         my ($xmp, $exif, @r);
@@ -817,17 +879,27 @@ Category:       foreach $category (qw{pos track alt orient}) {
         @r = $exifTool->SetNewValue(GPSAltitude => $gpsAlt, %opts);
         @r = $exifTool->SetNewValue(GPSAltitudeRef => $gpsAltRef, %opts);
         if ($$has{track}) {
-            @r = $exifTool->SetNewValue(GPSTrack => $$fix{track}, %opts);
-            @r = $exifTool->SetNewValue(GPSTrackRef => (defined $$fix{track} ? 'T' : undef), %opts);
-            @r = $exifTool->SetNewValue(GPSSpeed => $$fix{speed}, %opts);
-            @r = $exifTool->SetNewValue(GPSSpeedRef => (defined $$fix{speed} ? 'N' : undef), %opts);
+            my $tFix = $fix;
+            if (not defined $$fix{track} and defined $iExt) {
+                my $p = FindFix($exifTool,'track',$times,$points,$iExt,$iDir,$geoMaxExtSecs);
+                $tFix = $p if $p;
+            }
+            @r = $exifTool->SetNewValue(GPSTrack => $$tFix{track}, %opts);
+            @r = $exifTool->SetNewValue(GPSTrackRef => (defined $$tFix{track} ? 'T' : undef), %opts);
+            @r = $exifTool->SetNewValue(GPSSpeed => $$tFix{speed}, %opts);
+            @r = $exifTool->SetNewValue(GPSSpeedRef => (defined $$tFix{speed} ? 'N' : undef), %opts);
         }
         if ($$has{orient}) {
-            @r = $exifTool->SetNewValue(GPSImgDirection => $$fix{dir}, %opts);
-            @r = $exifTool->SetNewValue(GPSImgDirectionRef => (defined $$fix{dir} ? 'T' : undef), %opts);
+            my $tFix = $fix;
+            if (not defined $$fix{dir} and defined $iExt) {
+                my $p = FindFix($exifTool,'dir',$times,$points,$iExt,$iDir,$geoMaxExtSecs);
+                $tFix = $p if $p;
+            }
+            @r = $exifTool->SetNewValue(GPSImgDirection => $$tFix{dir}, %opts);
+            @r = $exifTool->SetNewValue(GPSImgDirectionRef => (defined $$tFix{dir} ? 'T' : undef), %opts);
             # Note: GPSPitch and GPSRoll are non-standard, and must be user-defined
-            @r = $exifTool->SetNewValue(GPSPitch => $$fix{pitch}, %opts);
-            @r = $exifTool->SetNewValue(GPSRoll => $$fix{roll}, %opts);
+            @r = $exifTool->SetNewValue(GPSPitch => $$tFix{pitch}, %opts);
+            @r = $exifTool->SetNewValue(GPSRoll => $$tFix{roll}, %opts);
         }
         unless ($xmp) {
             @r = $exifTool->SetNewValue(GPSLatitudeRef => ($$fix{lat} > 0 ? 'N' : 'S'), %opts);

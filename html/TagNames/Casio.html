@@ -301,6 +301,7 @@
 <td class=c>int16u</td>
 <td><span class=s>0 = Manual
   <br>1 = Daylight
+  <br>2 = Cloudy
   <br>3 = Shade
   <br>4 = Flash?
   <br>6 = Fluorescent
@@ -1209,7 +1210,7 @@
   <br>7 = Pink</span></td></tr>
 <tr>
 <td title='0x301b = 12315'>0x301b</td>
-<td>UnknownMode?</td>
+<td>ArtMode</td>
 <td class=c>int16u</td>
 <td><span class=s>0 = Normal
   <br>8 = Silent Movie
@@ -1218,7 +1219,12 @@
   <br>47 = Painting
   <br>49 = Crayon Drawing
   <br>51 = Panorama
-  <br>52 = Art HDR</span></td></tr>
+  <br>52 = Art HDR
+  <br>62 = High Speed Night Shot
+  <br>64 = Monochrome
+  <br>67 = Toy Camera
+  <br>68 = Pop Art
+  <br>69 = Light Tone</span></td></tr>
 <tr class=b>
 <td title='0x301c = 12316'>0x301c</td>
 <td>SequenceNumber</td>
@@ -1297,11 +1303,16 @@
   <br>240 = Auto-N</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
 <tr class=b>
+<td title='0x310b = 12555'>0x310b</td>
+<td>ArtModeParameters</td>
+<td class=c>int8u[3]</td>
+<td>&nbsp;</td></tr>
+<tr>
 <td title='0x4001 = 16385'>0x4001</td>
 <td>CaptureFrameRate</td>
 <td class=c>int16u[n]</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td title='0x4003 = 16387'>0x4003</td>
 <td>VideoQuality</td>
 <td class=c>int16u</td>
@@ -1519,7 +1530,7 @@ Casio QV-7000SX.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Nov 24, 2011</i>
+<br><i>Last revised Mar 16, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

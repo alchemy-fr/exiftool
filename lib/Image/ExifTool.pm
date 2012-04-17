@@ -27,7 +27,7 @@ use vars qw($VERSION $RELEASE @ISA @EXPORT_OK %EXPORT_TAGS $AUTOLOAD @fileTypes
             %mimeType $swapBytes $swapWords $currentByteOrder %unpackStd
             %jpegMarker %specialTags);
 
-$VERSION = '8.80';
+$VERSION = '8.88';
 $RELEASE = '';
 @ISA = qw(Exporter);
 %EXPORT_TAGS = (
@@ -131,7 +131,7 @@ sub ParseArguments($;@); #(defined in attempt to avoid mod_perl problem)
 );
 
 # alphabetical list of current Lang modules
-@langs = qw(cs de en en_ca en_gb es fr it ja ko nl pl ru sv tr zh_cn zh_tw);
+@langs = qw(cs de en en_ca en_gb es fi fr it ja ko nl pl ru sv tr zh_cn zh_tw);
 
 $defaultLang = 'en';    # default language
 
@@ -143,6 +143,7 @@ $defaultLang = 'en';    # default language
     en_ca => 'Canadian English',
     en_gb => 'British English',
     es => 'Spanish (Español)',
+    fi => 'Finnish (Suomi)',
     fr => 'French (Français)',
     it => 'Italian (Italiano)',
     ja => 'Japanese (日本語)',
@@ -2693,7 +2694,7 @@ sub Init($)
     delete $self->{DOC_NUM};        # current embedded document number
     $self->{DOC_COUNT}  = 0;        # count of embedded documents processed
     $self->{BASE}       = 0;        # base for offsets from start of file
-    $self->{FILE_ORDER} = { };      # * hash of tag order in file
+    $self->{FILE_ORDER} = { };      # * hash of tag order in file ('*' = based on tag key)
     $self->{VALUE}      = { };      # * hash of raw tag values
     $self->{BOTH}       = { };      # * hash for Value/PrintConv values of Require'd tags
     $self->{TAG_INFO}   = { };      # * hash of tag information
@@ -2731,7 +2732,7 @@ sub Init($)
 sub Open(*$;$)
 {
     my ($glob, $file, $mode) = @_;
-    $file =~ s/^(\s)/.\/$1/;            # protect leading whitespace
+    $file =~ s/^([\s&])/.\/$1/;     # protect leading whitespace or ampersand
     if ($mode) {
         # add leading space to protect against leading characters like '>'
         # in file name, and trailing "\0" to protect trailing spaces
@@ -4769,7 +4770,7 @@ sub ProcessJPEG($$)
             } else {
                 # Hmmm.  Could be XMP, let's see
                 my $processed;
-                if ($$segDataPt =~ /^http/ or $$segDataPt =~ /<exif:/) {
+                if ($$segDataPt =~ /^http/ or $$segDataPt =~ /^XMP\0/ or $$segDataPt =~ /<exif:/) {
                     $dumpType = 'XMP';
                     # also try to parse XMP with a non-standard header
                     # (note: this non-standard XMP is ignored when writing)
@@ -4790,7 +4791,7 @@ sub ProcessJPEG($$)
                     }
                 }
                 if ($verbose and not $processed) {
-                    $self->Warn("Ignored EXIF block length $length (bad header)");
+                    $self->Warn("Ignored APP1 segment length $length (unknown header)");
                 }
             }
         } elsif ($marker == 0xe2) {         # APP2 (ICC Profile, FPXR, MPF, PreviewImage)
@@ -5682,7 +5683,10 @@ sub ProcessDirectory($$$;$)
     # set directory name from default group0 name if not done already
     $$dirInfo{DirName} or $$dirInfo{DirName} = $tagTablePtr->{GROUPS}{0};
     # guard against cyclical recursion into the same directory
-    if (defined $$dirInfo{DirStart} and defined $$dirInfo{DataPos}) {
+    if (defined $$dirInfo{DirStart} and defined $$dirInfo{DataPos} and
+        # directories don't overlap if the length is zero
+        ($$dirInfo{DirLen} or not defined $$dirInfo{DirLen}))
+    {
         my $addr = $$dirInfo{DirStart} + $$dirInfo{DataPos} + ($$dirInfo{Base}||0);
         if ($self->{PROCESSED}{$addr}) {
             $self->Warn("$$dirInfo{DirName} pointer references previous $self->{PROCESSED}{$addr} directory");
@@ -5981,7 +5985,7 @@ sub FoundTag($$$)
 {
     local $_;
     my ($self, $tagInfo, $value) = @_;
-    my $tag;
+    my ($tag, $noListDel);
 
     if (ref $tagInfo eq 'HASH') {
         $tag = $$tagInfo{Name} or warn("No tag name\n"), return undef;
@@ -5994,12 +5998,12 @@ sub FoundTag($$$)
         $tagInfo or $tagInfo = { Name => $tag, Groups => \%allGroupsExifTool };
         $self->{OPTIONS}{Verbose} and $self->VerboseInfo(undef, $tagInfo, Value => $value);
     }
-    my $rawValueHash = $self->{VALUE};
+    my $valueHash = $self->{VALUE};
     if ($$tagInfo{RawConv}) {
         # initialize @val for use in Composite RawConv expressions
         my @val;
         if (ref $value eq 'HASH') {
-            foreach (keys %$value) { $val[$_] = $$rawValueHash{$$value{$_}}; }
+            foreach (keys %$value) { $val[$_] = $$valueHash{$$value{$_}}; }
         }
         my $conv = $$tagInfo{RawConv};
         local $SIG{'__WARN__'} = \&SetWarning;
@@ -6023,15 +6027,25 @@ sub FoundTag($$$)
         $priority = 0 if not defined $priority and $$tagInfo{Avoid};
     }
     # handle duplicate tag names
-    if (defined $$rawValueHash{$tag}) {
+    if (defined $$valueHash{$tag}) {
         # add to list if there is an active list for this tag
         if ($self->{LIST_TAGS}{$tagInfo}) {
             $tag = $self->{LIST_TAGS}{$tagInfo};  # use key from previous list tag
-            if (ref $$rawValueHash{$tag} ne 'ARRAY') {
-                $$rawValueHash{$tag} = [ $$rawValueHash{$tag} ];
+            if (defined $$self{NO_LIST}) {
+                # accumulate list in TAG_EXTRA "NoList" element
+                if (defined $self->{TAG_EXTRA}{$tag}{NoList}) {
+                    push @{$self->{TAG_EXTRA}{$tag}{NoList}}, $value;
+                } else {
+                    $self->{TAG_EXTRA}{$tag}{NoList} = [ $$valueHash{$tag}, $value ];
+                }
+                $noListDel = 1; # set flag to delete this tag if re-listed
+            } else {
+                if (ref $$valueHash{$tag} ne 'ARRAY') {
+                    $$valueHash{$tag} = [ $$valueHash{$tag} ];
+                }
+                push @{$$valueHash{$tag}}, $value;
+                return $tag;    # return without creating a new entry
             }
-            push @{$$rawValueHash{$tag}}, $value;
-            return $tag;    # return without creating a new entry
         }
         # get next available tag key
         my $nextInd = $self->{DUPL_TAG}{$tag} = ($self->{DUPL_TAG}{$tag} || 0) + 1;
@@ -6061,11 +6075,11 @@ sub FoundTag($$$)
         } else {
             $priority = 1;  # the normal default
         }
-        if ($priority >= $oldPriority and not $self->{DOC_NUM}) {
+        if ($priority >= $oldPriority and not $self->{DOC_NUM} and not $noListDel) {
             # move existing tag out of the way since this tag is higher priority
             $self->{MOVED_KEY} = $nextTag;  # used in BuildCompositeTags()
             $self->{PRIORITY}{$nextTag} = $self->{PRIORITY}{$tag};
-            $$rawValueHash{$nextTag} = $$rawValueHash{$tag};
+            $$valueHash{$nextTag} = $$valueHash{$tag};
             $self->{FILE_ORDER}{$nextTag} = $self->{FILE_ORDER}{$tag};
             my $oldInfo = $self->{TAG_INFO}{$nextTag} = $self->{TAG_INFO}{$tag};
             if ($self->{TAG_EXTRA}{$tag}) {
@@ -6078,6 +6092,7 @@ sub FoundTag($$$)
             $tag = $nextTag;        # don't override the existing tag
         }
         $self->{PRIORITY}{$tag} = $priority;
+        $self->{TAG_EXTRA}{$tag}{NoListDel} = 1 if $noListDel;
     } elsif ($priority) {
         # set tag priority (only if exists and non-zero)
         $self->{PRIORITY}{$tag} = $priority;
@@ -6085,7 +6100,7 @@ sub FoundTag($$$)
 
     # save the raw value, file order, tagInfo ref, group1 name,
     # and tag key for lists if necessary
-    $$rawValueHash{$tag} = $value;
+    $$valueHash{$tag} = $value;
     $self->{FILE_ORDER}{$tag} = ++$self->{NUM_FOUND};
     $self->{TAG_INFO}{$tag} = $tagInfo;
     # set dynamic groups 1 and 3 if necessary
@@ -6101,7 +6116,10 @@ sub FoundTag($$$)
     $self->{TAG_EXTRA}{$tag}{G5} = $self->MetadataPath() if $self->{OPTIONS}{SavePath};
 
     # remember this tagInfo if we will be accumulating values in a list
-    $self->{LIST_TAGS}{$tagInfo} = $tag if $$tagInfo{List} and not $$self{NO_LIST};
+    # (but don't override earlier list if this may be deleted by NoListDel flag)
+    if ($$tagInfo{List} and not $$self{NO_LIST} and not $noListDel) {
+        $self->{LIST_TAGS}{$tagInfo} = $tag;
+    }
 
     return $tag;
 }
@@ -6309,8 +6327,10 @@ sub ProcessBinaryData($$$)
     # prepare list of tag numbers to extract
     my @tags;
     if ($unknown > 1 and defined $$tagTablePtr{FIRST_ENTRY}) {
+        # don't create a stupid number of tags if data is huge
+        my $sizeLimit = $size < 65536 ? $size : 65536;
         # scan through entire binary table
-        @tags = ($$tagTablePtr{FIRST_ENTRY}..(int($size/$increment) - 1));
+        @tags = ($$tagTablePtr{FIRST_ENTRY}..(int($sizeLimit/$increment) - 1));
         # add in floating point tag ID's if they exist
         my @ftags = grep /\./, TagTableKeys($tagTablePtr);
         @tags = sort { $a <=> $b } @tags, @ftags if @ftags;
@@ -6375,9 +6395,12 @@ sub ProcessBinaryData($$$)
                 $count = eval $count;
                 $@ and warn("Format $$tagInfo{Name}: $@"), next;
                 next if $count < 0;
-                # allow a variable-length of any format type (with base $count = 1)
+                # allow a variable-length value of any format
+                # (note: the next incremental index points to data immediately after
+                #  this value, regardless of the size of this value, even if it is zero)
                 if ($format =~ s/^var_//) {
-                    $varSize += ($count - 1) * ($formatSize{$format} || 1);
+                    $varSize += $count * ($formatSize{$format} || 1) - $increment;
+                    $wasVar = 1;
                     # save variable size data if required for writing
                     if ($$dirInfo{VarFormatData}) {
                         push @{$$dirInfo{VarFormatData}}, $index, $varSize;
@@ -6472,7 +6495,7 @@ sub ProcessBinaryData($$$)
                 $len = $count * $formatSize{$format};
                 $len = $more if $len > $more;
             } else {
-                $len = $more;
+                $len = $more;   # directory size is all of remaining data
                 if ($$subTablePtr{PROCESS_PROC} and
                     $$subTablePtr{PROCESS_PROC} eq \&ProcessBinaryData)
                 {
@@ -6486,15 +6509,16 @@ sub ProcessBinaryData($$$)
                 my $start = $entry + $offset + $dataPos;
                 $subdirBase = eval($$subdir{Base}) + $base;
             }
+            my $start = $$subdir{Start} || 0;
             my %subdirInfo = (
                 DataPt   => $dataPt,
                 DataPos  => $dataPos,
                 DataLen  => length $$dataPt,
-                DirStart => $entry + $offset,
-                DirLen   => $len,
+                DirStart => $entry + $offset + $start,
+                DirLen   => $len - $start,
                 Base     => $subdirBase,
             );
-            $self->ProcessDirectory(\%subdirInfo, $subTablePtr);
+            $self->ProcessDirectory(\%subdirInfo, $subTablePtr, $$subdir{ProcessProc});
             next;
         }
         if ($$tagInfo{IsOffset} and $$tagInfo{IsOffset} ne '3') {

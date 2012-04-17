@@ -508,7 +508,7 @@ $VERSION = '1.06';
     },
    'WhiteBalance' => {
       PrintConv => {
-        'Color Temperature/Color Filter' => 'Color Temperature/Colour Filter',
+        'Color Temperature/Color Filter' => 'Colour Temperature/Colour Filter',
       },
     },
    'WhiteBalanceSet' => {

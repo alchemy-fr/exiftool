@@ -1336,7 +1336,7 @@ well as newer tags and values added by later models.</p>
 <td title='0x0106 = 262'>0x0106</td>
 <td>AEBShotCount</td>
 <td class=c>int32s[n]</td>
-<td><span class=s><span class=n>(1 value for the 1DmkIII, 2 for the 1DmkIV)</span>
+<td><span class=s><span class=n>(1 value for the 1DmkIII and 5DmkIII, 2 for the 1DmkIV)</span>
   <br>[Value 0]
   <br>0 = 3
   <br>1 = 2
@@ -1421,7 +1421,7 @@ well as newer tags and values added by later models.</p>
   <br>0 = Auto
   <br>1 = 1/300-1/60 Auto
   <br>2 = 1/300 Fixed
-  <br><span class=n>(5D Mark II, 500D, 550D, 600D and 1100D)</span>
+  <br><span class=n>(5D Mark II, 5D Mark III, 500D, 550D, 600D and 1100D)</span>
   <br>0 = Auto
   <br>1 = 1/200-1/60 Auto
   <br>2 = 1/200 Fixed</span></td></tr>
@@ -1516,6 +1516,21 @@ well as newer tags and values added by later models.</p>
   <br><span class=n>(1D Mark IV)</span>
   <br>0 = Displays shooting functions
   <br>1 = Displays camera settings</span></td></tr>
+<tr class=b>
+<td title='0x040a = 1034'>0x040a</td>
+<td>ViewfinderWarnings</td>
+<td class=c>int32s</td>
+<td><span class=s>Bit 0 = Monochrome
+  <br>Bit 1 = WB corrected
+  <br>Bit 2 = One-touch image quality
+  <br>Bit 3 = ISO expansion
+  <br>Bit 4 = Spot metering</span></td></tr>
+<tr>
+<td title='0x040b = 1035'>0x040b</td>
+<td>LVShootingAreaDisplay</td>
+<td class=c>int32s</td>
+<td><span class=s>0 = Masked
+  <br>1 = Outlined</span></td></tr>
 <tr class=b>
 <td title='0x0501 = 1281'>0x0501</td>
 <td>USMLensElectronicMF</td>
@@ -1897,6 +1912,17 @@ well as newer tags and values added by later models.</p>
 <td><span class=s>0 = Raise built-in flash
   <br>1 = ISO speed</span></td></tr>
 <tr class=b>
+<td title='0x070f = 1807'>0x070f</td>
+<td>MultiFunctionLock</td>
+<td class=c>int32s</td>
+<td><span class=s>[Value 0]
+  <br>0 = Off
+  <br>1 = On
+  <br>[Value 1]
+  <br>Bit 0 = Main dial
+  <br>Bit 1 = Quick control dial
+  <br>Bit 2 = Multi-controller</span></td></tr>
+<tr>
 <td title='0x080b = 2059'>0x080b</td>
 <td>FocusingScreen</td>
 <td class=c>int32s</td>
@@ -1913,20 +1939,20 @@ well as newer tags and values added by later models.</p>
   <br>1 = Ec-A,B,C,CII,CIII,D,H,I,L
   <br>2 = Ec-S
   <br>3 = Ec-N,R</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x080c = 2060'>0x080c</td>
 <td>TimerLength</td>
 <td class=c>int32s[4]</td>
 <td><span class=s>[Value 0]
   <br>0 = Disable
   <br>1 = Enable</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x080d = 2061'>0x080d</td>
 <td>ShortReleaseTimeLag</td>
 <td class=c>int32s</td>
 <td><span class=s>0 = Disable
   <br>1 = Enable</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x080e = 2062'>0x080e</td>
 <td>AddAspectRatioInfo</td>
 <td class=c>int32s</td>
@@ -1937,29 +1963,35 @@ well as newer tags and values added by later models.</p>
   <br>4 = 6:7
   <br>5 = 10:12
   <br>6 = 5:7</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x080f = 2063'>0x080f</td>
 <td>AddOriginalDecisionData</td>
 <td class=c>int32s</td>
 <td><span class=s>0 = Off
   <br>1 = On</span></td></tr>
-<tr>
+<tr class=b>
 <td title='0x0810 = 2064'>0x0810</td>
 <td>LiveViewExposureSimulation</td>
 <td class=c>int32s</td>
 <td><span class=s>0 = Disable (LCD auto adjust)
   <br>1 = Enable (simulates exposure)</span></td></tr>
-<tr class=b>
+<tr>
 <td title='0x0811 = 2065'>0x0811</td>
 <td>LCDDisplayAtPowerOn</td>
 <td class=c>int32s</td>
 <td><span class=s>0 = Display
   <br>1 = Retain power off status</span></td></tr>
+<tr class=b>
+<td title='0x0813 = 2067'>0x0813</td>
+<td>DefaultEraseOption</td>
+<td class=c>int32s</td>
+<td><span class=s>0 = Cancel selected
+  <br>1 = Erase selected</span></td></tr>
 </table></td></tr></table></blockquote>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Oct 4, 2011</i>
+<br><i>Last revised Mar 25, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

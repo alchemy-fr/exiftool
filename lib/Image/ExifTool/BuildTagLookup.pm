@@ -32,7 +32,7 @@ use Image::ExifTool::XMP;
 use Image::ExifTool::Canon;
 use Image::ExifTool::Nikon;
 
-$VERSION = '2.42';
+$VERSION = '2.46';
 @ISA = qw(Exporter);
 
 sub NumbersFirst;
@@ -238,12 +238,14 @@ languages.
 When reading, C<struct> tags are extracted only if the Struct (-struct)
 option is used.  Otherwise the corresponding "flattened" tags, indicated by
 an underline (C<_>) after the B<Writable> type, are extracted.  When
-copying, the Struct option is in effect by default, so flattened tag names
-may not be copied unless the Struct option is disabled (by setting Struct to
-0 via the API or with --struct on the command line).  When writing, the
-Struct option has no effect, and both structured and flattened tags may be
-written.  See L<http://owl.phy.queensu.ca/~phil/exiftool/struct.html> for
-more details.
+copying, by default both structured and flattened tags are available, but
+the flattened tags are considered "unsafe" so they they aren't copied unless
+specified explicitly.  The Struct option may be disabled by setting Struct
+to 0 via the API or with --struct on the command line to copy only flattened
+tags, or enabled by setting Struct to 1 via the API or with -struct on the
+command line to copy only as structures.  When writing, the Struct option
+has no effect, and both structured and flattened tags may be written.  See
+L<http://owl.phy.queensu.ca/~phil/exiftool/struct.html> for more details.
 
 Individual languages for C<lang-alt> tags are accessed by suffixing the tag
 name with a '-', followed by an RFC 3066 language code (ie. "XMP:Title-fr",
@@ -262,8 +264,8 @@ more than one namespace, less common namespaces are avoided when writing.
 However, any namespace may be written by specifying a family 1 group name
 for the tag, ie) XMP-exif:Contrast or XMP-crs:Contrast.  When deciding on
 which tags to add to an image, using standard schemas such as
-L<dc|/XMP dc Tags>, L<xmp|/XMP xmp Tags> or L<iptc|/XMP iptcCore Tags> is
-recommended if possible.
+L<dc|/XMP dc Tags>, L<xmp|/XMP xmp Tags>, L<iptcCore|/XMP iptcCore Tags>
+and L<iptcExt|/XMP iptcExt Tags> is recommended if possible.
 
 For structures, the heading of the first column is B<Field Name>.  Field
 names are very similar to tag names, except they are used to identify fields
@@ -371,13 +373,6 @@ These tags are used in Pentax/Asahi cameras.
     Sigma => q{
 These tags are used in Sigma/Foveon cameras.  Many tags are not consistent
 between different models.
-},
-    Sony => q{
-The maker notes in images from most recent Sony camera models contain a
-wealth of information, but for some models very little has been decoded. 
-Use the ExifTool Unknown (-u) or Verbose (-v) options to see information
-about the unknown tags.  Also see the Minolta tags which are used by some
-Sony models.
 },
     CanonRaw => q{
 These tags apply to CRW-format Canon RAW files and information in the APP0
@@ -598,6 +593,9 @@ sub new
         $short =~ s/::/ /;
         $short =~ s/^(.+)Tags$/\u$1/ unless $short eq 'Nikon AVITags';
         $short =~ s/^Exif\b/EXIF/;
+        # change underlines to dashes in XMP-mwg group names
+        # (we used underlines just because Perl variables can't contain dashes)
+        $short =~ s/^XMP mwg_/XMP mwg-/;
         $shortName{$tableName} = $short;    # remember short name
         $tableNum{$tableName} = $tableNum++;
     }
@@ -637,7 +635,7 @@ sub new
         $longID{$tableName} = 0;
         $longName{$tableName} = 0;
         # save all tag names
-        my ($tagID, $binaryTable, $noID, $isIPTC, $isXMP);
+        my ($tagID, $binaryTable, $noID, $hexID, $isIPTC, $isXMP);
         $isIPTC = 1 if $writeProc and $writeProc eq \&Image::ExifTool::IPTC::WriteIPTC;
         # generate flattened tag names for structure fields if this is an XMP table
         if ($$table{GROUPS} and $$table{GROUPS}{0} eq 'XMP') {
@@ -649,6 +647,7 @@ sub new
             }
         }
         $noID = 1 if $isXMP or $short =~ /^(Shortcuts|ASF.*)$/ or $$vars{NO_ID};
+        $hexID = $$vars{HEX_ID};
         my $processBinaryData = ($$table{PROCESS_PROC} and (
             $$table{PROCESS_PROC} eq \&Image::ExifTool::ProcessBinaryData or
             $$table{PROCESS_PROC} eq \&Image::ExifTool::Nikon::ProcessNikonEncrypted));
@@ -670,7 +669,7 @@ sub new
         $defFormat = 'int8u' if not $defFormat and $binaryTable;
 
 TagID:  foreach $tagID (@keys) {
-            my ($tagInfo, @tagNames, $subdir, $format, @values);
+            my ($tagInfo, @tagNames, $subdir, @values);
             my (@infoArray, @require, @writeGroup, @writable);
             if ($shortcut) {
                 # must build a dummy tagInfo list since Shortcuts is not a normal table
@@ -688,9 +687,9 @@ TagID:  foreach $tagID (@keys) {
             } else {
                 @infoArray = GetTagInfoList($table,$tagID);
             }
-            $format = $defFormat;
             foreach $tagInfo (@infoArray) {
                 my $name = $$tagInfo{Name};
+                my $format = $$tagInfo{Format};
                 # validate Name
                 warn "Warning: Invalid tag name $short '$name'\n" if $name !~ /^[-\w]+$/;
                 # accumulate information for consistency check of BinaryData tables
@@ -698,15 +697,29 @@ TagID:  foreach $tagID (@keys) {
                     $isOffset{$tagID} = $name if $$tagInfo{IsOffset};
                     $hasSubdir{$tagID} = $name if $$tagInfo{SubDirectory};
                     # require DATAMEMBER for writable var-format tags, Hook and DataMember tags
-                    if ($$tagInfo{Format} and $$tagInfo{Format} =~ /^var_/) {
+                    if ($format and $format =~ /^var_/) {
                         $datamember{$tagID} = $name;
                         unless (defined $$tagInfo{Writable} and not $$tagInfo{Writable}) {
                             warn "Warning: Var-format tag is writable - $short $name\n"
+                        }
+                        # also need DATAMEMBER for tags used in length of var-sized value
+                        while ($format =~ /\$val\{(.*?)\}/g) {
+                            my $id = $1;
+                            $id = hex($id) if $id =~ /^0x/; # convert from hex if necessary
+                            $datamember{$id} = $$table{$id}{Name} if ref $$table{$id} eq 'HASH';
+                            unless ($datamember{$id}) {
+                                warn "Warning: Unknown ID ($id) used in Format - $short $name\n";
+                            }
                         }
                     } elsif ($$tagInfo{Hook} or ($$tagInfo{RawConv} and
                              $$tagInfo{RawConv} =~ /\$self(->)?\{\w+\}\s*=(?!~)/))
                     {
                         $datamember{$tagID} = $name;
+                    }
+                    if ($format and $format =~ /\$val\{/ and
+                        ($$tagInfo{Writable} or not defined $$tagInfo{Writable}))
+                    {
+                        warn "Warning: \$var{} used in Format of writable tag - $short $name\n"
                     }
                 }
                 if ($$tagInfo{Hidden}) {
@@ -718,7 +731,7 @@ TagID:  foreach $tagID (@keys) {
                     $writable = $$tagInfo{Writable};
                     # validate Writable
                     unless ($formatOK{$writable} or  ($writable =~ /(.*)\[/ and $formatOK{$1})) {
-                        warn "Warning: Unknown Writable ($writable) for $short $name\n",
+                        warn "Warning: Unknown Writable ($writable) - $short $name\n",
                     }
                 } elsif (not $$tagInfo{SubDirectory}) {
                     $writable = $$table{WRITABLE};
@@ -806,14 +819,15 @@ TagID:  foreach $tagID (@keys) {
                     $writeGroup = $$table{WRITE_GROUP} if $writable;
                     $writeGroup = '-' unless $writeGroup;
                 }
-                if (defined $$tagInfo{Format}) {
-                    $format = $$tagInfo{Format};
+                if (defined $format) {
                     # validate Format
                     unless ($formatOK{$format} or $short eq 'PICT' or
                         ($format =~ /^(var_)?(.*)\[/ and $formatOK{$2}))
                     {
                         warn "Warning: Unknown Format ($format) for $short $name\n";
                     }
+                } else {
+                    $format = $defFormat;
                 }
                 if ($subdir) {
                     my $subTable = $$subdir{TagTable} || $tableName;
@@ -1115,14 +1129,16 @@ TagID:  foreach $tagID (@keys) {
 #
             my $tagIDstr;
             if ($tagID =~ /^\d+(\.\d+)?$/) {
-                if ($1 or $binaryTable or $isIPTC or ($short =~ /^CanonCustom/ and $tagID < 256)) {
-                    if ($tagID < 0x10000) {
-                        $tagIDstr = $tagID;
-                    } else {
-                        $tagIDstr = sprintf('0x%.8x',$tagID);
-                    }
-                } else {
+                if (defined $hexID) {
+                    $tagIDstr = $hexID ? sprintf('0x%.4x',$tagID) : $tagID;
+                } elsif (not $1 and not $binaryTable and not $isIPTC and
+                         not ($short =~ /^CanonCustom/ and $tagID < 256))
+                {
                     $tagIDstr = sprintf('0x%.4x',$tagID);
+                } elsif ($tagID < 0x10000) {
+                    $tagIDstr = $tagID;
+                } else {
+                    $tagIDstr = sprintf('0x%.8x',$tagID);
                 }
             } elsif ($short eq 'DICOM') {
                 ($tagIDstr = $tagID) =~ s/_/,/;

@@ -695,7 +695,7 @@ sub ParseSeqParamSet($$$)
     my $bstr = NewBitStream($dataPt) or return;
     my ($t, $i, $j, $n);
     # the messy nature of H.264 encoding makes it difficult to use
-    # data-driven structure parsing, so I code it explicitely (yuck!)
+    # data-driven structure parsing, so I code it explicitly (yuck!)
     $t = GetIntN($bstr, 8);         # profile_idc
     GetIntN($bstr, 16);             # constraints and level_idc
     GetGolomb($bstr);               # seq_parameter_set_id

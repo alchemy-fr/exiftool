@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.60
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.81
 [File, System, Image] FileName - File Name: CanonRaw_7_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 12 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2011:06:22 14:05:14-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:03:04 15:24:03-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -208,7 +208,7 @@
 [MakerNotes, Canon, Camera] 56 - Camera Color Calibration 15:  949  307  397 (2413K)
 [MakerNotes, Canon, Camera] 16386 - CRW Param: (Binary data 5352 bytes)
 [MakerNotes, Canon, Camera] 2 - Color Tone: Normal
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.60
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.81
 [XMP, XMP-aux, Camera] Lens - Lens: 18.0 - 55.0 mm
 [XMP, XMP-exif, Image] ComponentsConfiguration - Components Configuration: -, -, -, -
 [XMP, XMP-exif, Camera] FlashFired - Flash Fired: False
@@ -229,7 +229,6 @@
 [Composite, Composite, Other] Flash - Flash: Off, Did not fire
 [Composite, Composite, Camera] ISO - ISO: 400
 [Composite, Composite, Camera] Lens - Lens: 18.0 - 55.0 mm
-[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
 [Composite, Composite, Camera] ScaleFactor35efl - Scale Factor To 35 mm Equivalent: 1.6
 [Composite, Composite, Camera] ShootingMode - Shooting Mode: Aperture-priority AE
 [Composite, Composite, Image] ShutterSpeed - Shutter Speed: 1/15
@@ -241,5 +240,6 @@
 [Composite, Composite, Camera] HyperfocalDistance - Hyperfocal Distance: 19.66 m
 [Composite, Composite, Image] ImageSize - Image Size: 8x8
 [Composite, Composite, Camera] Lens35efl - Lens: 18.0 - 55.0 mm (35 mm equivalent: 28.1 - 85.9 mm)
+[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
 [Composite, Composite, Image] LightValue - Light Value: 7.9
 [Composite, Composite, Camera] RedBalance - Red Balance: 1.688027

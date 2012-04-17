@@ -63,6 +63,7 @@ reference number and not the actual firmware version)</span></span></td></tr>
   <br>16 = Normal?
   <br>&#39;0 1&#39; = 9-area
   <br>&#39;0 16&#39; = 3-area (high speed)
+  <br>&#39;0 23&#39; = 23-area
   <br>&#39;1 0&#39; = Spot Focusing
   <br>&#39;1 1&#39; = 5-area
   <br>&#39;16 0&#39; = 1-area
@@ -114,10 +115,10 @@ reference number and not the actual firmware version)</span></span></td></tr>
   <br>20 = Snow
   <br>21 = Night Scenery
   <br>22 = Food
-  <br>23 = Baby</td><td>&nbsp;&nbsp;</td>
-  <td>24 = Soft Skin
-  <br>25 = Candlelight
-  <br>26 = Starry Night
+  <br>23 = Baby
+  <br>24 = Soft Skin
+  <br>25 = Candlelight</td><td>&nbsp;&nbsp;</td>
+  <td>26 = Starry Night
   <br>27 = High Sensitivity
   <br>28 = Panorama Assist
   <br>29 = Underwater
@@ -136,14 +137,19 @@ reference number and not the actual firmware version)</span></span></td></tr>
   <br>44 = Film Grain
   <br>45 = My Color
   <br>46 = Photo Frame
-  <br>51 = HDR</td><td>&nbsp;&nbsp;</td></tr></table>
+  <br>51 = HDR
+  <br>55 = Handheld Night Shot
+  <br>57 = 3D
+  <br>59 = Creative Control
+  <br>66 = Digital Filter</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
 <tr>
 <td title='0x0020 = 32'>0x0020</td>
 <td>Audio</td>
 <td class=c>int16u</td>
 <td><span class=s>1 = Yes
-  <br>2 = No</span></td></tr>
+  <br>2 = No
+  <br>3 = Stereo</span></td></tr>
 <tr class=b>
 <td title='0x0021 = 33'>0x0021</td>
 <td>DataDump</td>
@@ -212,25 +218,35 @@ L10 and LC80)</span>
   <br>0x2 = High
   <br>0x6 = Medium Low
   <br>0x7 = Medium High
+  <br>0xd = High Dynamic
   <br>0x100 = Low
   <br>0x110 = Normal
   <br>0x120 = High
-  <br><span class=n>(these values are used by the GF1)</span>
+  <br><span class=n>(these values are used by the G2, GF1, GF2, GF3 and GF5)</span>
   <br>0 = -2
   <br>1 = -1
   <br>2 = Normal
   <br>3 = +1
   <br>4 = +2
   <br>7 = Nature (Color Film)
+  <br>9 = Expressive
   <br>12 = Smooth (Color Film) or Pure (My Color)
   <br>17 = Dynamic (B&amp;W Film)
   <br>22 = Smooth (B&amp;W Film)
+  <br>25 = High Dynamic
+  <br>26 = Retro
   <br>27 = Dynamic (Color Film)
+  <br>28 = Low Key
+  <br>29 = Toy Effect
   <br>32 = Vibrant (Color Film) or Expressive (My Color)
   <br>33 = Elegant (My Color)
   <br>37 = Nostalgic (Color Film)
   <br>41 = Dynamic Art (My Color)
   <br>42 = Retro (My Color)
+  <br>45 = Cinema
+  <br>47 = Dynamic Mono
+  <br>50 = Impressive Art
+  <br>51 = Cross Process
   <br><span class=n>(these values are used by the TZ10 and ZS7)</span>
   <br>0 = Normal
   <br>1 = -2
@@ -325,20 +341,9 @@ L10 and LC80)</span>
   <br>65535 = n/a</span></td></tr>
 <tr>
 <td title='0x003d = 61'>0x003d</td>
-<td>AdvancedSceneMode</td>
+<td>AdvancedSceneType</td>
 <td class=c>int16u</td>
-<td><span class=s>1 = Normal
-  <br>2 = Outdoor/Illuminations/Flower/HDR Art
-  <br>3 = Indoor/Architecture/Objects/HDR B&amp;W
-  <br>4 = Creative
-  <br>5 = Auto
-  <br>7 = Expressive
-  <br>8 = Retro
-  <br>9 = Pure
-  <br>10 = Elegant
-  <br>12 = Monochrome
-  <br>13 = Dynamic Art
-  <br>14 = Silhouette</span></td></tr>
+<td><span class=s><span class=n>(used together with SceneMode to derive Composite AdvancedSceneMode)</span></span></td></tr>
 <tr class=b>
 <td title='0x003e = 62'>0x003e</td>
 <td>TextStamp</td>
@@ -548,10 +553,10 @@ L10 and LC80)</span>
   <br>19 = Party
   <br>20 = Snow
   <br>21 = Night Scenery
-  <br>22 = Food</td><td>&nbsp;&nbsp;</td>
-  <td>23 = Baby
-  <br>24 = Soft Skin
-  <br>25 = Candlelight
+  <br>22 = Food
+  <br>23 = Baby
+  <br>24 = Soft Skin</td><td>&nbsp;&nbsp;</td>
+  <td>25 = Candlelight
   <br>26 = Starry Night
   <br>27 = High Sensitivity
   <br>28 = Panorama Assist
@@ -571,7 +576,11 @@ L10 and LC80)</span>
   <br>44 = Film Grain
   <br>45 = My Color
   <br>46 = Photo Frame
-  <br>51 = HDR</td><td>&nbsp;&nbsp;</td></tr></table>
+  <br>51 = HDR
+  <br>55 = Handheld Night Shot
+  <br>57 = 3D
+  <br>59 = Creative Control
+  <br>66 = Digital Filter</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
 <tr class=b>
 <td title='0x8004 = 32772'>0x8004</td>
@@ -843,9 +852,10 @@ user-supplied set of known faces.</p>
 </table></td></tr></table></blockquote>
 
 <h2><a name='LensType'>Panasonic LensType Values</a></h2>
-<p>Entries with 2 numbers give the lower 2 bits of the LensType value which are
-used to identify certain manually coded lenses on the M9, or the focal
-length of some multi-focal lenses.</p>
+<p>the LensType value is obtained by splitting the stored value into 2
+integers:  The stored value divided by 4, and its lower 2 bits.  The second
+number is used only if necessary to identify certain manually coded lenses
+on the M9, or the focal length of some multi-focal lenses.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class='inner sep' cellspacing=1>
@@ -1192,9 +1202,90 @@ iPalm.</p>
 <td>&nbsp;</td></tr>
 </table></td></tr></table></blockquote>
 
+<h2><a name='PANA'>Panasonic PANA Tags</a></h2>
+<p>Tags extracted from the PANA user data found in MP4 videos from models such
+as the DMC-FT20.</p>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='4 = 0x4'>4</td>
+<td>Model</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='88 = 0x58'>88</td>
+<td>ThumbnailWidth</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='90 = 0x5a'>90</td>
+<td>ThumbnailHeight</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='92 = 0x5c'>92</td>
+<td>ThumbnailImage</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='16488 = 0x4068'>16488</td>
+<td>ExifData</td>
+<td class=c>-</td>
+<td>--&gt; <a href='EXIF.html'>EXIF Tags</a></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='AdvancedSceneMode'>Panasonic AdvancedSceneMode Values</a></h2>
+<p>A Composite tag derived from SceneMode and AdvancedSceneType.</p>
+<blockquote>
+<table class=frame><tr><td>
+<table class='inner sep' cellspacing=1>
+<tr class=h><th>Value</th><th>AdvancedSceneMode</th><th>Value</th><th>AdvancedSceneMode</th></tr>
+<tr><td>'0 1'</td><td>= Off</td>
+<td class=b>'45 10'</td><td class=b>= Elegant</td>
+</tr><tr><td>'2 2'</td><td>= Outdoor Portrait</td>
+<td class=b>'45 12'</td><td class=b>= Monochrome</td>
+</tr><tr><td>'2 3'</td><td>= Indoor Portrait</td>
+<td class=b>'45 13'</td><td class=b>= Dynamic Art</td>
+</tr><tr><td>'2 4'</td><td>= Creative Portrait</td>
+<td class=b>'45 14'</td><td class=b>= Silhouette</td>
+</tr><tr><td>'3 2'</td><td>= Nature</td>
+<td class=b>'51 2'</td><td class=b>= HDR Art</td>
+</tr><tr><td>'3 3'</td><td>= Architecture</td>
+<td class=b>'51 3'</td><td class=b>= HDR B&amp;W</td>
+</tr><tr><td>'3 4'</td><td>= Creative Scenery</td>
+<td class=b>'59 1'</td><td class=b>= Expressive</td>
+</tr><tr><td>'4 2'</td><td>= Outdoor Sports</td>
+<td class=b>'59 2'</td><td class=b>= Retro</td>
+</tr><tr><td>'4 3'</td><td>= Indoor Sports</td>
+<td class=b>'59 3'</td><td class=b>= High Key</td>
+</tr><tr><td>'4 4'</td><td>= Creative Sports</td>
+<td class=b>'59 4'</td><td class=b>= Sepia</td>
+</tr><tr><td>'9 2'</td><td>= Flower</td>
+<td class=b>'59 5'</td><td class=b>= High Dynamic</td>
+</tr><tr><td>'9 3'</td><td>= Objects</td>
+<td class=b>'59 6'</td><td class=b>= Minature</td>
+</tr><tr><td>'9 4'</td><td>= Creative Macro</td>
+<td class=b>'59 9'</td><td class=b>= Low Key</td>
+</tr><tr><td>'21 2'</td><td>= Illuminations</td>
+<td class=b>'59 10'</td><td class=b>= Toy Effect</td>
+</tr><tr><td>'21 4'</td><td>= Creative Night Scenery</td>
+<td class=b>'59 11'</td><td class=b>= Dynamic Monochrome</td>
+</tr><tr><td>'45 2'</td><td>= Cinema</td>
+<td class=b>'59 12'</td><td class=b>= Soft</td>
+</tr><tr><td>'45 7'</td><td>= Expressive</td>
+<td class=b>'66 2'</td><td class=b>= Cross Process</td>
+</tr><tr><td>'45 8'</td><td>= Retro</td>
+<td class=b>'66 3'</td><td class=b>= Color Select</td>
+</tr><tr><td>'45 9'</td><td>= Pure</td>
+<td class=b>'66 4'</td><td class=b>= Star</td>
+</tr></table></td></tr></table></blockquote>
+
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Feb 20, 2012</i>
+<br><i>Last revised Apr 9, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

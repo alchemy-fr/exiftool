@@ -604,6 +604,7 @@ my %writeTable = (
         WriteGroup => 'IFD0',
         Count => 4,
         Protected => 1,
+        PrintConvInv => '$val =~ tr/./ /; $val',
     },
     0xc614 => {             # UniqueCameraModel
         Writable => 'string',
@@ -1793,24 +1794,29 @@ Entry:  for (;;) {
                     $readCount = $oldCount = Get32u($dataPt, $entry+4);
                     undef $oldImageData;
                     if ($oldFormat < 1 or $oldFormat > 13) {
+                        my $msg = "Bad format ($oldFormat) for $name entry $index";
                         # patch to preserve invalid directory entries in SubIFD3 of
                         # various Kodak Z-series cameras (Z812, Z1085IS, Z1275)
-                        if ($dirName eq 'MakerNotes' and $$exifTool{Make}=~/KODAK/i and
-                            $$dirInfo{Name} and $$dirInfo{Name} eq 'SubIFD3')
+                        # and some Sony cameras such as the DSC-P10
+                        if ($dirName eq 'MakerNotes' and (($$exifTool{Make}=~/KODAK/i and
+                            $$dirInfo{Name} and $$dirInfo{Name} eq 'SubIFD3') or
+                            ($numEntries == 12 and $$exifTool{Make} eq 'SONY' and $index >= 8)))
                         {
                             $dirBuff .= substr($$dataPt, $entry, 12);
-                            goto WroteIt; # GOTO!
+                            ++$index;
+                            $newID = $oldID;    # we wrote this
+                            $exifTool->Warn($msg, 1);
+                            next;
                         }
                         # don't write out null directory entry
                         if ($oldFormat==0 and $index and $oldCount==0) {
                             $ignoreCount = ($ignoreCount || 0) + 1;
                             # must keep same directory size to avoid messing up our fixed offsets
                             $dirBuff .= ("\0" x 12) if $$dirInfo{FixBase};
-WroteIt:                    ++$index;
+                            ++$index;
                             $newID = $oldID;    # pretend we wrote this
                             next;
                         }
-                        my $msg = "Bad format ($oldFormat) for $name entry $index";
                         return ExifErr($exifTool, $msg, $tagTablePtr);
                     }
                     $readFormName = $oldFormName = $formatName[$oldFormat];
@@ -2915,7 +2921,9 @@ NoOverwrite:            next if $isNew > 0;
         }
         my $isNextIFD = ($$dirInfo{Multi} and ($nextIfdOffset or
                         # account for the case where we will create the next IFD
-                        ($dirName eq 'IFD0' and $exifTool->{ADD_DIRS}{'IFD1'})));
+                        # (IFD1 only, but not in TIFF-format images)
+                        ($dirName eq 'IFD0' and $$exifTool{ADD_DIRS}{'IFD1'} and
+                         $$exifTool{FILE_TYPE} ne 'TIFF')));
         # calculate number of entries in new directory
         my $newEntries = length($dirBuff) / 12;
         # delete entire directory if we deleted a tag and only mandatory tags remain or we
@@ -3028,6 +3036,8 @@ NoOverwrite:            next if $isNew > 0;
         # increment IFD name
         my $ifdNum = $dirName =~ s/(\d+)$// ? $1 : 0;
         $dirName .= $ifdNum + 1;
+        $name =~ s/\d+$//;
+        $name .= $ifdNum + 1;
         $$exifTool{DIR_NAME} = $$exifTool{PATH}[-1] = $dirName;
         next unless $nextIfdOffset;
 

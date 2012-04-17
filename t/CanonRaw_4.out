@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.77
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.81
 [File, System, Image] FileName - File Name: CanonRaw_4_failed.crw
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 12 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:01:22 13:29:43-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:03:04 15:24:02-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: CRW
 [File, File, Image] MIMEType - MIME Type: image/x-canon-crw
@@ -138,7 +138,7 @@
 [MakerNotes, CanonRaw, Image] 3 - Raw Jpg Width: 2048
 [MakerNotes, CanonRaw, Image] 4 - Raw Jpg Height: 1360
 [MakerNotes, CanonRaw, Camera] 6203 - Serial Number Format: Format 1
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.77
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.81
 [XMP, XMP-aux, Camera] Lens - Lens: 18.0 - 55.0 mm
 [XMP, XMP-aux, Camera] OwnerName - Owner Name: Phil Harvey
 [XMP, XMP-aux, Camera] SerialNumber - Serial Number: 1234
@@ -196,7 +196,6 @@
 [Composite, Composite, Other] Flash - Flash: No Flash
 [Composite, Composite, Camera] ISO - ISO: 100
 [Composite, Composite, Camera] Lens - Lens: 18.0 - 55.0 mm
-[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
 [Composite, Composite, Camera] ScaleFactor35efl - Scale Factor To 35 mm Equivalent: 1.0
 [Composite, Composite, Camera] ShootingMode - Shooting Mode: Bulb
 [Composite, Composite, Image] ShutterSpeed - Shutter Speed: 4
@@ -208,5 +207,6 @@
 [Composite, Composite, Camera] HyperfocalDistance - Hyperfocal Distance: 2.75 m
 [Composite, Composite, Image] ImageSize - Image Size: 3072x2048
 [Composite, Composite, Camera] Lens35efl - Lens: 18.0 - 55.0 mm (35 mm equivalent: 18.4 - 56.1 mm)
+[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
 [Composite, Composite, Image] LightValue - Light Value: 5.7
 [Composite, Composite, Camera] RedBalance - Red Balance: 2.067348

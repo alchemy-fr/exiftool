@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::sv;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 %Image::ExifTool::Lang::sv::Translate = (
    'Aperture' => 'Bländare',
@@ -198,6 +198,7 @@ $VERSION = '1.04';
       },
     },
    'FileType' => 'Filtyp',
+   'Filename' => 'Filnamn',
    'Flash' => {
       Description => 'Blixt',
       PrintConv => {
@@ -339,6 +340,7 @@ $VERSION = '1.04';
       },
     },
    'Hue' => 'Nyans',
+   'ICCProfile' => 'ICC profil',
    'ISO' => 'ISO värde',
    'ImageHeight' => 'Bildhöjd',
    'ImageSize' => 'Bildstorlek',

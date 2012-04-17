@@ -21,7 +21,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.33';
+$VERSION = '1.34';
 
 # older Casio maker notes (ref 1)
 %Image::ExifTool::Casio::Main = (
@@ -442,6 +442,7 @@ $VERSION = '1.33';
         PrintConv => {
            0 => 'Manual',
            1 => 'Daylight', #3
+           2 => 'Cloudy', #PH (EX-ZR20, NC)
            3 => 'Shade', #3
            4 => 'Flash?',
            6 => 'Fluorescent', #3
@@ -1594,9 +1595,8 @@ $VERSION = '1.33';
         },
     },
     0x301b => { #PH
-        Name => 'UnknownMode',
+        Name => 'ArtMode',
         Writable => 'int16u',
-        Unknown => 1,
         PrintConv => {
             0 => 'Normal',
             8 => 'Silent Movie',
@@ -1606,6 +1606,11 @@ $VERSION = '1.33';
             49 => 'Crayon Drawing', # (EX-2300)
             51 => 'Panorama', # (EX-ZR10)
             52 => 'Art HDR', # (EX-ZR10,EX-Z3000)
+            62 => 'High Speed Night Shot', # (EX-ZR20)
+            64 => 'Monochrome', # (EX-ZR20)
+            67 => 'Toy Camera', # (EX-ZR20)
+            68 => 'Pop Art', # (EX-ZR20)
+            69 => 'Light Tone', # (EX-ZR20)
         },
     },
     0x301c => { #3
@@ -1703,6 +1708,15 @@ $VERSION = '1.33';
             60 => 'Continuous (60 fps)',
             240 => 'Auto-N',
         },
+    },
+    0x310b => { #PH (NC)
+        Name => 'ArtModeParameters',
+        Writable => 'int8u',
+        Count => 3,
+        # "0 1 0" = Toy camera 1
+        # "0 2 0" = Toy camera 1
+        # "0 3 0" = Toy camera 1
+        # Have also seen "0 0 0" and "2 0 0"
     },
     0x4001 => { #PH (AVI videos)
         Name => 'CaptureFrameRate',
@@ -1834,6 +1848,7 @@ $VERSION = '1.33';
             1 => 'Rotate 90 CW',
             2 => 'Rotate 270 CW',
             3 => 'Rotate 180', # (NC)
+            # (have seen 64 here, but image had no face)
         },
         Notes => 'orientation of face relative to unrotated image',
     },

@@ -13,7 +13,7 @@ package Image::ExifTool::Reconyx;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 # maker notes for Reconyx Hyperfire cameras (ref PH)
 %Image::ExifTool::Reconyx::Main = (
@@ -80,9 +80,14 @@ $VERSION = '1.03';
         Description => 'Date/Time Original',
         Format => 'int16u[6]',
         Groups => { 2 => 'Time' },
+        Priority => 0, # (not as reliable as EXIF)
         Shift => 'Time',
         ValueConv => q{
             my @a = split ' ', $val;
+            # have seen these values written big-endian when everything else is little-endian
+            if ($a[0] & 0xff00 and not $a[0] & 0xff) {
+                $_ = ($_ >> 8) | (($_ & 0xff) << 8) foreach @a;
+            }
             sprintf('%.4d:%.2d:%.2d %.2d:%.2d:%.2d', @a[5,3,4,2,1,0]);
         },
         ValueConvInv => q{

@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.77
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.81
 [File, System, Image] FileName - File Name: Writer_13_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 4.6 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:01:22 13:29:59-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:03:04 15:24:17-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -128,7 +128,7 @@
 [MakerNotes, Canon, Camera] 1 - Measured RGGB: 554 1022 1026 754
 [MakerNotes, Canon, Camera] 174 - Color Temperature: 5200
 [MakerNotes, Canon, Camera] 180 - Color Space: sRGB
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.77
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.81
 [XMP, XMP-aux, Camera] Lens - Lens: 18.0 - 55.0 mm
 [XMP, XMP-dc, Image] description - Description: CRW with embedded XMP
 [XMP, XMP-tiff, Image] ImageLength - Image Height: 2048
@@ -139,7 +139,6 @@
 [Composite, Composite, Camera] FlashType - Flash Type: Built-In Flash
 [Composite, Composite, Camera] ISO - ISO: 100
 [Composite, Composite, Camera] Lens - Lens: 18.0 - 55.0 mm
-[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
 [Composite, Composite, Camera] RedEyeReduction - Red Eye Reduction: Off
 [Composite, Composite, Camera] ScaleFactor35efl - Scale Factor To 35 mm Equivalent: 1.6
 [Composite, Composite, Camera] ShootingMode - Shooting Mode: Program AE
@@ -153,5 +152,6 @@
 [Composite, Composite, Camera] HyperfocalDistance - Hyperfocal Distance: 8.25 m
 [Composite, Composite, Image] ImageSize - Image Size: 8x8
 [Composite, Composite, Camera] Lens35efl - Lens: 18.0 - 55.0 mm (35 mm equivalent: 27.9 - 85.3 mm)
+[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
 [Composite, Composite, Image] LightValue - Light Value: 9.7
 [Composite, Composite, Camera] RedBalance - Red Balance: 2.092604

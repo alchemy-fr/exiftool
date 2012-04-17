@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.47
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.85
 [File, System, Image] FileName - File Name: Pentax.avi
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 1672 bytes
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2009:10:30 08:10:17-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2009:10:30 08:06:13-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: AVI
 [File, File, Image] MIMEType - MIME Type: video/x-msvideo
@@ -58,7 +58,7 @@
 [MakerNotes, Pentax, Camera] 40 - CPU Firmware Version: 1.00.00.01
 [MakerNotes, Pentax, Camera] 51 - Picture Mode: Video (4); 1/3 EV steps
 [MakerNotes, Pentax, Camera] 52 - Drive Mode: Video; n/a; Shutter Button; Video
-[MakerNotes, Pentax, Camera] 63 - Lens Type: smc PENTAX-DA L 18-55mm F3.5-5.6
+[MakerNotes, Pentax, Camera] 0 - Lens Type: smc PENTAX-DA L 18-55mm F3.5-5.6
 [MakerNotes, Pentax, Camera] 79 - Image Tone: Natural
 [MakerNotes, Pentax, Camera] 0 - SR Result: Stabilized, [1], [2], [3], [4]
 [MakerNotes, Pentax, Camera] 1 - Shake Reduction: On (7)
@@ -96,7 +96,7 @@
 [MakerNotes, Pentax, Camera] 10 - AE Max Aperture 2: 3.8
 [MakerNotes, Pentax, Camera] 11 - AE Min Aperture: 27
 [MakerNotes, Pentax, Camera] 12 - AE Metering Mode: Multi-segment
-[MakerNotes, Pentax, Camera] 14 - Flash Exposure Comp Set: -1.0
+[MakerNotes, Pentax, Camera] 14 - Flash Exposure Comp. Setting: -1.0
 [MakerNotes, Pentax, Camera] 0 - Lens Type: smc PENTAX-DA L 18-55mm F3.5-5.6
 [MakerNotes, Pentax, Camera] 0.1 - Auto Aperture: On
 [MakerNotes, Pentax, Camera] 0.2 - Min Aperture: 32

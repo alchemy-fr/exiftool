@@ -295,15 +295,17 @@ for details about how to use the config file.)</p>
 <table class='norm'>
 <tr><th>Option</th><th>Description</th><th>Values</th><th>Default</th></tr>
 <tr><td>GeoMaxIntSecs</td>
-    <td>Maximum interpolation time in seconds for geotagging.  Geotagging fails
-    if the Geotime value lies between two fixes in the same track which are
-    separated by a number of seconds greater than this.</td>
+    <td>Maximum interpolation time in seconds for geotagging.  Geotagging is
+    treated as an extrapolation if the Geotime value lies between two fixes in
+    the same track which are separated by a number of seconds greater than this.
+    Otherwise, the coordinates are calculated as a linear interpolation between
+    the two nearest fixes.</td>
     <td align='center'>A&nbsp;floating&nbsp;point&nbsp;number</td>
     <td align='center'>1800</td></tr>
 <tr><td>GeoMaxExtSecs</td>
     <td>Maximum extrapolation time in seconds for geotagging.  Geotagging fails
     if the Geotime value lies outside a GPS track by a number of seconds greater
-    than this.</td>
+    than this.  Otherwise, the coordinates of the nearest fix are taken.</td>
     <td align='center'>A&nbsp;floating&nbsp;point&nbsp;number</td>
     <td align='center'>1800</td></tr>
 <tr><td>GeoMaxHDOP</td>
@@ -410,22 +412,22 @@ If the number of points loaded and start/end times seem reasonable, then
 the problem is likely in the time synchronization.  Also printed will be the
 UTC time for the image:
 
-<pre>  Geotime value:   2009:04:03 10:57:01 UTC
+<pre>  Geotime value:   2009:04:03 10:57:01 UTC (local timezone is -05:00)
 </pre>
 
 The "Geotime value" must lie within 1/2 hour of a valid GPS fix in the track log
 for a position to be calculated. (1/2 hour is the default, but this can be
 configured via the geotagging <a href="#Options">Options</a>.)  The time
 calibration relies on proper synchronization between the GPS time and your
-camera's clock.  If a timezone is not specified, <code>Geotime</code> is
-converted to UTC using the local system timezone (as set by the shell's TZ
-environment variable).  You should specify the timezone for <code>Geotime</code>
-if your images were taken in a different timezone (see
-<a href="#Examples">Examples</a> above).  If the camera clock was wrong, the
-<code>Geosync</code> tag may be used to apply a time correction, or the ExifTool
-time shift feature may be used to adjust the image times before geotagging --
-see the <a href="#TP1">Time Synchronization</a> tip below for examples.
-</blockquote>
+camera's clock.  If a timezone is not specified, the local system time zone (as
+set by the shell's TZ environment variable) is printed in the above message and
+used to convert the <code>Geotime</code> value to UTC.  You should specify the
+timezone for <code>Geotime</code> if your images were taken in a different
+timezone (see <a href="#Examples">Examples</a> above).  If the camera clock was
+wrong, the <code>Geosync</code> tag may be used to apply a time correction, or
+the ExifTool time shift feature may be used to adjust the image times before
+geotagging -- see the <a href="#TP1">Time Synchronization</a> tip below for
+examples.</blockquote>
 
 <a name="Tips"></a>
 <h3>Tips</h3>
@@ -634,7 +636,7 @@ file from a collection of geotagged images:</p>
 
 <hr>
 <i>Created Apr. 2, 2009</i><br>
-<i>Last revised Feb. 3, 2012</i>
+<i>Last revised Mar. 6, 2012</i>
 <p class='lf'><a href="index.html">&lt;-- Back to ExifTool home page</a></p>
 </body>
 </html>

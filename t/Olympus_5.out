@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.72
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.85
 [File, System, Image] FileName - File Name: Olympus_5_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 7.2 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2011:11:21 15:11:13-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:03:24 06:54:49-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -94,7 +94,7 @@
 [MakerNotes, Olympus, Camera] 518 - Max Aperture At Max Focal: 3.5
 [MakerNotes, Olympus, Camera] 519 - Min Focal Length: 14
 [MakerNotes, Olympus, Camera] 520 - Max Focal Length: 54
-[MakerNotes, Olympus, Camera] 522 - Max Aperture At Current Focal: 2.8
+[MakerNotes, Olympus, Camera] 522 - Max Aperture: 2.8
 [MakerNotes, Olympus, Camera] 523 - Lens Properties: 0xc043
 [MakerNotes, Olympus, Camera] 769 - Extender: None
 [MakerNotes, Olympus, Camera] 770 - Extender Serial Number: 

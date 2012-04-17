@@ -63,7 +63,7 @@ my $pdfVer;         # version of PDF file being processed
     },
 );
 
-# tags in PDF Info directory
+# tags in PDF Info dictionary
 %Image::ExifTool::PDF::Info = (
     GROUPS => { 2 => 'Document' },
     VARS => { CAPTURE => ['Info'] },
@@ -173,7 +173,7 @@ my $pdfVer;         # version of PDF file being processed
     },
 );
 
-# tags in PDF Pages directory
+# tags in PDF Pages dictionary
 %Image::ExifTool::PDF::Pages = (
     GROUPS => { 2 => 'Document' },
     Count => 'PageCount',
@@ -182,7 +182,7 @@ my $pdfVer;         # version of PDF file being processed
     },
 );
 
-# tags in PDF Perms directory
+# tags in PDF Perms dictionary
 %Image::ExifTool::PDF::Perms = (
     NOTES => 'Additional document permissions imposed by digital signatures.',
     DocMDP => {
@@ -196,7 +196,7 @@ my $pdfVer;         # version of PDF file being processed
     },
 );
 
-# tags in PDF Perms directory
+# tags in PDF Perms dictionary
 %Image::ExifTool::PDF::AcroForm = (
     PROCESS_PROC => \&ProcessAcroForm,
     _has_xfa => {
@@ -209,7 +209,7 @@ my $pdfVer;         # version of PDF file being processed
     },
 );
 
-# tags in PDF Kids directory
+# tags in PDF Kids dictionary
 %Image::ExifTool::PDF::Kids = (
     Metadata => {
         SubDirectory => { TagTable => 'Image::ExifTool::PDF::Metadata' },
@@ -222,35 +222,35 @@ my $pdfVer;         # version of PDF file being processed
     },
 );
 
-# tags in PDF Resources directory
+# tags in PDF Resources dictionary
 %Image::ExifTool::PDF::Resources = (
     ColorSpace => {
         SubDirectory => { TagTable => 'Image::ExifTool::PDF::ColorSpace' },
     },
 );
 
-# tags in PDF ColorSpace directory
+# tags in PDF ColorSpace dictionary
 %Image::ExifTool::PDF::ColorSpace = (
     DefaultRGB => {
         SubDirectory => { TagTable => 'Image::ExifTool::PDF::DefaultRGB' },
     },
 );
 
-# tags in PDF DefaultRGB directory
+# tags in PDF DefaultRGB dictionary
 %Image::ExifTool::PDF::DefaultRGB = (
     ICCBased => {
         SubDirectory => { TagTable => 'Image::ExifTool::PDF::ICCBased' },
     },
 );
 
-# tags in PDF ICCBased directory
+# tags in PDF ICCBased dictionary
 %Image::ExifTool::PDF::ICCBased = (
     _stream => {
         SubDirectory => { TagTable => 'Image::ExifTool::ICC_Profile::Main' },
     },
 );
 
-# tags in PDF PieceInfo directory
+# tags in PDF PieceInfo dictionary
 %Image::ExifTool::PDF::PieceInfo = (
     AdobePhotoshop => {
         SubDirectory => { TagTable => 'Image::ExifTool::PDF::AdobePhotoshop' },
@@ -266,28 +266,28 @@ my $pdfVer;         # version of PDF file being processed
     },
 );
 
-# tags in PDF AdobePhotoshop directory
+# tags in PDF AdobePhotoshop dictionary
 %Image::ExifTool::PDF::AdobePhotoshop = (
     Private => {
         SubDirectory => { TagTable => 'Image::ExifTool::PDF::Private' },
     },
 );
 
-# tags in PDF Illustrator directory
+# tags in PDF Illustrator dictionary
 %Image::ExifTool::PDF::Illustrator = (
     Private => {
         SubDirectory => { TagTable => 'Image::ExifTool::PDF::AIPrivate' },
     },
 );
 
-# tags in PDF Private directory
+# tags in PDF Private dictionary
 %Image::ExifTool::PDF::Private = (
     ImageResources => {
         SubDirectory => { TagTable => 'Image::ExifTool::PDF::ImageResources' },
     },
 );
 
-# tags in PDF AI Private directory
+# tags in PDF AI Private dictionary
 %Image::ExifTool::PDF::AIPrivate = (
     GROUPS => { 2 => 'Document' },
     EXTRACT_UNKNOWN => 0,   # extract known but numbered tags
@@ -306,21 +306,21 @@ my $pdfVer;         # version of PDF file being processed
     CreatorVersion => { },
 );
 
-# tags in PDF AIMetaData directory
+# tags in PDF AIMetaData dictionary
 %Image::ExifTool::PDF::AIMetaData = (
     _stream => {
         SubDirectory => { TagTable => 'Image::ExifTool::PostScript::Main' },
     },
 );
 
-# tags in PDF ImageResources directory
+# tags in PDF ImageResources dictionary
 %Image::ExifTool::PDF::ImageResources = (
     _stream => {
         SubDirectory => { TagTable => 'Image::ExifTool::Photoshop::Main' },
     },
 );
 
-# tags in PDF MarkInfo directory
+# tags in PDF MarkInfo dictionary
 %Image::ExifTool::PDF::MarkInfo = (
     GROUPS => { 2 => 'Document' },
     Marked => {
@@ -330,7 +330,7 @@ my $pdfVer;         # version of PDF file being processed
     },
 );
 
-# tags in PDF Metadata directory
+# tags in PDF Metadata dictionary
 %Image::ExifTool::PDF::Metadata = (
     GROUPS => { 2 => 'Document' },
     XML_stream => { # this is the stream for a Subtype /XML dictionary (not a real tag)
@@ -362,14 +362,14 @@ my $pdfVer;         # version of PDF file being processed
     Prop_AuthType => 'AuthenticationType',
 );
 
-# tags in PDF Reference directory
+# tags in PDF Reference dictionary
 %Image::ExifTool::PDF::Reference = (
     TransformParams => {
         SubDirectory => { TagTable => 'Image::ExifTool::PDF::TransformParams' },
     },
 );
 
-# tags in PDF TransformParams directory
+# tags in PDF TransformParams dictionary
 %Image::ExifTool::PDF::TransformParams = (
     GROUPS => { 2 => 'Document' },
     Annots => {
@@ -1529,7 +1529,7 @@ sub ProcessDict($$$$;$$)
             next unless defined $val;
         }
         unless ($tagInfo) {
-            # add any tag found in Info directory to table
+            # add any tag found in Info dictionary to table
             next unless $unknown;
             $tagInfo = NewPDFTag($tagTablePtr, $tag);
         }

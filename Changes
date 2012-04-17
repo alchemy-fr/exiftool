@@ -4,8 +4,107 @@ ExifTool Version History
 
 RSS feed: http://owl.phy.queensu.ca/~phil/exiftool/rss.xml
 
-Note: The most recent production release is Version 8.77. (Other versions are
+Note: The most recent production release is Version 8.85. (Other versions are
 considered development releases, and are not uploaded to CPAN.)
+
+Apr. 15, 2012 - Version 8.88
+
+  - Added a new Canon LensType (thanks Gerald Erdmann)
+  - Decode a number of new Olympus tags and values
+  - Decode a few more QuickTime tags
+  - Many more improvements and additions to Sony decoding (thanks Jos Roost)
+  - Changed Ricoh InternalSerialNumber to also convert numerical value
+  - Removed the ability to create IFD1 in TIFF-format images (you shouldn't
+    really do this anyway)
+  - Fixed incorrect IFD number in some error messages when writing
+
+Apr. 9, 2012 - Version 8.87
+
+  - Added a new PentaxModelID
+  - Added new values for some Panasonic tags
+  - Added a couple of new Canon LensTypes
+  - Decode a few more Sony tags and values (thanks Jos Roost)
+  - Decode more CanonVRD tags
+  - Decode makernotes from Pentax WG-2 GPS MOV videos
+  - Changed Panasonic AdvancedSceneMode to a Composite tag
+  - Fixed problem introduced in 8.70 where excluding groups from deletion didn't
+    work when copying back tags in the same command
+  - Fixed problem repairing incorrect makernotes offsets in JPEG images from
+    Sony SLT and NEX cameras
+
+Apr. 3, 2012 - Version 8.86
+
+  - Added a few new values for some Panasonic tags
+  - Added a new CanonModelID and a new Canon LensType
+  - Added a new Nikon LensID
+  - Decode more Sony CameraSettings3 information (thanks Jos Roost)
+  - Decode another Canon 5D tag
+  - Decode some new CanonVRD DLO tags
+  - Changed decoding of CanonVRD VRDVersion tag
+  - Changed formatting of a Pentax LensType for consistency with other lenses
+  - Patched decoding of Reconyx:DateTimeOriginal to accomodate values written
+    with an incorrect byte order by some models
+
+Mar. 25, 2012 - Version 8.85 (production release)
+
+  - Added a couple more Olympus CameraType values
+  - Added two new Pentax LensType's and a PentaxModelID
+  - Decode a number of new Sony CameraSettings3 tags (thanks Jos Roost)
+  - Decode a few new Pentax K-01 tags
+  - Decode new custom functions of the Canon 5D Mark III
+  - Recognize another non-standard APP1 XMP header
+  - Increased unrolled depth of XMP-mwg-kw:HierarchicalKeywords from 4 to 6
+  - Extended "-charset exif=CHARSET" to also apply to EXIF UserComment when
+    stored as ASCII
+  - Changed name of Olympus MaxApertureAtCurrentFocal to to MaxAperture
+  - Patched to avoid possibility of unnecessary "references previous directory"
+    warning when the length of one directory is zero
+
+Mar. 17, 2012 - Version 8.84
+
+  - Added a few more SonyModelID's (thanks Jos Roost)
+  - Added a new CanonModelID and a number of new Canon LensType values
+  - Added a new Minolta/Sony LensType
+  - Decode CameraTemperature for a number of new Canon PowerShot models
+  - Decode information from PANA atom of Panasonic DMC-FT20 MP4 videos
+  - Decode a bit more of the Casio MakerNotes
+  - Improved Polish translations for EXIF information (thanks Kacper Perschke)
+  - Changed some warning messages for invalid IFD entries
+  - Patched to allow writing of Sony MakerNotes containing invalid IFD entries
+
+Mar. 13, 2012 - Version 8.83
+
+  - Added a new SonyModelID and a new Nikon LensID (thanks Gregg Lee and Jos
+    Roost)
+  - Added Finnish translations (thanks Jens Duttke and Jarkko Makineva)
+  - Fixed the Composite:LensID problem properly this time (with any luck)
+
+Mar. 13, 2012 - Version 8.82
+
+  - Added ability to extract information from PostScript-type DFONT files
+  - Added a new Minolta/Sony LensType (thanks Jos Roost)
+  - Improved geotagging of orientation information when extrapolating past end
+    of track
+  - Changed behaviour while copying information to allow flattened tags to be
+    specified without the need to use the --struct option
+  - Removed unnecessary warning when writing PreviewImage to Ricoh DNG file
+  - Fixed problem introduced in 8.81 which prevented generation of the Composite
+    LensID for Nikon images when duplicate tags were disabled
+  - API Changes:
+      - Added NoFlat option to SetNewValues()
+      - Changed Struct option to allow copying of both structured and flattened
+        tags at the same time
+
+Mar. 9, 2012 - Version 8.81
+
+  - Added some new Canon, Pentax and Sony/Minolta LensType's
+  - Added a few new FujiFilm PictureMode values (thanks Kai Lappalainen)
+  - Added some new FujiFilm FilmMode values
+  - Added a couple of new CanonModelID values
+  - Added local timezone message to -v2 geotagging output
+  - Made all Pentax LensType tags writable
+  - Improved Composite LensID logic to use Sony LensSpec value if available
+  - Fixed problem opening files with path names that begin with "&"
 
 Feb. 25, 2012 - Version 8.80
 

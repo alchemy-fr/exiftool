@@ -187,6 +187,7 @@ my %ignorePrintConv = ( OTHER => 1, BITMASK => 1, Notes => 1 );
 #           EditOnly => true to only edit existing tags (don't create new tag)
 #           EditGroup => true to only edit existing groups (don't create new group)
 #           Shift => undef, 0, +1 or -1 - shift value if possible
+#           NoFlat => treat flattened tags as 'unsafe'
 #           NoShortcut => true to prevent looking up shortcut tags
 #           ProtectSaved => protect existing new values with a save count greater than this
 #           CreateGroups => [internal use] createGroups hash ref from related tags
@@ -219,6 +220,7 @@ sub SetNewValue($;$$%)
     my $protected = $options{Protected} || 0;
     my $listOnly = $options{ListOnly};
     my $setTags = $options{SetTags};
+    my $noFlat = $options{NoFlat};
     my $numSet = 0;
 
     unless (defined $tag) {
@@ -509,8 +511,10 @@ sub SetNewValue($;$$%)
             }
         }
         # don't write tag if protected
-        if ($tagInfo->{Protected}) {
-            my $prot = $tagInfo->{Protected} & ~$protected;
+        my $prot = $$tagInfo{Protected};
+        $prot = 1 if $noFlat and defined $$tagInfo{Flat};
+        if ($prot) {
+            $prot &= ~$protected;
             if ($prot) {
                 my %lkup = ( 1=>'unsafe', 2=>'protected', 3=>'unsafe and protected');
                 $wasProtected = $lkup{$prot};
@@ -930,6 +934,10 @@ sub SetNewValuesFromFile($$;@)
     $srcExifTool->{FILE_SEQUENCE} = $self->{FILE_SEQUENCE}++;
     # set options for our extraction tool
     my $options = $self->{OPTIONS};
+    # copy both structured and flattened tags by default (but flattened tags are "unsafe")
+    my $structOpt = defined $$options{Struct} ? $$options{Struct} : 2;
+    # copy structures only if no tags specified (since flattened tags are "unsafe")
+    $structOpt = 1 if $structOpt eq '2' and not @setTags;
     # +------------------------------------------+
     # ! DON'T FORGET!!  Must consider each new   !
     # ! option to decide how it is handled here. !
@@ -960,7 +968,7 @@ sub SetNewValuesFromFile($$;@)
         QuickTimeUTC    => $$options{QuickTimeUTC},
         ScanForXMP      => $$options{ScanForXMP},
         StrictDate      => 1,
-        Struct          => ($$options{Struct} or not defined $$options{Struct}) ? 1 : 0,
+        Struct          => $structOpt,
         Unknown         => $$options{Unknown},
         XMPAutoConv     => $$options{XMPAutoConv},
     );
@@ -1199,8 +1207,16 @@ sub SetNewValuesFromFile($$;@)
                 $dstTag = $tag;
                 $noWarn = 1;
             }
-            # allow protected tags to be copied if specified explicitly
-            $$opts{Protected} = ($$set[2] eq '*' ? undef : 1);
+            if ($$set[2] eq '*') {
+                # don't copy protected tags when copying all
+                delete $$opts{Protected};
+                # don't copy flattened tags if copying structures too when copying all
+                $$opts{NoFlat} = $structOpt eq '2' ? 1 : 0;
+            } else {
+                # allow protected tags to be copied if specified explicitly
+                $$opts{Protected} = 1;
+                delete $$opts{NoFlat};
+            }
             # set value(s) for this tag
             my ($rtn, $wrn) = $self->SetNewValue($dstTag, $val, %$opts);
             if ($wrn and not $noWarn) {
@@ -3189,15 +3205,19 @@ sub WriteDirectory($$$;$)
         my $addr = $$dirInfo{DirStart} + $$dirInfo{DataPos} + ($$dirInfo{Base}||0) + $$self{BASE};
         # (Phase One P25 IIQ files have ICC_Profile duplicated in IFD0 and IFD1)
         if ($self->{PROCESSED}{$addr} and ($dirName ne 'ICC_Profile' or $$self{TIFF_TYPE} ne 'IIQ')) {
-            if ($self->Error("$dirName pointer references previous $self->{PROCESSED}{$addr} directory", 1)) {
+            if (defined $$dirInfo{DirLen} and not $$dirInfo{DirLen} and $dirName ne $self->{PROCESSED}{$addr}) {
+                # it is hypothetically possible to have 2 different directories
+                # with the same address if one has a length of zero
+            } elsif ($self->Error("$dirName pointer references previous $self->{PROCESSED}{$addr} directory", 1)) {
                 return undef;
             } else {
                 $self->Warn("Deleting duplicate $dirName directory");
                 $out and print $out "  Deleting $dirName\n";
                 return '';  # delete the duplicate directory
             }
+        } else {
+            $self->{PROCESSED}{$addr} = $dirName;
         }
-        $self->{PROCESSED}{$addr} = $dirName;
     }
     my $oldDir = $self->{DIR_NAME};
     my $isRewriting = ($$dirInfo{DirLen} or (defined $dataPt and length $$dataPt) or $$dirInfo{RAF});

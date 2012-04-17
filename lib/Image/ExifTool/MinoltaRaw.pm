@@ -100,6 +100,7 @@ sub WriteMRW($$;$);
         Name => 'BayerPattern',
         Format => 'int8u',
         PrintConv => {
+            # 0 - seen in some Sony A850 ARW images
             1 => 'RGGB',
             4 => 'GBRG',
         },

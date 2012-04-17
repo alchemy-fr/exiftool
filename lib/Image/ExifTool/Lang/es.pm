@@ -11,14 +11,9 @@ package Image::ExifTool::Lang::es;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 %Image::ExifTool::Lang::es::Translate = (
-   'AFMicroAdjActive' => {
-      PrintConv => {
-        'Yes' => 'Si',
-      },
-    },
    'AFMode' => 'Modo AF',
    'ARMIdentifier' => 'Identificador ARM',
    'ARMVersion' => 'Versión ARM',
@@ -282,6 +277,7 @@ $VERSION = '1.07';
       PrintConv => {
         'ICC Profile' => 'Perfil ICC',
         'Uncalibrated' => 'Sin calibrar',
+        'Wide Gamut RGB' => 'Gamut RVB Grande',
       },
     },
    'ColorSpaceData' => 'Espacio Color Datos',
@@ -535,6 +531,7 @@ $VERSION = '1.07';
     },
    'FileType' => 'Tipo Archivo',
    'FileVersion' => 'Versión Formato Archivo',
+   'Filename' => 'Nombre archivo',
    'FillOrder' => 'Orden Rellenado',
    'FirmwareVersion' => 'Versión Firmware',
    'FixtureIdentifier' => 'Identificador Marca',
@@ -622,6 +619,7 @@ $VERSION = '1.07';
    'FrameSize' => 'Tamaño del Fotograma',
    'FreeByteCounts' => 'Número Bytes Libres',
    'FreeOffsets' => 'Offsets Libres',
+   'GEModel' => 'Modelo',
    'GPSAltitude' => 'Altitud',
    'GPSAltitudeRef' => {
       Description => 'Referencia Altitud',
@@ -686,8 +684,8 @@ $VERSION = '1.07';
    'GPSLatitudeRef' => {
       Description => 'Latitud Norte o Sur',
       PrintConv => {
-        'North' => 'Latitud Norte',
-        'South' => 'Latitud Sur',
+        'North' => 'Latitud norte',
+        'South' => 'Latitud sur',
       },
     },
    'GPSLongitude' => 'Longitud',
@@ -794,6 +792,7 @@ $VERSION = '1.07';
     },
    'HostComputer' => 'Ordenador Principal',
    'Hue' => 'Tono',
+   'ICCProfile' => 'Perfil ICC',
    'ICC_Profile' => 'Perfil Color Entrada ICC',
    'IPTC-NAA' => 'Metadato IPTC-NAA',
    'IPTCBitsPerSample' => 'Número de Bits por Muestra',

@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::fr;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.20';
+$VERSION = '1.21';
 
 %Image::ExifTool::Lang::fr::Translate = (
    'AEAperture' => 'Ouverture AE',
@@ -140,12 +140,6 @@ $VERSION = '1.20';
    'AFInfo2' => 'Infos AF',
    'AFInfo2Version' => 'Version des infos AF',
    'AFIntegrationTime' => 'Temps d\'intégration AF',
-   'AFMicroAdjActive' => {
-      PrintConv => {
-        'No' => 'Non',
-        'Yes' => 'Oui',
-      },
-    },
    'AFMicroadjustment' => {
       Description => 'Micro-ajustement de l\'AF',
       PrintConv => {
@@ -553,6 +547,7 @@ $VERSION = '1.20';
       },
     },
    'AutoFocus' => {
+      Description => 'Auto-Focus',
       PrintConv => {
         'Off' => 'Désactivé',
         'On' => 'Activé',
@@ -1702,6 +1697,7 @@ $VERSION = '1.20';
     },
    'FileType' => 'Type de fichier',
    'FileVersion' => 'Version de format de fichier',
+   'Filename' => 'Nom du fichier ',
    'FillFlashAutoReduction' => {
       Description => 'Mesure E-TTL',
       PrintConv => {
@@ -2292,6 +2288,7 @@ $VERSION = '1.20';
    'Hue' => 'Nuance',
    'HueAdjustment' => 'Teinte',
    'HyperfocalDistance' => 'Distanace hyperfocale',
+   'ICCProfile' => 'Profil ICC',
    'ICCProfileName' => 'Nom du profil ICC',
    'ICC_Profile' => 'Profil de couleur ICC d\'entrée',
    'ID3Size' => 'Taille ID3',
@@ -2406,6 +2403,7 @@ $VERSION = '1.20';
         'Square' => 'Carré',
       },
     },
+   'ImageProcessing' => 'Retouche d\'image',
    'ImageQuality' => {
       PrintConv => {
         'Normal' => 'Normale',
@@ -2456,6 +2454,7 @@ $VERSION = '1.20';
    'InkNames' => 'Nom des encres',
    'InkSet' => 'Encrage',
    'IntellectualGenre' => 'Genre intellectuel',
+   'IntelligentAuto' => 'Mode Auto intelligent',
    'IntensityStereo' => {
       PrintConv => {
         'Off' => 'Désactivé',
@@ -2998,6 +2997,7 @@ $VERSION = '1.20';
         'Uncompressed' => 'Non compressé',
       },
     },
+   'NEFLinearizationTable' => 'Table de Linearization',
    'Name' => 'Nom',
    'NamedColor2' => 'Couleur nommée 2',
    'NativeDigest' => 'Sommaire natif',
@@ -3475,6 +3475,7 @@ $VERSION = '1.20';
         'Linear Reflectance/Transmittance' => 'Réflectance/transmittance linéaire',
       },
     },
+   'QuickAdjust' => 'Réglages rapides',
    'QuickControlDialInMeter' => {
       Description => 'Molette de contrôle rapide en mesure',
       PrintConv => {
@@ -3553,7 +3554,9 @@ $VERSION = '1.20';
     },
    'RawImageCenter' => 'Centre Image RAW',
    'RawImageDigest' => 'Digest d\'image brute',
+   'RawImageHeight' => 'Hauteur de l\'image brute',
    'RawImageSize' => 'Taille d\'image RAW',
+   'RawImageWidth' => 'Largeur de l\'image brute',
    'RawJpgQuality' => {
       PrintConv => {
         'Normal' => 'Normale',
@@ -4253,6 +4256,7 @@ $VERSION = '1.20';
     },
    'TimeSent' => 'Heure d\'envoi',
    'TimeSincePowerOn' => 'Temps écoulé depuis la mise en marche',
+   'TimeZone' => 'Fuseau horaire',
    'TimeZoneOffset' => 'Offset de zone de date',
    'TimerLength' => {
       Description => 'Durée du retardateur',

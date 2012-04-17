@@ -32,7 +32,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.55';
+$VERSION = '1.59';
 
 sub FixWrongFormat($);
 sub ProcessMOV($$;$);
@@ -261,6 +261,7 @@ my %graphicsMode = (
             Unknown => 1,
             Binary => 1,
         },
+        # (also Samsung WB750 uncompressed thumbnail data starting with "SDIC\0")
     ],
     skip => { Unknown => 1, Binary => 1 },
     wide => { Unknown => 1, Binary => 1 },
@@ -587,6 +588,10 @@ my %graphicsMode = (
         Name => 'TrackRef',
         SubDirectory => { TagTable => 'Image::ExifTool::QuickTime::TrackRef' },
     },
+    tapt => {
+        Name => 'TrackAperture',
+        SubDirectory => { TagTable => 'Image::ExifTool::QuickTime::TrackAperture' },
+    },
     uuid => [
         { #11 (MP4 files) (also found in QuickTime::Movie)
             Name => 'UUID-USMT',
@@ -603,8 +608,6 @@ my %graphicsMode = (
         },
     ],
     # edts - edits --> contains elst (edit list)
-    # tapt - TrackApertureModeDimensionsAID --> contains clef (TrackCleanApertureDimensionsAID),
-    #        prof (TrackProductionApertureDimensionsAID), enof (TrackEncodedPixelsDimensionsAID)
     # clip - clipping --> contains crgn (clip region)
     # matt - track matt --> contains kmat (compressed matt)
     # load - track loading settings
@@ -923,6 +926,17 @@ my %graphicsMode = (
             ByteOrder => 'BigEndian',
         },
     },
+    PANA => { #PH
+        Name => 'PanasonicPANA',
+        SubDirectory => { TagTable => 'Image::ExifTool::Panasonic::PANA' },
+    },
+    PENT => { #PH
+        Name => 'PentaxPENT',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Pentax::PENT',
+            ByteOrder => 'LittleEndian',
+        },
+    },
     MMA0 => { #PH (DiMage 7Hi)
         Name => 'MinoltaMMA0',
         SubDirectory => { TagTable => 'Image::ExifTool::Minolta::MMA' },
@@ -971,18 +985,44 @@ my %graphicsMode = (
         SubDirectory => { TagTable => 'Image::ExifTool::Microsoft::Xtra' },
     },
     hinv => 'HintVersion', #PH (guess)
-    thmb => { #PH (Pentax Q)
-        Name => 'MakerNotePentax5',
-        Condition => '$$valPt =~ /^PENTAX \0II/',
+    thmb => [
+        { #PH (Pentax Q)
+            Name => 'MakerNotePentax5a',
+            Condition => '$$valPt =~ /^PENTAX \0II/',
+            SubDirectory => {
+                TagTable => 'Image::ExifTool::Pentax::Main',
+                ProcessProc => \&Image::ExifTool::Exif::ProcessExif, # (because ProcessMOV is default)
+                Start => 10,
+                Base => '$start - 10',
+                ByteOrder => 'LittleEndian',
+            },
+        },{ #PH (TG-810)
+            Name => 'OlympusThumbnail',
+            Condition => '$$valPt =~ /^.{4}\xff\xd8\xff\xdb/s',
+            SubDirectory => { TagTable => 'Image::ExifTool::Olympus::thmb' },
+        },
+    ],
+    scrn => { #PH (TG-810)
+        Name => 'OlympusPreview',
+        Condition => '$$valPt =~ /^.{4}\xff\xd8\xff\xdb/s',
+        SubDirectory => { TagTable => 'Image::ExifTool::Olympus::scrn' },
+    },
+    PXTH => { #PH (Pentax K-01)
+        Name => 'PentaxPreview',
+        SubDirectory => { TagTable => 'Image::ExifTool::Pentax::PXTH' },
+    },
+    PXMN => { #PH (Pentax K-01)
+        Name => 'MakerNotePentax5b',
+        Condition => '$$valPt =~ /^PENTAX \0MM/',
         SubDirectory => {
             TagTable => 'Image::ExifTool::Pentax::Main',
             ProcessProc => \&Image::ExifTool::Exif::ProcessExif, # (because ProcessMOV is default)
             Start => 10,
             Base => '$start - 10',
-            ByteOrder => 'LittleEndian',
+            ByteOrder => 'BigEndian',
         },
     },
-    # ducp - 4 bytes, all zero (Samsung ST96)
+    # ducp - 4 bytes, all zero (Samsung ST96,WB750)
 );
 
 # User-specific media data atoms (ref 11)
@@ -1057,6 +1097,13 @@ my %graphicsMode = (
     VPRF => {
         Name => 'VideoProfile',
         SubDirectory => { TagTable => 'Image::ExifTool::QuickTime::VideoProf' },
+    },
+    OLYM => { #PH
+        Name => 'OlympusOLYM',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Olympus::OLYM',
+            ByteOrder => 'BigEndian',
+        },
     },
 );
 
@@ -1236,6 +1283,34 @@ my %graphicsMode = (
     GROUPS => { 2 => 'Video' },
     chap => { Name => 'ChapterList', Format => 'int32u' },
     # also: tmcd, sync, scpt, ssrc, iTunesInfo
+);
+
+# track aperture mode dimensions atoms
+# (ref https://developer.apple.com/library/mac/#documentation/QuickTime/QTFF/QTFFChap2/qtff2.html)
+%Image::ExifTool::QuickTime::TrackAperture = (
+    PROCESS_PROC => \&ProcessMOV,
+    GROUPS => { 2 => 'Video' },
+    clef => {
+        Name => 'CleanApertureDimensions',
+        Format => 'fixed32u',
+        Count => 3,
+        ValueConv => '$val =~ s/^.*? //; $val', # remove flags word
+        PrintConv => '$val =~ tr/ /x/; $val',
+    },
+    prof => {
+        Name => 'ProductionApertureDimensions',
+        Format => 'fixed32u',
+        Count => 3,
+        ValueConv => '$val =~ s/^.*? //; $val',
+        PrintConv => '$val =~ tr/ /x/; $val',
+    },
+    enof => {
+        Name => 'EncodedPixelsDimensions',
+        Format => 'fixed32u',
+        Count => 3,
+        ValueConv => '$val =~ s/^.*? //; $val',
+        PrintConv => '$val =~ tr/ /x/; $val',
+    },
 );
 
 # item list atoms
@@ -2682,7 +2757,7 @@ sub ProcessMOV($$;$)
                     }
                     my $key = $exifTool->FoundTag($tagInfo, $val);
                     # decode if necessary (NOTE: must be done after RawConv)
-                    if ((not $format or $format =~ /^string/) and
+                    if (defined $key and (not $format or $format =~ /^string/) and
                         not $$tagInfo{Unknown} and not $$tagInfo{Binary} and
                         defined $$exifTool{VALUE}{$key})
                     {

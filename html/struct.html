@@ -157,9 +157,23 @@ string.  The following two techniques are equivalent:</p>
 <a name='Copying'></a>
 <h2>Copying</h2>
 
-<p>By default, tags are <b>copied as structures</b>.  This allows the hierarchy
-of complex structures to be preserved when copying.  In this mode, only the
-top-level structure tags may be specified:</p>
+<p>By default, tags are <b>copied as structures</b>, but flattened tag names
+may still be copied by specifying them explicitly.  Copying as structures
+allows the hierarchy of complex structures to be preserved.</p>
+
+<blockquote><table class='box'><tr><td>
+<pre># this copies all XMP information as structures
+# (flattened tags are not copied by default...)
+<span class=code>exiftool -tagsfromfile src.jpg -xmp:all dst.jpg
+</span>
+# ... but flattened tags may be copied individually.  Here the
+# first level hierarchical keywords are copied to the Subject tag
+# (this may be done in the same command as one that copies structures)
+<span class=code>exiftool -tagsfromfile src.jpg "-subject&lt;hierarchicalkeywords1" dst.jpg</span></pre>
+</td></tr></table></blockquote>
+
+<p>Note that when copying a specific structure, only the top-level structures
+may be specified:</p>
 
 <blockquote><table class='box'><tr><td>
 <pre># this copies the complete keyword hierarchy
@@ -170,18 +184,18 @@ top-level structure tags may be specified:</p>
 </td></tr></table></blockquote>
 
 <p>The copy-as-structure feature may be disabled with <code>--struct</code> on
-the command line, or by setting the Struct option to 0 via the API.  This option
-is necessary for copying flattened tags.  Here is an example command that copies
-the hierarchical keywords using this technique:</p>
-
-<blockquote><table class='box'><tr><td>
-<pre class=code>exiftool -tagsfromfile src.jpg --struct "-hierarchicalkeywords*" dst.jpg</pre>
-</td></tr></table></blockquote>
+the command line, or by setting the <a href="ExifTool.html#Struct">Struct option</a>
+to 0 via the API.  When this is done, only flattened tags are copied, and
+structures may not be specified. Conversely, if the structure option is enabled
+(by setting the <a href="ExifTool.html#Struct">Struct option</a> to 1 via the API,
+or with <code>-struct</code> on the command line), only structures are copied,
+and flattened tags may not be specified.</p>
 
 <p class=lt>(Note: This method of copying as flattened tags was the default
-behaviour with ExifTool 8.43 and earlier.  But copying as structures has been
-the default since the ability to write structured information was introduced in
-version 8.44.)</p>
+behaviour with ExifTool 8.43 and earlier.  Copying as structures has been the
+default since the ability to write structured information was introduced in
+version 8.44, but an enhancement in version 8.82 allowed flattened tags to be
+copied explicitly without the need to disable the Struct option.)</p>
 
 <a name='Deleting'></a>
 <h2>Deleting / Replacing</h2>
@@ -322,7 +336,7 @@ See the NewXMPxxxStruct tag definition in the <a href="config.html#xmp-xxx">XMP-
 examples of the sample config file</a> for more details.</p>
 
 <hr>
-<i>Last revised Jan. 29, 2012</i>
+<i>Last revised Mar. 10, 2012</i>
 <p class='lf'><a href="index.html">&lt;-- Back to ExifTool home page</a></p>
 </body>
 </html>

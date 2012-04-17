@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::tr;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 %Image::ExifTool::Lang::tr::Translate = (
    'Album' => 'Albüm',
@@ -167,6 +167,7 @@ $VERSION = '1.03';
       },
     },
    'FileType' => 'Dosya türü',
+   'Filename' => 'Dosya adı',
    'Flash' => {
       Description => 'Flaş',
       PrintConv => {
@@ -296,6 +297,7 @@ $VERSION = '1.03';
    'Gradation' => 'Dereceleme',
    'Headline' => 'Başlık',
    'Hue' => 'Renk',
+   'ICCProfile' => 'ICC Profili',
    'ISO' => 'ISO değeri',
    'ImageHeight' => 'İmaj yüksekliği',
    'ImageSize' => 'İmaj Boyutu',

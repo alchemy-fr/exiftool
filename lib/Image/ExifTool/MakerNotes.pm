@@ -20,7 +20,7 @@ sub ProcessGE2($$$);
 sub WriteUnknownOrPreview($$$);
 sub FixLeicaBase($$;$);
 
-$VERSION = '1.70';
+$VERSION = '1.72';
 
 my $debug;          # set to 1 to enable debugging code
 
@@ -902,7 +902,7 @@ sub GetMakerNoteOffset($)
         push @offsets, 0;
     } elsif ($make =~ /^SONY/) {
         # DSLR and "PREMI" models use an offset of 4
-        if ($model =~ /DSLR/ or $$exifTool{OlympusCAMER}) {
+        if ($model =~ /^(DSLR|SLT|NEX)-/ or $$exifTool{OlympusCAMER}) {
             push @offsets, 4;
         } else {
             push @offsets, 0;
@@ -1325,6 +1325,8 @@ IFD_TRY: for ($offset=$firstTry; $offset<=$lastTry; $offset+=2) {
                 next unless $format or $count or $index == 0;
                 # patch for Canon EOS 40D firmware 1.0.4 bug: allow zero format for last entry
                 next if $format==0 and $index==$num-1 and $$exifTool{Model}=~/EOS 40D/;
+                # patch for Sony cameras like the DSC-P10 that have invalid MakerNote entries
+                next if $num == 12 and $$exifTool{Make} eq 'SONY' and $index >= 8;
                 # (would like to verify tag ID, but some manufactures don't
                 #  sort entries in order of tag ID so we don't have much of
                 #  a handle to verify this field)

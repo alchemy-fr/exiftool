@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.30
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.88
 [File, System, Image] FileName - File Name: QuickTime.mov
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 3.8 kB
@@ -31,6 +31,9 @@
 [QuickTime, Track1, Video] 10 - Matrix Structure: 1 0 0 0 1 0 0 0 1
 [QuickTime, Track1, Video] 19 - Image Width: 320
 [QuickTime, Track1, Video] 20 - Image Height: 240
+[QuickTime, Track1, Video] clef - Clean Aperture Dimensions: 320x240
+[QuickTime, Track1, Video] prof - Production Aperture Dimensions: 320x240
+[QuickTime, Track1, Video] enof - Encoded Pixels Dimensions: 320x240
 [QuickTime, Track1, Video] 0 - Media Header Version: 0
 [QuickTime, Track1, Time] 1 - Media Create Date: 2005:08:11 14:03:54
 [QuickTime, Track1, Time] 2 - Media Modify Date: 2005:08:11 14:03:54

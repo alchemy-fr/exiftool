@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::ru;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 %Image::ExifTool::Lang::ru::Translate = (
    'ActiveArea' => 'Активная область',
@@ -254,6 +254,7 @@ $VERSION = '1.03';
       },
     },
    'FileType' => 'Тип файла',
+   'Filename' => 'Имя файла',
    'Flash' => {
       Description => 'Вспышка',
       PrintConv => {

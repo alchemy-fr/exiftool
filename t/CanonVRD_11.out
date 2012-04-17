@@ -1,12 +1,12 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.59
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.86
 [File, System, Image] FileName - File Name: CanonVRD_11_failed.vrd
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 4.5 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2011:06:02 14:25:08-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:04:02 16:54:51-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: VRD
 [File, File, Image] MIMEType - MIME Type: application/unknown
-[CanonVRD, CanonVRD, Image] 2 - VRD Version: 2.00
+[CanonVRD, CanonVRD, Image] 2 - VRD Version: 2.0.0
 [CanonVRD, CanonVRD, Image] 6 - WB Adj RGGB Levels: 1856 832 832 928
 [CanonVRD, CanonVRD, Image] 24 - White Balance Adj: Manual (Click)
 [CanonVRD, CanonVRD, Image] 26 - WB Adj Color Temp: 5600
@@ -112,5 +112,5 @@
 [CanonVRD, CanonVRD, Image] 82 - Custom Raw Shadow Point: 6
 [CanonVRD, CanonVRD, Image] 83 - Custom Output Highlight Point: 4095
 [CanonVRD, CanonVRD, Image] 84 - Custom Output Shadow Point: 0
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.59
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.86
 [XMP, XMP-dc, Image] title - Title: XMP in VRD test

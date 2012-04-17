@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::ko;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 %Image::ExifTool::Lang::ko::Translate = (
    'AELock' => {
@@ -105,6 +105,7 @@ $VERSION = '1.05';
    'AFInfo' => 'AF 모드',
    'AFInfo2' => 'AF 정보',
    'AFInfo2Version' => 'AF 정보 버전',
+   'AFMode' => 'AF 모드',
    'AFPoint' => {
       Description => 'AF 포인트',
       PrintConv => {
@@ -841,6 +842,7 @@ $VERSION = '1.05';
       },
     },
    'FileType' => '파일형식',
+   'Filename' => '파일명',
    'FilmType' => '필름 형식',
    'Filter' => {
       PrintConv => {
@@ -1161,6 +1163,7 @@ $VERSION = '1.05';
    'GPSMeasureMode' => {
       Description => 'GPS 측정 모드',
       PrintConv => {
+        '2-Dimensional Measurement' => '2-차원 측량(평면 측량)',
         '3-Dimensional Measurement' => '3차원 측정',
       },
     },
@@ -1239,6 +1242,7 @@ $VERSION = '1.05';
    'Hue' => '색상',
    'HueAdjustment' => '색조',
    'ISO' => 'ISO 속도',
+   'ISOAuto' => '자동 ISO',
    'ISODisplay' => 'ISO 표시',
    'ISOExpansion' => {
       Description => 'ISO 확장',
@@ -1418,6 +1422,7 @@ $VERSION = '1.05';
       },
     },
    'MB-D10Batteries' => 'MB-D10 배터리 형식',
+   'MB-D10BatteryType' => 'MB-D10 배터리 형식',
    'MB-D80Batteries' => {
       Description => 'MB-D80 배터리',
       PrintConv => {
@@ -1615,6 +1620,7 @@ $VERSION = '1.05';
         'Uncompressed' => '압축되지 않음',
       },
     },
+   'NEFLinearizationTable' => '선형도표',
    'NikonCaptureData' => 'Nikon Capture 데이터',
    'NikonCaptureVersion' => 'Nikon Capture 버전',
    'NikonImageSize' => {
@@ -1755,6 +1761,7 @@ $VERSION = '1.05';
         'Planar' => '평면 형식',
       },
     },
+   'Preview' => 'IFD 포인터 미리보기',
    'PreviewIFD' => 'IFD 포인터 미리보기',
    'PrimaryAFPoint' => {
       PrintConv => {
@@ -1788,6 +1795,7 @@ $VERSION = '1.05';
         'Standard' => '표준',
       },
     },
+   'QuickAdjust' => '빠른 조정',
    'RawDevAutoGradation' => {
       PrintConv => {
         'Off' => '꺼짐',
@@ -2088,6 +2096,7 @@ $VERSION = '1.05';
     },
    'ThumbnailImage' => '축소 그림',
    'ThumbnailImageSize' => '갤러리 크기',
+   'TimeZone' => '표준 시간대',
    'TimerFunctionButton' => {
       Description => 'Fn 버튼',
       PrintConv => {

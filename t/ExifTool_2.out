@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.79
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.86
 [File, System, Image] FileName - File Name: ExifTool.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 24 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:02:14 11:53:11-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:02:14 17:17:14-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -332,7 +332,7 @@
 [PhotoMechanic, PhotoMechanic, Image] 218 - Crop Top: 618
 [PhotoMechanic, PhotoMechanic, Image] 219 - Crop Right: 890
 [PhotoMechanic, PhotoMechanic, Image] 220 - Crop Bottom: 1072
-[CanonVRD, CanonVRD, Image] 2 - VRD Version: 1.00
+[CanonVRD, CanonVRD, Image] 2 - VRD Version: 1.0.0
 [CanonVRD, CanonVRD, Image] 6 - WB Adj RGGB Levels: 0 0 0 0
 [CanonVRD, CanonVRD, Image] 24 - White Balance Adj: Shot Settings
 [CanonVRD, CanonVRD, Image] 26 - WB Adj Color Temp: 5600
