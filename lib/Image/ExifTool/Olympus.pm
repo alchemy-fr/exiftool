@@ -33,7 +33,7 @@ use vars qw($VERSION);
 use Image::ExifTool::Exif;
 use Image::ExifTool::APP12;
 
-$VERSION = '1.87';
+$VERSION = '1.88';
 
 sub PrintLensInfo($$$);
 
@@ -273,6 +273,7 @@ my %olympusCameraTypes = (
     D4510 => 'TG-820',
     D4516 => 'SH-21',
     D4519 => 'SZ-14',
+    D4521 => 'SH-25MR',
     D4529 => 'VG170',
     D4535 => 'SP-620UZ',
     D4536 => 'TG-320',

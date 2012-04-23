@@ -34,16 +34,18 @@ reference number and not the actual firmware version)</span></span></td></tr>
 <td title='0x0003 = 3'>0x0003</td>
 <td>WhiteBalance</td>
 <td class=c>int16u</td>
-<td><span class=s>1 = Auto
+<td><table class=cols><tr>
+  <td>1 = Auto
   <br>2 = Daylight
   <br>3 = Cloudy
   <br>4 = Incandescent
-  <br>5 = Manual
-  <br>8 = Flash
+  <br>5 = Manual</td><td>&nbsp;&nbsp;</td>
+  <td>8 = Flash
   <br>10 = Black &amp; White
   <br>11 = Manual
   <br>12 = Shade
-  <br>13 = Kelvin</span></td></tr>
+  <br>13 = Kelvin</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x0007 = 7'>0x0007</td>
 <td>FocusMode</td>
@@ -59,8 +61,8 @@ reference number and not the actual firmware version)</span></span></td></tr>
 <td><span class=s><span class=n>(DMC-FZ10)</span>
   <br>&#39;0 1&#39; = Spot Mode On
   <br>&#39;0 16&#39; = Spot Mode Off
-  <br><span class=n>(other models)</span>
-  <br>16 = Normal?
+  <br><span class=n>(other models)</span></span><table class=cols><tr>
+  <td>16 = Normal?
   <br>&#39;0 1&#39; = 9-area
   <br>&#39;0 16&#39; = 3-area (high speed)
   <br>&#39;0 23&#39; = 23-area
@@ -72,7 +74,8 @@ reference number and not the actual firmware version)</span></span></td></tr>
   <br>&#39;32 1&#39; = 3-area (left)?
   <br>&#39;32 2&#39; = 3-area (center)?
   <br>&#39;32 3&#39; = 3-area (right)?
-  <br>&#39;64 0&#39; = Face Detect</span></td></tr>
+  <br>&#39;64 0&#39; = Face Detect</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x001a = 26'>0x001a</td>
 <td>ImageStabilization</td>
@@ -180,12 +183,14 @@ same as the number printed on the camera body)</span></span></td></tr>
 <td title='0x0028 = 40'>0x0028</td>
 <td>ColorEffect</td>
 <td class=c>int16u</td>
-<td><span class=s>1 = Off
+<td><table class=cols><tr>
+  <td>1 = Off
   <br>2 = Warm
-  <br>3 = Cool
-  <br>4 = Black &amp; White
+  <br>3 = Cool</td><td>&nbsp;&nbsp;</td>
+  <td>4 = Black &amp; White
   <br>5 = Sepia
-  <br>6 = Happy</span></td></tr>
+  <br>6 = Happy</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x0029 = 41'>0x0029</td>
 <td>TimeSincePowerOn</td>
@@ -212,17 +217,17 @@ written to memory card)</span></span></td></tr>
 <td class=c>int16u</td>
 <td><span class=s><span class=n>(this decoding seems to work for some models such as the LC1, LX2, FZ7, FZ8,
 FZ18 and FZ50, but may not be correct for other models such as the FX10, G1, L1,
-L10 and LC80)</span>
-  <br>0x0 = Normal
+L10 and LC80)</span></span><table class=cols><tr>
+  <td>0x0 = Normal
   <br>0x1 = Low
   <br>0x2 = High
   <br>0x6 = Medium Low
-  <br>0x7 = Medium High
-  <br>0xd = High Dynamic
+  <br>0x7 = Medium High</td><td>&nbsp;&nbsp;</td>
+  <td>0xd = High Dynamic
   <br>0x100 = Low
   <br>0x110 = Normal
-  <br>0x120 = High
-  <br><span class=n>(these values are used by the G2, GF1, GF2, GF3 and GF5)</span>
+  <br>0x120 = High</td><td>&nbsp;&nbsp;</td></tr></table>
+<span class=s><span class=n>(these values are used by the G2, GF1, GF2, GF3 and GF5)</span>
   <br>0 = -2
   <br>1 = -1
   <br>2 = Normal
@@ -369,16 +374,18 @@ L10 and LC80)</span>
 <td title='0x0042 = 66'>0x0042</td>
 <td>FilmMode</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = n/a
+<td><table class=cols><tr>
+  <td>0 = n/a
   <br>1 = Standard (color)
   <br>2 = Dynamic (color)
   <br>3 = Nature (color)
-  <br>4 = Smooth (color)
-  <br>5 = Standard (B&amp;W)
+  <br>4 = Smooth (color)</td><td>&nbsp;&nbsp;</td>
+  <td>5 = Standard (B&amp;W)
   <br>6 = Dynamic (B&amp;W)
   <br>7 = Smooth (B&amp;W)
   <br>10 = Nostalgic
-  <br>11 = Vibrant</span></td></tr>
+  <br>11 = Vibrant</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0044 = 68'>0x0044</td>
 <td>ColorTempKelvin</td>
@@ -765,14 +772,15 @@ user-supplied set of known faces.</p>
 <td title='0x0304 = 772'>0x0304</td>
 <td>WhiteBalance</td>
 <td class=c>int16u</td>
-<td><span class=s><span class=n>(values above 0x8000 are converted to Kelvin color temperatures)</span>
-  <br>0 = Auto or Manual
+<td><span class=s><span class=n>(values above 0x8000 are converted to Kelvin color temperatures)</span></span><table class=cols><tr>
+  <td>0 = Auto or Manual
   <br>1 = Daylight
   <br>2 = Fluorescent
-  <br>3 = Tungsten
-  <br>4 = Flash
+  <br>3 = Tungsten</td><td>&nbsp;&nbsp;</td>
+  <td>4 = Flash
   <br>10 = Cloudy
-  <br>11 = Shade</span></td></tr>
+  <br>11 = Shade</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0310 = 784'>0x0310</td>
 <td>LensType</td>
@@ -985,18 +993,21 @@ on the M9, or the focal length of some multi-focal lenses.</p>
 <td title='0x300d = 12301'>0x300d</td>
 <td>Saturation</td>
 <td class=c>int32u</td>
-<td><span class=s>0 = Low
+<td><table class=cols><tr>
+  <td>0 = Low
   <br>1 = Medium Low
   <br>2 = Normal
-  <br>3 = Medium High
-  <br>4 = High
+  <br>3 = Medium High</td><td>&nbsp;&nbsp;</td>
+  <td>4 = High
   <br>5 = Black &amp; White
-  <br>6 = Vintage B&amp;W</span></td></tr>
+  <br>6 = Vintage B&amp;W</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x3033 = 12339'>0x3033</td>
 <td>WhiteBalance</td>
 <td class=c>int32u</td>
-<td><span class=s>0 = Auto
+<td><table class=cols><tr>
+  <td>0 = Auto
   <br>1 = Tungsten
   <br>2 = Fluorescent
   <br>3 = Daylight Fluorescent
@@ -1005,7 +1016,8 @@ on the M9, or the focal length of some multi-focal lenses.</p>
   <br>6 = Cloudy
   <br>7 = Shade
   <br>8 = Manual
-  <br>9 = Kelvin</span></td></tr>
+  <br>9 = Kelvin</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x3034 = 12340'>0x3034</td>
 <td>JPEGQuality</td>

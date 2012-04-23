@@ -137,9 +137,9 @@ different from other models)</span>
   <br>22 = Sepia
   <br>23 = Red
   <br>24 = Pink
-  <br>25 = Purple</td><td>&nbsp;&nbsp;</td>
-  <td>26 = Blue
-  <br>27 = Green
+  <br>25 = Purple
+  <br>26 = Blue</td><td>&nbsp;&nbsp;</td>
+  <td>27 = Green
   <br>28 = Yellow
   <br>30 = Self Portrait
   <br>31 = Illustrations
@@ -161,6 +161,8 @@ different from other models)</span>
   <br>60 = Kids
   <br>61 = Blur Reduction
   <br>65 = Half-length Portrait
+  <br>80 = Miniature
+  <br>83 = Fisheye
   <br>221 = P
   <br>255 = PICT</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
@@ -168,8 +170,8 @@ different from other models)</span>
 <td title='0x000c = 12'>0x000c</td>
 <td>FlashMode</td>
 <td class=c>int16u[n]</td>
-<td><span class=s>[Value 0]
-  <br>0x0 = Auto, Did not fire
+<td><span class=s>[Value 0]</span><table class=cols><tr>
+  <td>0x0 = Auto, Did not fire
   <br>0x1 = Off, Did not fire
   <br>0x2 = On, Did not fire
   <br>0x3 = Auto, Did not fire, Red-eye reduction
@@ -183,9 +185,9 @@ different from other models)</span>
   <br>0x108 = On, Soft
   <br>0x109 = On, Slow-sync
   <br>0x10a = On, Slow-sync, Red-eye reduction
-  <br>0x10b = On, Trailing-curtain Sync
-  <br>[Value 1]
-  <br>0x0 = n/a - Off-Auto-Aperture
+  <br>0x10b = On, Trailing-curtain Sync</td><td>&nbsp;&nbsp;</td></tr></table>
+<span class=s>[Value 1]</span><table class=cols><tr>
+  <td>0x0 = n/a - Off-Auto-Aperture
   <br>0x3f = Internal
   <br>0x100 = External, Auto
   <br>0x23f = External, Flash Problem
@@ -194,7 +196,8 @@ different from other models)</span>
   <br>0x305 = External, Contrast-control Sync
   <br>0x306 = External, High-speed Sync
   <br>0x30c = External, Wireless
-  <br>0x30d = External, Wireless, High-speed Sync</span></td></tr>
+  <br>0x30d = External, Wireless, High-speed Sync</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x000d = 13'>0x000d</td>
 <td>FocusMode</td>
@@ -244,7 +247,8 @@ different from other models)</span>
 <td title='0x000f = 15'>0x000f</td>
 <td>AFPointsInFocus</td>
 <td class=c>int16u</td>
-<td><span class=s>0x0 = Fixed Center or Multiple
+<td><table class=cols><tr>
+  <td>0x0 = Fixed Center or Multiple
   <br>0x1 = Top-left
   <br>0x2 = Top-center
   <br>0x3 = Top-right
@@ -254,7 +258,8 @@ different from other models)</span>
   <br>0x7 = Bottom-left
   <br>0x8 = Bottom-center
   <br>0x9 = Bottom-right
-  <br>0xffff = None</span></td></tr>
+  <br>0xffff = None</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x0010 = 16'>0x0010</td>
 <td>FocusPosition</td>
@@ -386,7 +391,8 @@ available.  Extended bracket values are printed as &#39;WB-BA&#39;, &#39;WB-GM&#
 <td title='0x001a = 26'>0x001a</td>
 <td>WhiteBalanceMode</td>
 <td class=c>int16u</td>
-<td><span class=s>1 = Auto (Daylight)
+<td><table class=cols><tr>
+  <td>1 = Auto (Daylight)
   <br>2 = Auto (Shade)
   <br>3 = Auto (Flash)
   <br>4 = Auto (Tungsten)
@@ -395,7 +401,8 @@ available.  Extended bracket values are printed as &#39;WB-BA&#39;, &#39;WB-GM&#
   <br>8 = Auto (White Fluorescent)
   <br>10 = Auto (Cloudy)
   <br>65534 = Unknown
-  <br>65535 = User-Selected</span></td></tr>
+  <br>65535 = User-Selected</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x001b = 27'>0x001b</td>
 <td>BlueBalance</td>
@@ -518,14 +525,16 @@ available.  Extended bracket values are printed as &#39;WB-BA&#39;, &#39;WB-GM&#
 <td title='0x0032 = 50'>0x0032</td>
 <td>ImageEditing</td>
 <td class=c>undef[4]</td>
-<td><span class=s>&#39;0 0&#39; = None
+<td><table class=cols><tr>
+  <td>&#39;0 0&#39; = None
   <br>&#39;0 0 0 0&#39; = None
   <br>&#39;0 0 0 4&#39; = Digital Filter
   <br>&#39;1 0 0 0&#39; = Resized
   <br>&#39;2 0 0 0&#39; = Cropped
   <br>&#39;4 0 0 0&#39; = Digital Filter 4
   <br>&#39;6 0 0 0&#39; = Digital Filter 6
-  <br>&#39;16 0 0 0&#39; = Frame Synthesis?</span></td></tr>
+  <br>&#39;16 0 0 0&#39; = Frame Synthesis?</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0033 = 51'>0x0033</td>
 <td>PictureMode</td>
@@ -606,27 +615,28 @@ available.  Extended bracket values are printed as &#39;WB-BA&#39;, &#39;WB-GM&#
   <br>2 = Continuous (Lo)
   <br>3 = Burst
   <br>255 = Video
-  <br>[Value 1]
-  <br>0 = No Timer
+  <br>[Value 1]</span><table class=cols><tr>
+  <td>0 = No Timer
   <br>1 = Self-timer (12 s)
-  <br>2 = Self-timer (2 s)
-  <br>15 = Video
+  <br>2 = Self-timer (2 s)</td><td>&nbsp;&nbsp;</td>
+  <td>15 = Video
   <br>16 = Mirror Lock-up
-  <br>255 = n/a
-  <br>[Value 2]
+  <br>255 = n/a</td><td>&nbsp;&nbsp;</td></tr></table>
+<span class=s>[Value 2]
   <br>0 = Shutter Button
   <br>1 = Remote Control (3 s delay)
   <br>2 = Remote Control
   <br>4 = Remote Continuous Shooting
-  <br>[Value 3]
-  <br>0 = Single Exposure
+  <br>[Value 3]</span><table class=cols><tr>
+  <td>0 = Single Exposure
   <br>1 = Multiple Exposure
   <br>16 = HDR
-  <br>32 = HDR Strong 1
-  <br>48 = HDR Strong 2
+  <br>32 = HDR Strong 1</td><td>&nbsp;&nbsp;</td>
+  <td>48 = HDR Strong 2
   <br>64 = HDR Strong 3
   <br>224 = HDR Auto
-  <br>255 = Video</span></td></tr>
+  <br>255 = Video</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0035 = 53'>0x0035</td>
 <td>SensorSize</td>
@@ -841,14 +851,14 @@ for live view or video recording)</span></span></td></tr>
 <td title='0x0071 = 113'>0x0071</td>
 <td>HighISONoiseReduction</td>
 <td class=c>int8u</td>
-<td><span class=s>[Value 0]
-  <br>0 = Off
+<td><span class=s>[Value 0]</span><table class=cols><tr>
+  <td>0 = Off
   <br>1 = Weakest
-  <br>2 = Weak
-  <br>3 = Strong
+  <br>2 = Weak</td><td>&nbsp;&nbsp;</td>
+  <td>3 = Strong
   <br>4 = Medium
-  <br>255 = Auto
-  <br>[Value 1]
+  <br>255 = Auto</td><td>&nbsp;&nbsp;</td></tr></table>
+<span class=s>[Value 1]
   <br>0 = Inactive
   <br>1 = Active
   <br>2 = Active (Weak)
@@ -1321,10 +1331,10 @@ are left, top, width and height in a 720x480 frame, with Y downwards)</span></sp
 <td class=r>0x12f0c</td><td>= Optio RZ18</td>
 </tr><tr><td class=r>0x12b60</td><td>= *ist DS2</td>
 <td class='r b'>0x12d04</td><td class=b>= Optio S12</td>
-<td class=r>0x12f2a</td><td>= Optio WG-2 GPS</td>
+<td class=r>0x12f16</td><td>= Optio VS20</td>
 </tr><tr><td class=r>0x12b62</td><td>= Samsung GX-1S</td>
 <td class='r b'>0x12d0e</td><td class=b>= Optio E50</td>
-<td class=r>&nbsp;</td><td>&nbsp;</td>
+<td class=r>0x12f2a</td><td>= Optio WG-2 GPS</td>
 </tr></table></td></tr></table></blockquote>
 
 <h2><a name='City'>Pentax City Values</a></h2>
@@ -1675,13 +1685,15 @@ lens model.</p>
 <td class=r title='1 = 0x1'>1</td>
 <td>ShakeReduction</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = Off
+<td><table class=cols><tr>
+  <td>0 = Off
   <br>1 = On
   <br>4 = Off (4)
-  <br>5 = On but Disabled
-  <br>6 = On (Video)
+  <br>5 = On but Disabled</td><td>&nbsp;&nbsp;</td>
+  <td>6 = On (Video)
   <br>7 = On (7)
-  <br>15 = On (15)</span></td></tr>
+  <br>15 = On (15)</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='2 = 0x2'>2</td>
 <td>SRHalfPressTime</td>
@@ -1804,7 +1816,8 @@ with positive Y downwards)</span></span></td></tr>
 <td class=r title='0 = 0x0'>0</td>
 <td>PictureMode2</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = Scene Mode
+<td><table class=cols><tr>
+  <td>0 = Scene Mode
   <br>1 = Auto PICT
   <br>2 = Program AE
   <br>3 = Green Mode
@@ -1819,7 +1832,8 @@ with positive Y downwards)</span></span></td></tr>
   <br>12 = Bulb, Off-Auto-Aperture
   <br>13 = Shutter &amp; Aperture Priority AE
   <br>15 = Sensitivity Priority AE
-  <br>16 = Flash X-Sync Speed AE</span></td></tr>
+  <br>16 = Flash X-Sync Speed AE</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='1 = 0x1'>1.1</td>
 <td>ProgramLine</td>
@@ -1855,8 +1869,8 @@ with positive Y downwards)</span></span></td></tr>
 <td>FlashOptions</td>
 <td class=c>int8u</td>
 <td><span class=s><span class=n>(the camera flash options settings, set even if the flash is off)</span>
-  <br>[Mask 0xf0]
-  <br>0x0 = Normal
+  <br>[Mask 0xf0]</span><table class=cols><tr>
+  <td>0x0 = Normal
   <br>0x1 = Red-eye reduction
   <br>0x2 = Auto
   <br>0x3 = Auto, Red-eye reduction
@@ -1864,7 +1878,8 @@ with positive Y downwards)</span></span></td></tr>
   <br>0x6 = Wireless (Control)
   <br>0x8 = Slow-sync
   <br>0x9 = Slow-sync, Red-eye reduction
-  <br>0xa = Trailing-curtain Sync</span></td></tr>
+  <br>0xa = Trailing-curtain Sync</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='2 = 0x2'>2.1</td>
 <td>MeteringMode2</td>
@@ -1895,18 +1910,20 @@ with positive Y downwards)</span></span></td></tr>
 <td class=r title='4 = 0x4'>4</td>
 <td>AFPointSelected2</td>
 <td class=c>int16u</td>
-<td><span class=s>0x0 = Auto
+<td><table class=cols><tr>
+  <td>0x0 = Auto
   <br>Bit 0 = Upper-left
   <br>Bit 1 = Top
   <br>Bit 2 = Upper-right
   <br>Bit 3 = Left
-  <br>Bit 4 = Mid-left
-  <br>Bit 5 = Center
+  <br>Bit 4 = Mid-left</td><td>&nbsp;&nbsp;</td>
+  <td>Bit 5 = Center
   <br>Bit 6 = Mid-right
   <br>Bit 7 = Right
   <br>Bit 8 = Lower-left
   <br>Bit 9 = Bottom
-  <br>Bit 10 = Lower-right</span></td></tr>
+  <br>Bit 10 = Lower-right</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='6 = 0x6'>6</td>
 <td>ISOFloor</td>
@@ -1916,7 +1933,8 @@ with positive Y downwards)</span></span></td></tr>
 <td class=r title='7 = 0x7'>7</td>
 <td>DriveMode2</td>
 <td class=c>int8u</td>
-<td><span class=s>0x0 = Single-frame
+<td><table class=cols><tr>
+  <td>0x0 = Single-frame
   <br>Bit 0 = Continuous
   <br>Bit 1 = Continuous (Lo)
   <br>Bit 2 = Self-timer (12 s)
@@ -1924,40 +1942,45 @@ with positive Y downwards)</span></span></td></tr>
   <br>Bit 4 = Remote Control (3 s delay)
   <br>Bit 5 = Remote Control
   <br>Bit 6 = Exposure Bracket
-  <br>Bit 7 = Multiple Exposure</span></td></tr>
+  <br>Bit 7 = Multiple Exposure</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='8 = 0x8'>8</td>
 <td>ExposureBracketStepSize</td>
 <td class=c>int8u</td>
-<td><span class=s>3 = 0.3
+<td><table class=cols><tr>
+  <td>3 = 0.3
   <br>4 = 0.5
   <br>5 = 0.7
-  <br>8 = 1.0
-  <br>11 = 1.3
+  <br>8 = 1.0</td><td>&nbsp;&nbsp;</td>
+  <td>11 = 1.3
   <br>12 = 1.5
   <br>13 = 1.7
-  <br>16 = 2.0</span></td></tr>
+  <br>16 = 2.0</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='9 = 0x9'>9</td>
 <td>BracketShotNumber</td>
 <td class=c>int8u</td>
-<td><span class=s>0x0 = n/a
+<td><table class=cols><tr>
+  <td>0x0 = n/a
   <br>0x2 = 1 of 2
   <br>0x3 = 1 of 3
-  <br>0x5 = 1 of 5
-  <br>0x12 = 2 of 2
+  <br>0x5 = 1 of 5</td><td>&nbsp;&nbsp;</td>
+  <td>0x12 = 2 of 2
   <br>0x13 = 2 of 3
   <br>0x15 = 2 of 5
-  <br>0x23 = 3 of 3
-  <br>0x25 = 3 of 5
+  <br>0x23 = 3 of 3</td><td>&nbsp;&nbsp;</td>
+  <td>0x25 = 3 of 5
   <br>0x35 = 4 of 5
-  <br>0x45 = 5 of 5</span></td></tr>
+  <br>0x45 = 5 of 5</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='10 = 0xa'>10</td>
 <td>WhiteBalanceSet</td>
 <td class=c>int8u</td>
-<td><span class=s>[Mask 0xf0]
-  <br>0x0 = Auto
+<td><span class=s>[Mask 0xf0]</span><table class=cols><tr>
+  <td>0x0 = Auto
   <br>0x10 = Daylight
   <br>0x20 = Shade
   <br>0x30 = Cloudy
@@ -1969,7 +1992,8 @@ with positive Y downwards)</span></span></td></tr>
   <br>0x90 = Manual
   <br>0xc0 = Set Color Temperature 1
   <br>0xd0 = Set Color Temperature 2
-  <br>0xe0 = Set Color Temperature 3</span></td></tr>
+  <br>0xe0 = Set Color Temperature 3</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='10 = 0xa'>10.1</td>
 <td>MultipleExposureSet</td>
@@ -1981,8 +2005,8 @@ with positive Y downwards)</span></span></td></tr>
 <td class=r title='13 = 0xd'>13</td>
 <td>RawAndJpgRecording</td>
 <td class=c>int8u</td>
-<td><span class=s><span class=n>(K10D only)</span>
-  <br>0x1 = JPEG (Best)
+<td><span class=s><span class=n>(K10D only)</span></span><table class=cols><tr>
+  <td>0x1 = JPEG (Best)
   <br>0x4 = RAW (PEF, Best)
   <br>0x5 = RAW+JPEG (PEF, Best)
   <br>0x8 = RAW (DNG, Best)
@@ -1996,7 +2020,8 @@ with positive Y downwards)</span></span></td></tr>
   <br>0x44 = RAW (PEF, Good)
   <br>0x45 = RAW+JPEG (PEF, Good)
   <br>0x48 = RAW (DNG, Good)
-  <br>0x49 = RAW+JPEG (DNG, Good)</span></td></tr>
+  <br>0x49 = RAW+JPEG (DNG, Good)</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='14 = 0xe'>14.1</td>
 <td>JpgRecordedPixels</td>
@@ -2035,8 +2060,8 @@ with positive Y downwards)</span></span></td></tr>
 <td>FlashOptions2</td>
 <td class=c>int8u</td>
 <td><span class=s><span class=n>(K10D only; set even if the flash is off)</span>
-  <br>[Mask 0xf0]
-  <br>0x0 = Normal
+  <br>[Mask 0xf0]</span><table class=cols><tr>
+  <td>0x0 = Normal
   <br>0x10 = Red-eye reduction
   <br>0x20 = Auto
   <br>0x30 = Auto, Red-eye reduction
@@ -2044,7 +2069,8 @@ with positive Y downwards)</span></span></td></tr>
   <br>0x60 = Wireless (Control)
   <br>0x80 = Slow-sync
   <br>0x90 = Slow-sync, Red-eye reduction
-  <br>0xa0 = Trailing-curtain Sync</span></td></tr>
+  <br>0xa0 = Trailing-curtain Sync</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='16 = 0x10'>16.1</td>
 <td>MeteringMode3</td>
@@ -2469,13 +2495,15 @@ gymnastics to decode them into useful values.</p>
 <td class=r title='0 = 0x0'>0</td>
 <td>FlashStatus</td>
 <td class=c>int8u</td>
-<td><span class=s>0x0 = Off
+<td><table class=cols><tr>
+  <td>0x0 = Off
   <br>0x1 = Off (1)
   <br>0x2 = External, Did not fire
   <br>0x6 = External, Fired
   <br>0x8 = Internal, Did not fire (0x08)
   <br>0x9 = Internal, Did not fire
-  <br>0xd = Internal, Fired</span></td></tr>
+  <br>0xd = Internal, Fired</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='1 = 0x1'>1</td>
 <td>InternalFlashMode</td>
@@ -2505,7 +2533,8 @@ gymnastics to decode them into useful values.</p>
 <td class=r title='2 = 0x2'>2</td>
 <td>ExternalFlashMode</td>
 <td class=c>int8u</td>
-<td><span class=s>0x0 = n/a - Off-Auto-Aperture
+<td><table class=cols><tr>
+  <td>0x0 = n/a - Off-Auto-Aperture
   <br>0x3f = Off
   <br>0x40 = On, Auto
   <br>0xbf = On, Flash Problem
@@ -2515,7 +2544,8 @@ gymnastics to decode them into useful values.</p>
   <br>0xc6 = On, High-speed Sync
   <br>0xcc = On, Wireless
   <br>0xcd = On, Wireless, High-speed Sync
-  <br>0xf0 = Not Connected</span></td></tr>
+  <br>0xf0 = Not Connected</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='3 = 0x3'>3</td>
 <td>InternalFlashStrength</td>
@@ -2551,17 +2581,19 @@ gymnastics to decode them into useful values.</p>
 <td class=r title='25 = 0x19'>25</td>
 <td>ExternalFlashExposureComp</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = n/a
+<td><table class=cols><tr>
+  <td>0 = n/a
   <br>144 = n/a (Manual Mode)
   <br>164 = -3.0
   <br>167 = -2.5
   <br>168 = -2.0
-  <br>171 = -1.5
-  <br>172 = -1.0
+  <br>171 = -1.5</td><td>&nbsp;&nbsp;</td>
+  <td>172 = -1.0
   <br>175 = -0.5
   <br>176 = 0.0
   <br>179 = 0.5
-  <br>180 = 1.0</span></td></tr>
+  <br>180 = 1.0</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='26 = 0x1a'>26</td>
 <td>ExternalFlashBounce</td>
@@ -2826,13 +2858,14 @@ selected, in which case the selected AFPoint is the first reported)</span></span
 <td class=r title='1 = 0x1'>1</td>
 <td>CameraOrientation</td>
 <td class=c>int8u</td>
-<td><span class=s><span class=n>(K-5, K-7, K-r and K-x)</span>
-  <br>0x10 = Horizontal (normal)
+<td><span class=s><span class=n>(K-5, K-7, K-r and K-x)</span></span><table class=cols><tr>
+  <td>0x10 = Horizontal (normal)
   <br>0x20 = Rotate 180
   <br>0x30 = Rotate 90 CW
   <br>0x40 = Rotate 270 CW
   <br>0x50 = Upwards
-  <br>0x60 = Downwards</span></td></tr>
+  <br>0x60 = Downwards</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='FacePos'>Pentax FacePos Tags</a></h2>
@@ -3332,8 +3365,8 @@ used.</p>
 <td class=r title='0 = 0x0'>0</td>
 <td>LevelOrientation</td>
 <td class=c>int8s</td>
-<td><span class=s>[Mask 0x0f]
-  <br>1 = Horizontal (normal)
+<td><span class=s>[Mask 0x0f]</span><table class=cols><tr>
+  <td>1 = Horizontal (normal)
   <br>2 = Rotate 180
   <br>3 = Rotate 90 CW
   <br>4 = Rotate 270 CW
@@ -3342,7 +3375,8 @@ used.</p>
   <br>11 = Rotate 90 CW; Off Level
   <br>12 = Rotate 270 CW; Off Level
   <br>13 = Upwards
-  <br>14 = Downwards</span></td></tr>
+  <br>14 = Downwards</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='0 = 0x0'>0.1</td>
 <td>CompositionAdjust</td>
@@ -3478,12 +3512,14 @@ tags used by Casio.</p>
 <td title='0x0007 = 7'>0x0007</td>
 <td>WhiteBalance</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Auto
+<td><table class=cols><tr>
+  <td>0 = Auto
   <br>1 = Daylight
-  <br>2 = Shade
-  <br>3 = Tungsten
+  <br>2 = Shade</td><td>&nbsp;&nbsp;</td>
+  <td>3 = Tungsten
   <br>4 = Fluorescent
-  <br>5 = Manual</span></td></tr>
+  <br>5 = Manual</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x000a = 10'>0x000a</td>
 <td>DigitalZoom</td>
@@ -3514,15 +3550,17 @@ tags used by Casio.</p>
 <td title='0x0014 = 20'>0x0014</td>
 <td>ISO</td>
 <td class=c>int16u</td>
-<td><span class=s>10 = 100
+<td><table class=cols><tr>
+  <td>10 = 100
   <br>16 = 200
-  <br>50 = 50
-  <br>100 = 100
+  <br>50 = 50</td><td>&nbsp;&nbsp;</td>
+  <td>100 = 100
   <br>200 = 200
-  <br>400 = 400
-  <br>800 = 800
+  <br>400 = 400</td><td>&nbsp;&nbsp;</td>
+  <td>800 = 800
   <br>1600 = 1600
-  <br>3200 = 3200</span></td></tr>
+  <br>3200 = 3200</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0017 = 23'>0x0017</td>
 <td>ColorFilter</td>
@@ -3761,12 +3799,14 @@ stored as ASCII text in a format very similar to some HP models.</p>
 <td class=r title='68 = 0x44'>68</td>
 <td>WhiteBalance</td>
 <td class=c>N</td>
-<td><span class=s>0 = Auto
+<td><table class=cols><tr>
+  <td>0 = Auto
   <br>1 = Daylight
-  <br>2 = Shade
-  <br>3 = Fluorescent
+  <br>2 = Shade</td><td>&nbsp;&nbsp;</td>
+  <td>3 = Fluorescent
   <br>4 = Tungsten
-  <br>5 = Manual</span></td></tr>
+  <br>5 = Manual</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='72 = 0x48'>72</td>
 <td>FocalLength</td>
@@ -3863,7 +3903,7 @@ stored as ASCII text in a format very similar to some HP models.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Apr 11, 2012</i>
+<br><i>Last revised Apr 18, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

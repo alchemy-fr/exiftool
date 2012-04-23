@@ -78,7 +78,7 @@ sub ProcessSerialData($$$);
 sub ProcessFilters($$$);
 sub SwapWords($);
 
-$VERSION = '2.89';
+$VERSION = '2.90';
 
 # Note: Removed 'USM' from 'L' lenses since it is redundant - PH
 # (or is it?  Ref 32 shows 5 non-USM L-type lenses)
@@ -134,6 +134,7 @@ $VERSION = '2.89';
     26.4 => 'Carl Zeiss Planar T* 50mm f/1.4', #PH
     27 => 'Canon EF 35-80mm f/4-5.6', #32
     # 27 => 'Carl Zeiss Distagon T* 28mm f/2 ZF', #PH (must be with an adapter, because the ZF version is a Nikon mount)
+    # 27 => 'EMF adapter for Canon EOS digital cameras', #50 (reports LongFocal of 65535)
     28 => 'Canon EF 80-200mm f/4.5-5.6 or Tamron Lens', #32
     28.1 => 'Tamron SP AF 28-105mm f/2.8 LD Aspherical IF', #15
     28.2 => 'Tamron SP AF 28-75mm f/2.8 XR Di LD Aspherical [IF] Macro', #4
@@ -282,7 +283,8 @@ $VERSION = '2.89';
     180 => 'Canon EF 35mm f/1.4L', #9
     181 => 'Canon EF 100-400mm f/4.5-5.6L IS + 1.4x', #15
     182 => 'Canon EF 100-400mm f/4.5-5.6L IS + 2x',
-    183 => 'Canon EF 100-400mm f/4.5-5.6L IS',
+    183 => 'Canon EF 100-400mm f/4.5-5.6L IS or Sigma Lens',
+    183.1 => 'Sigma 150mm f/2.8 EX DG OS HSM APO Macro', #50
     184 => 'Canon EF 400mm f/2.8L + 2x', #15
     185 => 'Canon EF 600mm f/4L IS', #32
     186 => 'Canon EF 70-200mm f/4L', #9
@@ -500,6 +502,7 @@ $VERSION = '2.89';
     0x3130000 => 'PowerShot SX40 HS',
     0x3120000 => 'PowerShot ELPH 310 HS / IXUS 230 HS / IXY 600F',
     0x3140000 => 'PowerShot ELPH 500 HS / IXUS 320 HS / IXY 32S', # (duplicate PowerShot model???)
+    0x3160000 => 'PowerShot A1300',
     0x3190000 => 'PowerShot ELPH 110 HS / IXUS 125 HS / IXY 220F',
     0x3200000 => 'PowerShot D20',
     0x3210000 => 'PowerShot A4000 IS',
@@ -1620,6 +1623,7 @@ my %binaryDataAttrs = (
             4 => 'Continuous, Low', #PH
             5 => 'Continuous, High', #PH
             6 => 'Silent Single', #PH
+            # 11 - seen for SX260
             # 32-34 - Self-timer?
         },
     },
@@ -1713,7 +1717,9 @@ my %binaryDataAttrs = (
             50 => 'Best Image Selection', #PH
             51 => 'High Dynamic Range', #PH (S95)
             52 => 'Handheld Night Scene', #PH
+            57 => 'Monochrome', #PH (SX260 B&W,Sepia,Blue tone)
             59 => 'Scene Intelligent Auto', #PH (T3i)
+            62 => 'Soft Focus', #PH (SX260)
             257 => 'Spotlight', #PH
             258 => 'Night 2', #PH
             259 => 'Night+',
@@ -1915,6 +1921,7 @@ my %binaryDataAttrs = (
             2 => 'On, Shot Only', #15 (panning for SX10IS)
             3 => 'On, Panning', #PH (A570IS)
             4 => 'On, Video', #PH (SX30IS)
+            # 257 - see this a lot
         },
     },
     35 => { #PH
@@ -6331,6 +6338,13 @@ my %ciLongFocal = (
             return \$val;
         },
     },
+);
+
+# 'skip' atom of Canon MOV videos (ref PH)
+%Image::ExifTool::Canon::Skip = (
+    GROUPS => { 0 => 'MakerNotes', 1 => 'Canon', 2 => 'Video' },
+    NOTES => 'Information found in the "skip" atom of Canon MOV videos.',
+    CNDB => { Name => 'Unknown_CNDB', Unknown => 1, Binary => 1 },
 );
 
 # Canon composite tags

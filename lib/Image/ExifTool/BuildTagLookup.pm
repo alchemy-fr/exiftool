@@ -32,7 +32,7 @@ use Image::ExifTool::XMP;
 use Image::ExifTool::Canon;
 use Image::ExifTool::Nikon;
 
-$VERSION = '2.46';
+$VERSION = '2.47';
 @ISA = qw(Exporter);
 
 sub NumbersFirst;
@@ -932,7 +932,7 @@ TagID:  foreach $tagID (@keys) {
                             $caseInsensitive = 0;
                             my @pk = sort NumbersFirst keys %$printConv;
                             my $n = scalar @values;
-                            my ($bits, $cols, $i);
+                            my ($bits, $i);
                             foreach (@pk) {
                                 next if $_ eq '';
                                 $_ eq 'BITMASK' and $bits = $$printConv{$_}, next;
@@ -972,7 +972,20 @@ TagID:  foreach $tagID (@keys) {
                                 }
                             }
                             # organize values into columns if specified
-                            if (defined($cols = $$tagInfo{PrintConvColumns})) {
+                            my $cols = $$tagInfo{PrintConvColumns};
+                            if (not $cols and scalar(@values) - $n >= 6) {
+                                # do columns if more than 6 short entries
+                                my $maxLen = 0;
+                                for ($i=$n; $i<@values; ++$i) {
+                                    next unless $maxLen < length $values[$i];
+                                    $maxLen = length $values[$i];
+                                }
+                                my $num = scalar(@values) - $n;
+                                $cols = int(50 / ($maxLen + 2)); # (50 chars max width)
+                                # have 3 rows minimum
+                                --$cols while $cols and $num / $cols < 3;
+                            }
+                            if ($cols) {
                                 my @new = splice @values, $n;
                                 my $v = '[!HTML]<table class=cols><tr>';
                                 my $rows = int((scalar(@new) + $cols - 1) / $cols);

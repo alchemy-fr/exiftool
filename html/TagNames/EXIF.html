@@ -109,7 +109,8 @@ official EXIF 2.3 specification.
 <td><u>PhotometricInterpretation</u></td>
 <td class=c title=' ! = Unsafe'>int16u!</td>
 <td class=c>IFD0</td>
-<td><span class=s>0 = WhiteIsZero
+<td><table class=cols><tr>
+  <td>0 = WhiteIsZero
   <br>1 = BlackIsZero
   <br>2 = RGB
   <br>3 = RGB Palette
@@ -122,7 +123,8 @@ official EXIF 2.3 specification.
   <br>32803 = Color Filter Array
   <br>32844 = Pixar LogL
   <br>32845 = Pixar LogLuv
-  <br>34892 = Linear Raw</span></td></tr>
+  <br>34892 = Linear Raw</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0107 = 263'>0x0107</td>
 <td>Thresholding</td>
@@ -189,14 +191,16 @@ JpgFromRawStart in SubIFD2 of DNG images)</span></span></td></tr>
 <td><u>Orientation</u></td>
 <td class=c>int16u</td>
 <td class=c>IFD0</td>
-<td><span class=s>1 = Horizontal (normal)
+<td><table class=cols><tr>
+  <td>1 = Horizontal (normal)
   <br>2 = Mirror horizontal
   <br>3 = Rotate 180
   <br>4 = Mirror vertical
   <br>5 = Mirror horizontal and rotate 270 CW
   <br>6 = Rotate 90 CW
   <br>7 = Mirror horizontal and rotate 90 CW
-  <br>8 = Rotate 270 CW</span></td></tr>
+  <br>8 = Rotate 270 CW</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0115 = 277'>0x0115</td>
 <td><u>SamplesPerPixel</u></td>
@@ -571,7 +575,8 @@ JpgFromRawLength in SubIFD2 of DNG images)</span></span></td></tr>
 <td>FaxProfile</td>
 <td class=c>N</td>
 <td class=c>-</td>
-<td><span class=s>0 = Unknown
+<td><table class=cols><tr>
+  <td>0 = Unknown
   <br>1 = Minimal B&amp;W lossless, S
   <br>2 = Extended B&amp;W lossless, F
   <br>3 = Lossless JBIG B&amp;W, J
@@ -579,19 +584,22 @@ JpgFromRawLength in SubIFD2 of DNG images)</span></span></td></tr>
   <br>5 = Lossless color and grayscale, L
   <br>6 = Mixed raster content, M
   <br>7 = Profile T
-  <br>255 = Multi Profiles</span></td></tr>
+  <br>255 = Multi Profiles</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x0193 = 403'>0x0193</td>
 <td>CodingMethods</td>
 <td class=c>N</td>
 <td class=c>-</td>
-<td><span class=s>Bit 0 = Unspecified compression
+<td><table class=cols><tr>
+  <td>Bit 0 = Unspecified compression
   <br>Bit 1 = Modified Huffman
   <br>Bit 2 = Modified Read
   <br>Bit 3 = Modified MR
   <br>Bit 4 = JBIG
   <br>Bit 5 = Baseline JPEG
-  <br>Bit 6 = JBIG color</span></td></tr>
+  <br>Bit 6 = JBIG color</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0194 = 404'>0x0194</td>
 <td>VersionYear</td>
@@ -1209,7 +1217,8 @@ newline in ExifTool)</span></span></td></tr>
 <td>MultiProfiles</td>
 <td class=c>N</td>
 <td class=c>-</td>
-<td><span class=s>Bit 0 = Profile S
+<td><table class=cols><tr>
+  <td>Bit 0 = Profile S
   <br>Bit 1 = Profile F
   <br>Bit 2 = Profile J
   <br>Bit 3 = Profile C
@@ -1219,7 +1228,8 @@ newline in ExifTool)</span></span></td></tr>
   <br>Bit 7 = Resolution/Image Width
   <br>Bit 8 = N Layer Profile M
   <br>Bit 9 = Shared Data
-  <br>Bit 10 = JBIG2 Profile M</span></td></tr>
+  <br>Bit 10 = JBIG2 Profile M</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x8781 = 34689'>0x8781</td>
 <td>SharedData</td>
@@ -1261,8 +1271,8 @@ newline in ExifTool)</span></span></td></tr>
 <td><u>ExposureProgram</u></td>
 <td class=c>int16u</td>
 <td class=c>ExifIFD</td>
-<td><span class=s><span class=n>(the value of 9 is not standard EXIF, but is used by the Canon EOS 7D)</span>
-  <br>0 = Not Defined
+<td><span class=s><span class=n>(the value of 9 is not standard EXIF, but is used by the Canon EOS 7D)</span></span><table class=cols><tr>
+  <td>0 = Not Defined
   <br>1 = Manual
   <br>2 = Program AE
   <br>3 = Aperture-priority AE
@@ -1271,7 +1281,8 @@ newline in ExifTool)</span></span></td></tr>
   <br>6 = Action (High speed)
   <br>7 = Portrait
   <br>8 = Landscape
-  <br>9 = Bulb</span></td></tr>
+  <br>9 = Bulb</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x8824 = 34852'>0x8824</td>
 <td><u>SpectralSensitivity</u></td>
@@ -1464,14 +1475,16 @@ hours, 2. If present, the time zone offset of ModifyDate)</span></span></td></tr
 <td><u>MeteringMode</u></td>
 <td class=c>int16u</td>
 <td class=c>ExifIFD</td>
-<td><span class=s>0 = Unknown
+<td><table class=cols><tr>
+  <td>0 = Unknown
   <br>1 = Average
   <br>2 = Center-weighted average
   <br>3 = Spot
   <br>4 = Multi-spot
   <br>5 = Multi-segment
   <br>6 = Partial
-  <br>255 = Other</span></td></tr>
+  <br>255 = Other</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x9208 = 37384'>0x9208</td>
 <td><u>LightSource</u></td>
@@ -1575,15 +1588,16 @@ hours, 2. If present, the time zone offset of ModifyDate)</span></span></td></tr
 <td>SensingMethod</td>
 <td class=c>N</td>
 <td class=c>-</td>
-<td><span class=s><span class=n>(values 1 and 6 are not standard EXIF)</span>
-  <br>1 = Monochrome area
+<td><span class=s><span class=n>(values 1 and 6 are not standard EXIF)</span></span><table class=cols><tr>
+  <td>1 = Monochrome area
   <br>2 = One-chip color area
   <br>3 = Two-chip color area
   <br>4 = Three-chip color area
   <br>5 = Color sequential area
   <br>6 = Monochrome linear
   <br>7 = Trilinear
-  <br>8 = Color sequential linear</span></td></tr>
+  <br>8 = Color sequential linear</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x923a = 37434'>0x923a</td>
 <td>CIP3DataFile</td>
@@ -1958,13 +1972,15 @@ indicated by &quot;Uncalibrated&quot; with an InteropIndex of &quot;R03&quot;.  
 <td><u>SensingMethod</u></td>
 <td class=c>int16u</td>
 <td class=c>ExifIFD</td>
-<td><span class=s>1 = Not defined
+<td><table class=cols><tr>
+  <td>1 = Not defined
   <br>2 = One-chip color area
   <br>3 = Two-chip color area
   <br>4 = Three-chip color area
   <br>5 = Color sequential area
   <br>7 = Trilinear
-  <br>8 = Color sequential linear</span></td></tr>
+  <br>8 = Color sequential linear</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0xa300 = 41728'>0xa300</td>
 <td><u>FileSource</u></td>
@@ -2183,8 +2199,8 @@ by the EXIF spec.)</span></span></td></tr>
 <td><span class=s><span class=n>(tags 0xbc** are used in Windows HD Photo (HDP and WDP) images. The actual
 PixelFormat values are 16-byte GUID&#39;s but the leading 15 bytes,
 &#39;6fddc324-4e03-4bfe-b1853-d77768dc9&#39;, have been removed below to avoid
-unnecessary clutter)</span>
-  <br>0x5 = Black &amp; White
+unnecessary clutter)</span></span><table class=cols><tr>
+  <td>0x5 = Black &amp; White
   <br>0x8 = 8-bit Gray
   <br>0x9 = 16-bit BGR555
   <br>0xa = 16-bit BGR565
@@ -2238,20 +2254,23 @@ unnecessary clutter)</span>
   <br>0x3b = 48-bit RGB Half
   <br>0x3d = 32-bit RGBE
   <br>0x3e = 16-bit Gray Half
-  <br>0x3f = 32-bit Gray Fixed Point</span></td></tr>
+  <br>0x3f = 32-bit Gray Fixed Point</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0xbc02 = 48130'>0xbc02</td>
 <td>Transformation</td>
 <td class=c>N</td>
 <td class=c>-</td>
-<td><span class=s>0 = Horizontal (normal)
+<td><table class=cols><tr>
+  <td>0 = Horizontal (normal)
   <br>1 = Mirror vertical
   <br>2 = Mirror horizontal
   <br>3 = Rotate 180
   <br>4 = Rotate 90 CW
   <br>5 = Mirror horizontal and rotate 90 CW
   <br>6 = Mirror horizontal and rotate 270 CW
-  <br>7 = Rotate 270 CW</span></td></tr>
+  <br>7 = Rotate 270 CW</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0xbc03 = 48131'>0xbc03</td>
 <td>Uncompressed</td>

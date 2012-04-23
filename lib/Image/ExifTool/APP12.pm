@@ -14,7 +14,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.09';
+$VERSION = '1.10';
 
 sub ProcessAPP12($$$);
 sub ProcessDucky($$$);
@@ -24,6 +24,7 @@ sub WriteDucky($$$);
 %Image::ExifTool::APP12::PictureInfo = (
     PROCESS_PROC => \&ProcessAPP12,
     GROUPS => { 0 => 'APP12', 1 => 'PictureInfo', 2 => 'Image' },
+    PRIORITY => 0,
     NOTES => q{
         The JPEG APP12 "Picture Info" segment was used by some older cameras, and
         contains ASCII-based meta information.  Below are some tags which have been

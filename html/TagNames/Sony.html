@@ -17,10 +17,10 @@ cameras.</p>
 <tr>
 <td title='0x0010 = 16'>0x0010</td>
 <td>CameraInfo
-  <br>CameraInfoUnknown</td>
+  <br>CameraInfo2</td>
 <td class=c>-<br>-</td>
 <td>--&gt; <a href='Sony.html#CameraInfo'>Sony CameraInfo Tags</a>
-  <br>--&gt; <a href='Sony.html#CameraInfoUnknown'>Sony CameraInfoUnknown Tags</a></td></tr>
+  <br>--&gt; <a href='Sony.html#CameraInfo2'>Sony CameraInfo2 Tags</a></td></tr>
 <tr class=b>
 <td title='0x0020 = 32'>0x0020</td>
 <td>FocusInfo</td>
@@ -30,7 +30,8 @@ cameras.</p>
 <td title='0x0102 = 258'>0x0102</td>
 <td>Quality</td>
 <td class=c>int32u</td>
-<td><span class=s>0 = RAW
+<td><table class=cols><tr>
+  <td>0 = RAW
   <br>1 = Super Fine
   <br>2 = Fine
   <br>3 = Standard
@@ -39,7 +40,8 @@ cameras.</p>
   <br>6 = RAW + JPEG
   <br>7 = Compressed RAW
   <br>8 = Compressed RAW + JPEG
-  <br>4294967295 = n/a</span></td></tr>
+  <br>4294967295 = n/a</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x0104 = 260'>0x0104</td>
 <td>FlashExposureComp</td>
@@ -49,13 +51,15 @@ cameras.</p>
 <td title='0x0105 = 261'>0x0105</td>
 <td>Teleconverter</td>
 <td class=c>int32u</td>
-<td><span class=s>0x0 = None
+<td><table class=cols><tr>
+  <td>0x0 = None
   <br>0x48 = Minolta/Sony AF 2x APO (D)
   <br>0x50 = Minolta AF 2x APO II
   <br>0x60 = Minolta AF 2x APO
   <br>0x88 = Minolta/Sony AF 1.4x APO (D)
   <br>0x90 = Minolta AF 1.4x APO II
-  <br>0xa0 = Minolta AF 1.4x APO</span></td></tr>
+  <br>0xa0 = Minolta AF 1.4x APO</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x0112 = 274'>0x0112</td>
 <td>WhiteBalanceFineTune</td>
@@ -76,7 +80,8 @@ cameras.</p>
 <td title='0x0115 = 277'>0x0115</td>
 <td>WhiteBalance</td>
 <td class=c>int32u</td>
-<td><span class=s>0x0 = Auto
+<td><table class=cols><tr>
+  <td>0x0 = Auto
   <br>0x1 = Color Temperature/Color Filter
   <br>0x10 = Daylight
   <br>0x20 = Cloudy
@@ -84,7 +89,8 @@ cameras.</p>
   <br>0x40 = Tungsten
   <br>0x50 = Flash
   <br>0x60 = Fluorescent
-  <br>0x70 = Custom</span></td></tr>
+  <br>0x70 = Custom</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0e00 = 3584'>0x0e00</td>
 <td>PrintIM</td>
@@ -141,22 +147,26 @@ cameras.</p>
 <td title='0x2008 = 8200'>0x2008</td>
 <td>LongExposureNoiseReduction</td>
 <td class=c>int32u</td>
-<td><span class=s>0x0 = Off
+<td><table class=cols><tr>
+  <td>0x0 = Off
   <br>0x1 = On (unused)
   <br>0x10001 = On (dark subtracted)
   <br>0xffff0000 = Off (65535)
   <br>0xffff0001 = On (65535)
-  <br>0xffffffff = n/a</span></td></tr>
+  <br>0xffffffff = n/a</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x2009 = 8201'>0x2009</td>
 <td>HighISONoiseReduction</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Off
+<td><table class=cols><tr>
+  <td>0 = Off
   <br>1 = Low
-  <br>2 = Normal
-  <br>3 = High
+  <br>2 = Normal</td><td>&nbsp;&nbsp;</td>
+  <td>3 = High
   <br>256 = Auto
-  <br>65535 = n/a</span></td></tr>
+  <br>65535 = n/a</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x200a = 8202'>0x200a</td>
 <td>HDR</td>
@@ -442,6 +452,7 @@ OSS, STF, Reflex, Macro and Fisheye)</span></span></td></tr>
   <td>14 = Smile Shutter
   <br>15 = Manual
   <br>18 = High Sensitivity
+  <br>19 = Macro
   <br>20 = Advanced Sports Shooting
   <br>29 = Underwater
   <br>33 = Gourmet
@@ -464,15 +475,17 @@ OSS, STF, Reflex, Macro and Fisheye)</span></span></td></tr>
 <td title='0xb043 = 45123'>0xb043</td>
 <td>AFMode</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Default
+<td><table class=cols><tr>
+  <td>0 = Default
   <br>1 = Multi AF
   <br>2 = Center AF
   <br>3 = Spot AF
-  <br>4 = Flexible Spot AF
-  <br>6 = Touch AF
+  <br>4 = Flexible Spot AF</td><td>&nbsp;&nbsp;</td>
+  <td>6 = Touch AF
   <br>14 = Manual Focus
   <br>15 = Face Detected
-  <br>65535 = n/a</span></td></tr>
+  <br>65535 = n/a</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0xb044 = 45124'>0xb044</td>
 <td>AFIlluminator</td>
@@ -491,15 +504,17 @@ OSS, STF, Reflex, Macro and Fisheye)</span></span></td></tr>
 <td title='0xb048 = 45128'>0xb048</td>
 <td>FlashLevel</td>
 <td class=c>int16s</td>
-<td><span class=s>-32768 = Low
+<td><table class=cols><tr>
+  <td>-32768 = Low
   <br>-3 = -3/3
-  <br>-2 = -2/3
-  <br>-1 = -1/3
+  <br>-2 = -2/3</td><td>&nbsp;&nbsp;</td>
+  <td>-1 = -1/3
   <br>0 = Normal
-  <br>1 = +1/3
-  <br>2 = +2/3
+  <br>1 = +1/3</td><td>&nbsp;&nbsp;</td>
+  <td>2 = +2/3
   <br>3 = +3/3
-  <br>32767 = High</span></td></tr>
+  <br>32767 = High</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0xb049 = 45129'>0xb049</td>
 <td>ReleaseMode</td>
@@ -549,7 +564,8 @@ OSS, STF, Reflex, Macro and Fisheye)</span></span></td></tr>
 <td title='0xb054 = 45140'>0xb054</td>
 <td>WhiteBalance</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Auto
+<td><table class=cols><tr>
+  <td>0 = Auto
   <br>4 = Manual
   <br>5 = Daylight
   <br>6 = Cloudy
@@ -559,7 +575,8 @@ OSS, STF, Reflex, Macro and Fisheye)</span></span></td></tr>
   <br>14 = Incandescent
   <br>15 = Flash
   <br>17 = Underwater 1 (Blue Water)
-  <br>18 = Underwater 2 (Green Water)</span></td></tr>
+  <br>18 = Underwater 2 (Green Water)</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='LensType'>Sony LensType Values</a></h2>
@@ -940,6 +957,11 @@ original version of the lens has the same LensType.</p>
 <tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>LensSpec</td>
+<td class=c>undef[8]</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
 <td class=r title='28 = 0x1c'>28</td>
 <td>AFPointSelected</td>
 <td class=c>int8u</td>
@@ -961,7 +983,7 @@ original version of the lens has the same LensType.</p>
   <br>14 = Lower-middle
   <br>15 = Near Left</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
-<tr class=b>
+<tr>
 <td class=r title='29 = 0x1d'>29</td>
 <td>FocusMode</td>
 <td class=c>int8u</td>
@@ -969,9 +991,9 @@ original version of the lens has the same LensType.</p>
   <br>1 = AF-S
   <br>2 = AF-C
   <br>3 = AF-A</span></td></tr>
-<tr>
+<tr class=b>
 <td class=r title='32 = 0x20'>32</td>
-<td>AFPointUsed</td>
+<td>AFPoint</td>
 <td class=c>int8u</td>
 <td><span class=s><span class=n>(the AF sensor used for focusing. Not valid when AFAreaMode is &quot;Flexible&quot;)</span></span><table class=cols><tr>
   <td>0 = Upper-left
@@ -995,13 +1017,18 @@ original version of the lens has the same LensType.</p>
 </td></tr>
 </table></td></tr></table></blockquote>
 
-<h2><a name='CameraInfoUnknown'>Sony CameraInfoUnknown Tags</a></h2>
+<h2><a name='CameraInfo2'>Sony CameraInfo2 Tags</a></h2>
+<p>Camera information for other DSLR and NEX models.</p>
 <blockquote>
 <table class=frame><tr><td>
 <table class=inner cellspacing=1>
 <tr class=h><th>Index1</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
-<tr><td colspan=4 class=c><i>[no tags known]</i></td></tr>
+<tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>LensSpec</td>
+<td class=c>undef[8]</td>
+<td>&nbsp;</td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='FocusInfo'>Sony FocusInfo Tags</a></h2>
@@ -1025,17 +1052,36 @@ original version of the lens has the same LensType.</p>
 <tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>ExposureTime</td>
+<td class=c>int16u</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='1 = 0x1'>1</td>
+<td>FNumber</td>
+<td class=c>int16u</td>
+<td>&nbsp;</td></tr>
+<tr>
 <td class=r title='4 = 0x4'>4</td>
 <td>DriveMode</td>
 <td class=c>int16u</td>
-<td><span class=s>1 = Single Frame
+<td><table class=cols><tr>
+  <td>1 = Single Frame
   <br>2 = Continuous High
   <br>4 = Self-timer 10 sec
-  <br>5 = Self-timer 2 sec
+  <br>5 = Self-timer 2 sec, Mirror Lock-Up
+  <br>6 = Single-frame Bracketing
   <br>7 = Continuous Bracketing
-  <br>12 = Continuous Low
-  <br>18 = White Balance Bracketing Low
-  <br>19 = D-Range Optimizer Bracketing Low</span></td></tr>
+  <br>10 = Remote Commander
+  <br>11 = Mirror Lock-Up
+  <br>12 = Continuous Low (old)
+  <br>18 = Continuous Low
+  <br>19 = D-Range Optimizer Bracketing Low (old)
+  <br>24 = White Balance Bracketing Low
+  <br>25 = D-Range Optimizer Bracketing Low
+  <br>40 = White Balance Bracketing High
+  <br>41 = D-Range Optimizer Bracketing High</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='6 = 0x6'>6</td>
 <td>WhiteBalanceFineTune</td>
@@ -1043,7 +1089,7 @@ original version of the lens has the same LensType.</p>
 <td><span class=s><span class=n>(A700 only)</span></span></td></tr>
 <tr>
 <td class=r title='16 = 0x10'>16</td>
-<td>FocusMode</td>
+<td>FocusModeSetting</td>
 <td class=c>int16u</td>
 <td><span class=s>0 = Manual
   <br>1 = AF-S
@@ -1119,61 +1165,68 @@ original version of the lens has the same LensType.</p>
   <br>16 = Sepia</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
 <tr>
+<td class=r title='27 = 0x1b'>27</td>
+<td>ColorSpace</td>
+<td class=c>int16u</td>
+<td><span class=s>0 = sRGB
+  <br>1 = Adobe RGB
+  <br>5 = Adobe RGB (A700)</span></td></tr>
+<tr class=b>
 <td class=r title='28 = 0x1c'>28</td>
 <td>Sharpness</td>
 <td class=c>int16u</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td class=r title='29 = 0x1d'>29</td>
 <td>Contrast</td>
 <td class=c>int16u</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td class=r title='30 = 0x1e'>30</td>
 <td>Saturation</td>
 <td class=c>int16u</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td class=r title='31 = 0x1f'>31</td>
 <td>ZoneMatchingValue</td>
 <td class=c>int16u</td>
 <td>&nbsp;</td></tr>
-<tr>
+<tr class=b>
 <td class=r title='34 = 0x22'>34</td>
 <td>Brightness</td>
 <td class=c>int16u</td>
 <td>&nbsp;</td></tr>
-<tr class=b>
+<tr>
 <td class=r title='35 = 0x23'>35</td>
 <td>FlashMode</td>
 <td class=c>int16u</td>
 <td><span class=s>0 = ADI
   <br>1 = TTL</span></td></tr>
-<tr>
+<tr class=b>
 <td class=r title='40 = 0x28'>40</td>
 <td>PrioritySetupShutterRelease</td>
 <td class=c>int16u</td>
 <td><span class=s>0 = AF
   <br>1 = Release</span></td></tr>
-<tr class=b>
+<tr>
 <td class=r title='41 = 0x29'>41</td>
 <td>AFIlluminator</td>
 <td class=c>int16u</td>
 <td><span class=s>0 = Auto
   <br>1 = Off</span></td></tr>
-<tr>
+<tr class=b>
 <td class=r title='42 = 0x2a'>42</td>
 <td>AFWithShutter</td>
 <td class=c>int16u</td>
 <td><span class=s>0 = On
   <br>1 = Off</span></td></tr>
-<tr class=b>
+<tr>
 <td class=r title='43 = 0x2b'>43</td>
 <td>LongExposureNoiseReduction</td>
 <td class=c>int16u</td>
 <td><span class=s>0 = Off
   <br>1 = On</span></td></tr>
-<tr>
+<tr class=b>
 <td class=r title='44 = 0x2c'>44</td>
 <td>HighISONoiseReduction</td>
 <td class=c>int16u</td>
@@ -1181,24 +1234,11 @@ original version of the lens has the same LensType.</p>
   <br>1 = Low
   <br>2 = High
   <br>3 = Off</span></td></tr>
-<tr class=b>
+<tr>
 <td class=r title='45 = 0x2d'>45</td>
 <td>ImageStyle</td>
 <td class=c>int16u</td>
-<td><span class=s><span class=n>(A700)</span></span><table class=cols><tr>
-  <td>1 = Standard
-  <br>2 = Vivid
-  <br>3 = Portrait
-  <br>4 = Landscape
-  <br>5 = Sunset
-  <br>7 = Night View/Portrait</td><td>&nbsp;&nbsp;</td>
-  <td>8 = B&amp;W
-  <br>9 = Adobe RGB
-  <br>11 = Neutral
-  <br>129 = StyleBox1
-  <br>130 = StyleBox2
-  <br>131 = StyleBox3</td><td>&nbsp;&nbsp;</td></tr></table>
-<span class=s><span class=n>(other models)</span></span><table class=cols><tr>
+<td><table class=cols><tr>
   <td>1 = Standard
   <br>2 = Vivid
   <br>3 = Portrait
@@ -1208,18 +1248,35 @@ original version of the lens has the same LensType.</p>
   <br>8 = B&amp;W
   <br>9 = Adobe RGB</td><td>&nbsp;&nbsp;</td>
   <td>11 = Neutral
-  <br>129 = Standard (custom)
-  <br>130 = Vivid (custom)
-  <br>131 = Neutral (custom)
-  <br>132 = Portrait (custom)
-  <br>133 = Landscape (custom)
-  <br>134 = B&amp;W (custom)</td><td>&nbsp;&nbsp;</td></tr></table>
+  <br>129 = StyleBox1
+  <br>130 = StyleBox2
+  <br>131 = StyleBox3
+  <br>132 = StyleBox4
+  <br>133 = StyleBox5
+  <br>134 = StyleBox6</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
+<tr class=b>
+<td class=r title='46 = 0x2e'>46</td>
+<td>FocusModeSwitch</td>
+<td class=c>int16u</td>
+<td><span class=s>0 = AF
+  <br>1 = Manual</span></td></tr>
+<tr>
+<td class=r title='47 = 0x2f'>47</td>
+<td>ShutterSpeedSetting</td>
+<td class=c>int16u</td>
+<td><span class=s><span class=n>(used in M, S and Program Shift S modes)</span></span></td></tr>
+<tr class=b>
+<td class=r title='48 = 0x30'>48</td>
+<td>ApertureSetting</td>
+<td class=c>int16u</td>
+<td><span class=s><span class=n>(used in M, A and Program Shift A modes)</span></span></td></tr>
 <tr>
 <td class=r title='60 = 0x3c'>60</td>
 <td>ExposureProgram</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Auto
+<td><table class=cols><tr>
+  <td>0 = Auto
   <br>1 = Manual
   <br>2 = Program AE
   <br>3 = Aperture-priority AE
@@ -1232,7 +1289,8 @@ original version of the lens has the same LensType.</p>
   <br>19 = Night Portrait
   <br>20 = Landscape
   <br>21 = Macro
-  <br>35 = Auto No Flash</span></td></tr>
+  <br>35 = Auto No Flash</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='61 = 0x3d'>61</td>
 <td>ImageStabilization</td>
@@ -1246,6 +1304,23 @@ original version of the lens has the same LensType.</p>
 <td><span class=s>0 = Horizontal (normal)
   <br>1 = Rotate 90 CW
   <br>2 = Rotate 270 CW</span></td></tr>
+<tr class=b>
+<td class=r title='77 = 0x4d'>77</td>
+<td>FocusMode</td>
+<td class=c>int16u</td>
+<td><span class=s>0 = Manual
+  <br>1 = AF-S
+  <br>2 = AF-C
+  <br>3 = AF-A</span></td></tr>
+<tr>
+<td class=r title='83 = 0x53'>83</td>
+<td>FocusStatus</td>
+<td class=c>int16u</td>
+<td><span class=s>0x0 = Not confirmed
+  <br>0x4 = Not confirmed, Tracking
+  <br>Bit 0 = Confirmed
+  <br>Bit 1 = Failed
+  <br>Bit 2 = Tracking</span></td></tr>
 <tr class=b>
 <td class=r title='84 = 0x54'>84</td>
 <td>SonyImageSize</td>
@@ -1263,13 +1338,15 @@ original version of the lens has the same LensType.</p>
 <td class=r title='86 = 0x56'>86</td>
 <td>Quality</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = RAW
+<td><table class=cols><tr>
+  <td>0 = RAW
   <br>2 = CRAW
   <br>16 = Extra Fine
-  <br>32 = Fine
-  <br>34 = RAW + JPEG
+  <br>32 = Fine</td><td>&nbsp;&nbsp;</td>
+  <td>34 = RAW + JPEG
   <br>35 = CRAW + JPEG
-  <br>48 = Standard</span></td></tr>
+  <br>48 = Standard</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='88 = 0x58'>88</td>
 <td>ExposureLevelIncrements</td>
@@ -1291,8 +1368,18 @@ original version of the lens has the same LensType.</p>
 <tr class=h><th>Index2</th><th>Tag Name</th>
 <th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
 <tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>ExposureTime</td>
+<td class=c>int16u</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='1 = 0x1'>1</td>
+<td>FNumber</td>
+<td class=c>int16u</td>
+<td>&nbsp;</td></tr>
+<tr>
 <td class=r title='15 = 0xf'>15</td>
-<td>FocusMode</td>
+<td>FocusModeSetting</td>
 <td class=c>int16u</td>
 <td><span class=s>0 = Manual
   <br>1 = AF-S
@@ -1407,10 +1494,21 @@ original version of the lens has the same LensType.</p>
   <br>8 = B&amp;W</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
 <tr class=b>
+<td class=r title='40 = 0x28'>40</td>
+<td>ShutterSpeedSetting</td>
+<td class=c>int16u</td>
+<td><span class=s><span class=n>(used in M, S and Program Shift S modes)</span></span></td></tr>
+<tr>
+<td class=r title='41 = 0x29'>41</td>
+<td>ApertureSetting</td>
+<td class=c>int16u</td>
+<td><span class=s><span class=n>(used in M, A and Program Shift A modes)</span></span></td></tr>
+<tr class=b>
 <td class=r title='60 = 0x3c'>60</td>
 <td>ExposureProgram</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Auto
+<td><table class=cols><tr>
+  <td>0 = Auto
   <br>1 = Manual
   <br>2 = Program AE
   <br>3 = Aperture-priority AE
@@ -1423,7 +1521,8 @@ original version of the lens has the same LensType.</p>
   <br>19 = Night Portrait
   <br>20 = Landscape
   <br>21 = Macro
-  <br>35 = Auto No Flash</span></td></tr>
+  <br>35 = Auto No Flash</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='61 = 0x3d'>61</td>
 <td>ImageStabilization</td>
@@ -1437,6 +1536,21 @@ original version of the lens has the same LensType.</p>
 <td><span class=s>0 = Horizontal (normal)
   <br>1 = Rotate 90 CW
   <br>2 = Rotate 270 CW</span></td></tr>
+<tr>
+<td class=r title='77 = 0x4d'>77</td>
+<td>FocusMode</td>
+<td class=c>int16u</td>
+<td><span class=s>0 = Manual
+  <br>1 = AF-S
+  <br>2 = AF-C
+  <br>3 = AF-A</span></td></tr>
+<tr class=b>
+<td class=r title='83 = 0x53'>83</td>
+<td>FocusStatus</td>
+<td class=c>int16u</td>
+<td><span class=s>0x0 = Not Focused
+  <br>Bit 0 = Confirmed
+  <br>Bit 2 = Tracking</span></td></tr>
 <tr>
 <td class=r title='84 = 0x54'>84</td>
 <td>SonyImageSize</td>
@@ -1454,13 +1568,15 @@ original version of the lens has the same LensType.</p>
 <td class=r title='86 = 0x56'>86</td>
 <td>Quality</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = RAW
+<td><table class=cols><tr>
+  <td>0 = RAW
   <br>2 = CRAW
   <br>16 = Extra Fine
-  <br>32 = Fine
-  <br>34 = RAW + JPEG
+  <br>32 = Fine</td><td>&nbsp;&nbsp;</td>
+  <td>34 = RAW + JPEG
   <br>35 = CRAW + JPEG
-  <br>48 = Standard</span></td></tr>
+  <br>48 = Standard</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='88 = 0x58'>88</td>
 <td>ExposureLevelIncrements</td>
@@ -1506,9 +1622,10 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.</p>
 <td>&nbsp;</td></tr>
 <tr>
 <td class=r title='4 = 0x4'>4</td>
-<td>DriveModeSet</td>
+<td>DriveModeSetting</td>
 <td class=c>int8u</td>
-<td><span class=s>16 = Single Frame
+<td><table class=cols><tr>
+  <td>16 = Single Frame
   <br>33 = Continuous High
   <br>34 = Continuous Low
   <br>48 = Speed Priority Continuous
@@ -1518,12 +1635,14 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.</p>
   <br>117 = Continuous Bracketing 0.7 EV
   <br>145 = White Balance Bracketing Low
   <br>146 = White Balance Bracketing High
-  <br>192 = Remote Commander</span></td></tr>
+  <br>192 = Remote Commander</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='5 = 0x5'>5</td>
 <td>ExposureProgram</td>
 <td class=c>int8u</td>
-<td><span class=s>1 = Program AE
+<td><table class=cols><tr>
+  <td>1 = Program AE
   <br>2 = Aperture-priority AE
   <br>3 = Shutter speed priority AE
   <br>4 = Manual
@@ -1551,7 +1670,8 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.</p>
   <br>135 = Partial Color Green
   <br>136 = Partial Color Blue
   <br>137 = Partial Color Yellow
-  <br>138 = High Contrast Monochrome</span></td></tr>
+  <br>138 = High Contrast Monochrome</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='6 = 0x6'>6</td>
 <td>FocusMode</td>
@@ -1571,12 +1691,14 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.</p>
 <td class=r title='9 = 0x9'>9</td>
 <td>SonyImageSize</td>
 <td class=c>int8u</td>
-<td><span class=s>21 = Large (3:2)
+<td><table class=cols><tr>
+  <td>21 = Large (3:2)
   <br>22 = Medium (3:2)
-  <br>23 = Small (3:2)
-  <br>25 = Large (16:9)
+  <br>23 = Small (3:2)</td><td>&nbsp;&nbsp;</td>
+  <td>25 = Large (16:9)
   <br>26 = Medium (16:9)
-  <br>27 = Small (16:9)</span></td></tr>
+  <br>27 = Small (16:9)</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='10 = 0xa'>10</td>
 <td>AspectRatio</td>
@@ -1608,7 +1730,7 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.</p>
 <td>ColorSpace</td>
 <td class=c>int8u</td>
 <td><span class=s>1 = sRGB
-  <br>2 = AdobeRGB</span></td></tr>
+  <br>2 = Adobe RGB</span></td></tr>
 <tr>
 <td class=r title='15 = 0xf'>15</td>
 <td>CreativeStyleSetting</td>
@@ -1788,9 +1910,10 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.</p>
   <br>4 = Down</span></td></tr>
 <tr class=b>
 <td class=r title='52 = 0x34'>52</td>
-<td>DriveModeUsed</td>
+<td>DriveMode</td>
 <td class=c>int8u</td>
-<td><span class=s>16 = Single Frame
+<td><table class=cols><tr>
+  <td>16 = Single Frame
   <br>33 = Continuous High
   <br>34 = Continuous Low
   <br>48 = Speed Priority Continuous
@@ -1805,7 +1928,8 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.</p>
   <br>210 = Continuous - Multi Frame NR
   <br>211 = Continuous - Handheld Night Shot
   <br>213 = Continuous - Sweep Panorama
-  <br>214 = Continuous - 3D Sweep Panorama</span></td></tr>
+  <br>214 = Continuous - 3D Sweep Panorama</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='53 = 0x35'>53</td>
 <td>MultiFrameNoiseReduction</td>
@@ -2366,7 +2490,7 @@ the JPEG image from a PMP file)</span></span></td></tr>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Apr 15, 2012</i>
+<br><i>Last revised Apr 21, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

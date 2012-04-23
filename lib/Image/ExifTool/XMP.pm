@@ -46,7 +46,7 @@ use Image::ExifTool qw(:Utils);
 use Image::ExifTool::Exif;
 require Exporter;
 
-$VERSION = '2.49';
+$VERSION = '2.50';
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(EscapeXML UnescapeXML);
 
@@ -59,7 +59,7 @@ sub SaveBlankInfo($$$;$);
 sub ProcessBlankInfo($$$;$);
 sub ValidateXMP($;$);
 sub UnescapeChar($$);
-sub AddFlattenedTags($$);
+sub AddFlattenedTags($$;$);
 sub FormatXMPDate($);
 sub ConvertRational($);
 
@@ -151,6 +151,7 @@ my %xmpNS = (
    'mwg-coll' => 'http://www.metadataworkinggroup.com/schemas/collections/',
     stArea    => 'http://ns.adobe.com/xmp/sType/Area#',
     extensis  => 'http://ns.extensis.com/extensis/1.0/',
+    ics       => 'http://ns.idimager.com/ics/1.0/',
 );
 
 # build reverse namespace lookup
@@ -587,7 +588,11 @@ my %sLocationDetails = (
     extensis => {
         Name => 'extensis',
         SubDirectory => { TagTable => 'Image::ExifTool::XMP::extensis' },
-    }
+    },
+    ics => {
+        Name => 'ics',
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::ics' },
+    },
 );
 
 #
@@ -1304,6 +1309,24 @@ my %sPantryItem = (
     GrainAmount                          => { Writable => 'integer' },
     GrainSize                            => { Writable => 'integer' },
     GrainFrequency                       => { Writable => 'integer' },
+    # new tags written by LR4
+    AutoLateralCA                        => { Writable => 'integer' },
+    Exposure2012                         => { Writable => 'real' },
+    Contrast2012                         => { Writable => 'integer' },
+    Highlights2012                       => { Writable => 'integer' },
+    Shadows2012                          => { Writable => 'integer' },
+    Whites2012                           => { Writable => 'integer' },
+    Blacks2012                           => { Writable => 'integer' },
+    Clarity2012                          => { Writable => 'integer' },
+    PostCropVignetteHighlightContrast    => { Writable => 'integer' },
+    ToneCurveName2012                    => { },
+    ToneCurveRed                         => { List => 'Seq' },
+    ToneCurveGreen                       => { List => 'Seq' },
+    ToneCurveBlue                        => { List => 'Seq' },
+    ToneCurvePV2012                      => { List => 'Seq' },
+    ToneCurvePV2012Red                   => { List => 'Seq' },
+    ToneCurvePV2012Green                 => { List => 'Seq' },
+    ToneCurvePV2012Blue                  => { List => 'Seq' },
 );
 
 # Tiff namespace properties (tiff)
@@ -2386,14 +2409,15 @@ sub RegisterNamespace($)
 
 #------------------------------------------------------------------------------
 # Generate flattened tags and add to table
-# Inputs: 0) tag table ref, 1) tag ID for Struct tag in table
+# Inputs: 0) tag table ref, 1) tag ID for Struct tag in table,
+#         2) flag to not expand sub-structures
 # Returns: number of tags added (not counting those just initialized)
 # Notes: Must have verified that $$tagTablePtr{$tagID}{Struct} exists before calling this routine
 # - makes sure that the tagInfo Struct is a HASH reference
-sub AddFlattenedTags($$)
+sub AddFlattenedTags($$;$)
 {
     local $_;
-    my ($tagTablePtr, $tagID) = @_;
+    my ($tagTablePtr, $tagID, $noSubStruct) = @_;
     my $tagInfo = $$tagTablePtr{$tagID};
 
     $$tagInfo{Flattened} and return 0;  # only generate flattened tags once
@@ -2420,6 +2444,7 @@ sub AddFlattenedTags($$)
         next if $specialStruct{$field};
         my $fieldInfo = $$strTable{$field};
         next if $$fieldInfo{LangCode};  # don't flatten lang-alt tags
+        next if $$fieldInfo{Struct} and $noSubStruct;   # don't expand sub-structures if specified
         # build a tag ID for the corresponding flattened tag
         my $fieldName = ucfirst($field);
         my $flatID = $tagID . $fieldName;
@@ -2471,7 +2496,7 @@ sub AddFlattenedTags($$)
         # because we must start from the outtermost structure to get the List flags right
         # (this should only happen when building tag tables)
         delete $$flatInfo{Flattened};
-        $count += AddFlattenedTags($tagTablePtr, $flatID);
+        $count += AddFlattenedTags($tagTablePtr, $flatID, $$flatInfo{NoSubStruct});
     }
     return $count;
 }

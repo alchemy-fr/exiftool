@@ -7,6 +7,21 @@ RSS feed: http://owl.phy.queensu.ca/~phil/exiftool/rss.xml
 Note: The most recent production release is Version 8.85. (Other versions are
 considered development releases, and are not uploaded to CPAN.)
 
+Apr. 21, 2012 - Version 8.89
+
+  - Added new Nikon and Ricoh LensID's
+  - Added a new Olympus CameraType
+  - Added new Canon LensType, EasyMode and CanonModelID values
+  - Added new Pentax PictureMode and PentaxModelID values
+  - Added support for IDimager XMP tags
+  - Added a number of new XMP-crs tags used by LR4
+  - Decode a few more QuickTime tags
+  - More improvements decoding Minolta/Sony CameraSettings (thanks Jos Roost)
+  - Enhanced -ext option to allow files with any extension to be processed
+  - Increased maximum number of SubIFD's to accommodate some DNG 1.4 images
+  - Lowered priority of JPEG APP12 PictureInfo tags when reading
+  - Created mechanism to allow self-referential XMP structures
+
 Apr. 15, 2012 - Version 8.88
 
   - Added a new Canon LensType (thanks Gerald Erdmann)

@@ -1062,6 +1062,7 @@ L<http://www.adobe.com/devnet/xmp/> for the official XMP specification.
   digiKam                                       XMP digiKam
   exif                                          XMP exif
   extensis                                      XMP extensis
+  ics                                           XMP ics
   iptcCore                                      XMP iptcCore
   iptcExt                                       XMP iptcExt
   lr                                            XMP Lightroom
@@ -1177,7 +1178,9 @@ Photoshop Camera Raw namespace tags.
   AutoBrightness                                boolean
   AutoContrast                                  boolean
   AutoExposure                                  boolean
+  AutoLateralCA                                 integer
   AutoShadows                                   boolean
+  Blacks2012                                    integer
   BlueHue                                       integer
   BlueSaturation                                integer
   Brightness                                    integer
@@ -1186,9 +1189,11 @@ Photoshop Camera Raw namespace tags.
   ChromaticAberrationB                          integer
   ChromaticAberrationR                          integer
   Clarity                                       integer
+  Clarity2012                                   integer
   ColorNoiseReduction                           integer
   ColorNoiseReductionDetail                     integer
   Contrast                                      integer/
+  Contrast2012                                  integer
   Converter                                     string
   ConvertToGrayscale                            boolean
   CropAngle                                     real
@@ -1203,6 +1208,7 @@ Photoshop Camera Raw namespace tags.
   CropWidth                                     real
   Defringe                                      integer
   Exposure                                      real
+  Exposure2012                                  real
   FillLight                                     integer
   GradientBasedCorrections                      Correction Struct+
   GradientBasedCorrActive                       boolean_
@@ -1243,6 +1249,7 @@ Photoshop Camera Raw namespace tags.
   HasCrop                                       boolean
   HasSettings                                   boolean
   HighlightRecovery                             integer
+  Highlights2012                                integer
   HueAdjustmentAqua                             integer
   HueAdjustmentBlue                             integer
   HueAdjustmentGreen                            integer
@@ -1310,6 +1317,7 @@ Photoshop Camera Raw namespace tags.
   PerspectiveVertical                           integer
   PostCropVignetteAmount                        integer
   PostCropVignetteFeather                       integer
+  PostCropVignetteHighlightContrast             integer
   PostCropVignetteMidpoint                      integer
   PostCropVignetteRoundness                     integer
   PostCropVignetteStyle                         integer
@@ -1329,6 +1337,7 @@ Photoshop Camera Raw namespace tags.
   SaturationAdjustmentRed                       integer
   SaturationAdjustmentYellow                    integer
   Shadows                                       integer
+  Shadows2012                                   integer
   ShadowTint                                    integer
   SharpenDetail                                 integer
   SharpenEdgeMasking                            integer
@@ -1343,12 +1352,21 @@ Photoshop Camera Raw namespace tags.
   ColorTemperature                              integer/
   Tint                                          integer
   ToneCurve                                     string+
+  ToneCurveBlue                                 string+
+  ToneCurveGreen                                string+
   ToneCurveName                                 string
+  ToneCurveName2012                             string
+  ToneCurvePV2012                               string+
+  ToneCurvePV2012Blue                           string+
+  ToneCurvePV2012Green                          string+
+  ToneCurvePV2012Red                            string+
+  ToneCurveRed                                  string+
   Version                                       string
   Vibrance                                      integer
   VignetteAmount                                integer
   VignetteMidpoint                              integer
   WhiteBalance                                  string/
+  Whites2012                                    integer
 
 =head3 XMP Correction Struct
 
@@ -1610,6 +1628,58 @@ Tags used by Extensis Portfolio.
   RoutingNotes                                  string
   WorkToDo                                      string
 
+=head3 XMP ics Tags
+
+Tags used by IDimager.  Nested TagStructure structures are unrolled to an
+arbitrary depth of 6 to avoid infinite recursion.
+
+  Tag Name                                      Writable
+  --------                                      --------
+  ImageRef                                      string
+  SubVersions                                   SubVersion Struct+
+  SubVersionFileName                            string_+
+  SubVersionReference                           string_+
+  TagStructure                                  TagStructure Struct+
+  LabelName1                                    string_+
+  ParentReference1                              string_+
+  Reference1                                    string_+
+  SubLables1                                    TagStructure Struct_+
+  LabelName2                                    string_+
+  ParentReference2                              string_+
+  Reference2                                    string_+
+  SubLables2                                    TagStructure Struct_+
+  LabelName3                                    string_+
+  ParentReference3                              string_+
+  Reference3                                    string_+
+  SubLables3                                    TagStructure Struct_+
+  LabelName4                                    string_+
+  ParentReference4                              string_+
+  Reference4                                    string_+
+  SubLabels4                                    TagStructure Struct_+
+  LabelName5                                    string_+
+  ParentReference5                              string_+
+  Reference5                                    string_+
+  SubLabels5                                    TagStructure Struct_+
+  LabelName6                                    string_+
+  ParentReference6                              string_+
+  Reference6                                    string_+
+
+=head3 XMP SubVersion Struct
+
+  Field Name                                    Writable
+  ----------                                    --------
+  FileName                                      string
+  VersRef                                       string
+
+=head3 XMP TagStructure Struct
+
+  Field Name                                    Writable
+  ----------                                    --------
+  LabelName                                     string
+  ParentReference                               string
+  Reference                                     string
+  SubLabels                                     TagStructure Struct+
+
 =head3 XMP iptcCore Tags
 
 IPTC Core namespace tags.  The actual IPTC Core namespace prefix is
@@ -1773,17 +1843,17 @@ official specification.
   Tag Name                                      Writable
   --------                                      --------
   KeywordInfo                                   KeywordInfo Struct
-  HierarchicalKeywords                          KeywordStruct1 Struct_+
+  HierarchicalKeywords                          KeywordStruct Struct_+
   HierarchicalKeywords1Applied                  boolean_+
-  HierarchicalKeywords1Children                 KeywordStruct2 Struct_+
+  HierarchicalKeywords1Children                 KeywordStruct Struct_+
   HierarchicalKeywords2Applied                  boolean_+
-  HierarchicalKeywords2Children                 KeywordStruct3 Struct_+
+  HierarchicalKeywords2Children                 KeywordStruct Struct_+
   HierarchicalKeywords3Applied                  boolean_+
-  HierarchicalKeywords3Children                 KeywordStruct4 Struct_+
+  HierarchicalKeywords3Children                 KeywordStruct Struct_+
   HierarchicalKeywords4Applied                  boolean_+
-  HierarchicalKeywords4Children                 KeywordStruct5 Struct_+
+  HierarchicalKeywords4Children                 KeywordStruct Struct_+
   HierarchicalKeywords5Applied                  boolean_+
-  HierarchicalKeywords5Children                 KeywordStruct6 Struct_+
+  HierarchicalKeywords5Children                 KeywordStruct Struct_+
   HierarchicalKeywords6Applied                  boolean_+
   HierarchicalKeywords6                         string_+
   HierarchicalKeywords5                         string_+
@@ -1796,53 +1866,14 @@ official specification.
 
   Field Name                                    Writable
   ----------                                    --------
-  Hierarchy                                     KeywordStruct1 Struct+
+  Hierarchy                                     KeywordStruct Struct+
 
-=head3 XMP KeywordStruct1 Struct
-
-  Field Name                                    Writable
-  ----------                                    --------
-  Applied                                       boolean
-  Children                                      KeywordStruct2 Struct+
-  Keyword                                       string
-
-=head3 XMP KeywordStruct2 Struct
+=head3 XMP KeywordStruct Struct
 
   Field Name                                    Writable
   ----------                                    --------
   Applied                                       boolean
-  Children                                      KeywordStruct3 Struct+
-  Keyword                                       string
-
-=head3 XMP KeywordStruct3 Struct
-
-  Field Name                                    Writable
-  ----------                                    --------
-  Applied                                       boolean
-  Children                                      KeywordStruct4 Struct+
-  Keyword                                       string
-
-=head3 XMP KeywordStruct4 Struct
-
-  Field Name                                    Writable
-  ----------                                    --------
-  Applied                                       boolean
-  Children                                      KeywordStruct5 Struct+
-  Keyword                                       string
-
-=head3 XMP KeywordStruct5 Struct
-
-  Field Name                                    Writable
-  ----------                                    --------
-  Applied                                       boolean
-  Children                                      KeywordStruct6 Struct+
-  Keyword                                       string
-
-=head3 XMP KeywordStruct6 Struct
-
-  Field Name                                    Writable
-  ----------                                    --------
-  Applied                                       boolean
+  Children                                      KeywordStruct Struct+
   Keyword                                       string
 
 =head3 XMP mwg-rs Tags
@@ -4875,6 +4906,14 @@ cameras such as the PowerShot S95.
   ------   --------                             --------
   'CNDA'   ThumbnailImage                       N
 
+=head3 Canon Skip Tags
+
+Information found in the "skip" atom of Canon MOV videos.
+
+  Tag ID   Tag Name                             Writable
+  ------   --------                             --------
+  'CNDB'   Unknown_CNDB?                        N
+
 =head2 CanonCustom Tags
 
 =head3 CanonCustom Functions1D Tags
@@ -6784,8 +6823,8 @@ Camera settings information for the Sony DSLR-A100.
       0    ExposureMode                         int16u
       1    ExposureCompensationSetting          int16u
       5    HighSpeedSync                        int16u
-      6    ManualExposureTime                   int16u
-      7    ManualFNumber                        int16u
+      6    ShutterSpeedSetting                  int16u
+      7    ApertureSetting                      int16u
       8    ExposureTime                         int16u
       9    FNumber                              int16u
      10    DriveMode2                           int16u
@@ -10295,7 +10334,7 @@ cameras.
   Tag ID   Tag Name                             Writable
   ------   --------                             --------
   0x0010   CameraInfo                           Sony CameraInfo
-           CameraInfoUnknown                    Sony CameraInfoUnknown
+           CameraInfo2                          Sony CameraInfo2
   0x0020   FocusInfo                            Sony FocusInfo
   0x0102   Quality                              int32u
   0x0104   FlashExposureComp                    rational64s
@@ -10360,15 +10399,18 @@ Camera information stored by the A33, A35, A55, A560 and A580.
 
   Index1   Tag Name                             Writable
   ------   --------                             --------
+      0    LensSpec                             undef[8]
      28    AFPointSelected                      int8u
      29    FocusMode                            int8u
-     32    AFPointUsed                          int8u
+     32    AFPoint                              int8u
 
-=head3 Sony CameraInfoUnknown Tags
+=head3 Sony CameraInfo2 Tags
+
+Camera information for other DSLR and NEX models.
 
   Index1   Tag Name                             Writable
   ------   --------                             --------
-  [no tags known]
+      0    LensSpec                             undef[8]
 
 =head3 Sony FocusInfo Tags
 
@@ -10382,9 +10424,11 @@ Camera settings for the A200, A300, A350, A700, A850 and A900.
 
   Index2   Tag Name                             Writable
   ------   --------                             --------
+      0    ExposureTime                         int16u
+      1    FNumber                              int16u
       4    DriveMode                            int16u
       6    WhiteBalanceFineTune                 int16s
-     16    FocusMode                            int16u
+     16    FocusModeSetting                     int16u
      17    AFAreaMode                           int16u
      18    AFPointSelected                      int16u
      21    MeteringMode                         int16u
@@ -10392,6 +10436,7 @@ Camera settings for the A200, A300, A350, A700, A850 and A900.
      24    DynamicRangeOptimizerMode            int16u
      25    DynamicRangeOptimizerLevel           int16u
      26    CreativeStyle                        int16u
+     27    ColorSpace                           int16u
      28    Sharpness                            int16u
      29    Contrast                             int16u
      30    Saturation                           int16u
@@ -10404,9 +10449,14 @@ Camera settings for the A200, A300, A350, A700, A850 and A900.
      43    LongExposureNoiseReduction           int16u
      44    HighISONoiseReduction                int16u
      45    ImageStyle                           int16u
+     46    FocusModeSwitch                      int16u
+     47    ShutterSpeedSetting                  int16u
+     48    ApertureSetting                      int16u
      60    ExposureProgram                      int16u
      61    ImageStabilization                   int16u
      63    Rotation                             int16u
+     77    FocusMode                            int16u
+     83    FocusStatus                          int16u
      84    SonyImageSize                        int16u
      85    AspectRatio                          int16u
      86    Quality                              int16u
@@ -10419,7 +10469,9 @@ Camera settings for the A230, A290, A330, A380 and A390.
 
   Index2   Tag Name                             Writable
   ------   --------                             --------
-     15    FocusMode                            int16u
+      0    ExposureTime                         int16u
+      1    FNumber                              int16u
+     15    FocusModeSetting                     int16u
      16    AFAreaMode                           int16u
      17    AFPointSelected                      int16u
      19    MeteringMode                         int16u
@@ -10434,9 +10486,13 @@ Camera settings for the A230, A290, A330, A380 and A390.
      37    LongExposureNoiseReduction           int16u
      38    HighISONoiseReduction                int16u
      39    ImageStyle                           int16u
+     40    ShutterSpeedSetting                  int16u
+     41    ApertureSetting                      int16u
      60    ExposureProgram                      int16u
      61    ImageStabilization                   int16u
      63    Rotation                             int16u
+     77    FocusMode                            int16u
+     83    FocusStatus                          int16u
      84    SonyImageSize                        int16u
      85    AspectRatio                          int16u
      86    Quality                              int16u
@@ -10454,7 +10510,7 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.
       1    ApertureSetting                      int8u
       2    ISOSetting                           int8u
       3    ExposureCompensation                 int8u
-      4    DriveModeSet                         int8u
+      4    DriveModeSetting                     int8u
       5    ExposureProgram                      int8u
       6    FocusMode                            int8u
       7    MeteringMode                         int8u
@@ -10481,7 +10537,7 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.
      49    SmileShutter                         int8u
      50    SweepPanoramaSize                    int8u
      51    SweepPanoramaDirection               int8u
-     52    DriveModeUsed                        int8u
+     52    DriveMode                            int8u
      53    MultiFrameNoiseReduction             int8u
      54    LiveViewAFMethod                     int8u
      56    3DPanoramaSize                       int8u
@@ -15726,7 +15782,8 @@ stored as UTC, and will convert them to local time when extracting.
   'moov'               Movie                    QuickTime Movie
   'pict'               PreviewPICT              N
   'pnot'               Preview                  QuickTime Preview
-  'skip'               Skip?                    N
+  'skip'               Skip                     Canon Skip
+                       Skip?                    N
   'uuid'               UUID-XMP                 XMP
                        UUID-PROF                QuickTime Profile
                        UUID-Flip                QuickTime Flip
@@ -16006,6 +16063,7 @@ MP4 data reference box.
   ------   --------                             --------
   'gmin'   GenMediaInfo                         QuickTime GenMediaInfo
   'text'   Text?                                N
+  'tmcd'   TimeCode                             QuickTime TimeCode
 
 =head3 QuickTime GenMediaInfo Tags
 
@@ -16016,6 +16074,23 @@ MP4 data reference box.
       4    GenGraphicsMode                      N
       6    GenOpColor                           N
      12    GenBalance                           N
+
+=head3 QuickTime TimeCode Tags
+
+  Tag ID   Tag Name                             Writable
+  ------   --------                             --------
+  'tcmi'   TCMediaInfo                          QuickTime TCMediaInfo
+
+=head3 QuickTime TCMediaInfo Tags
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      4    TextFont                             N
+      6    TextFace                             N
+      8    TextSize                             N
+     10    TextColor                            N
+     16    BackgroundColor                      N
+     22    FontName                             N
 
 =head3 QuickTime HintHeader Tags
 
@@ -16141,6 +16216,7 @@ MP4 video media header.
   Tag ID   Tag Name                             Writable
   ------   --------                             --------
   'chap'   ChapterList                          N
+  'tmcd'   TimeCode                             N
 
 =head3 QuickTime UserData Tags
 

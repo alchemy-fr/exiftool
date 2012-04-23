@@ -50,7 +50,7 @@ use vars qw($VERSION $AUTOLOAD @formatSize @formatName %formatNumber %intFormat
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::MakerNotes;
 
-$VERSION = '3.40';
+$VERSION = '3.41';
 
 sub ProcessExif($$$);
 sub WriteExif($$$);
@@ -699,7 +699,7 @@ my %sampleFormat = (
             Flags => 'SubIFD',
             SubDirectory => {
                 Start => '$val',
-                MaxSubdirs => 3,
+                MaxSubdirs => 10, # (have seen 5 in a DNG 1.4 image)
             },
         },
         { #16

@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.18';
+$VERSION = '1.19';
 
 sub ProcessJpeg2000Box($$$);
 
@@ -201,6 +201,11 @@ my %j2cMarker = (
     },
    'xml '=> {
         Name => 'XML',
+        Notes => q{
+            this XML-based information is not actually XMP, but it is parsed using the
+            ExifTool XMP module.  Writing of this XML is not currently supported.  XMP
+            is written to the UUID-XMP box as per the XMP specification
+        },
         SubDirectory => {
             TagTable => 'Image::ExifTool::XMP::Main',
         },

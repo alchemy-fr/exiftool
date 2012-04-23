@@ -74,9 +74,10 @@ and is used in the AvgBitrate calculation)</span></span></td></tr>
 <td>--&gt; <a href='QuickTime.html#Preview'>QuickTime Preview Tags</a></td></tr>
 <tr class=b>
 <td>'skip'</td>
-<td>Skip?</td>
-<td class=c>N</td>
-<td>&nbsp;</td></tr>
+<td>Skip
+  <br>Skip?</td>
+<td class=c>-<br>N</td>
+<td>--&gt; <a href='Canon.html#Skip'>Canon Skip Tags</a></td></tr>
 <tr>
 <td>'uuid'</td>
 <td>UUID-XMP
@@ -355,6 +356,7 @@ and is used in the AvgBitrate calculation)</span></span></td></tr>
   <br>&#39;sdsm&#39; = Scene Description
   <br>&#39;soun&#39; = Audio Track
   <br>&#39;text&#39; = Text
+  <br>&#39;tmcd&#39; = Time Code
   <br>&#39;url &#39; = URL
   <br>&#39;vide&#39; = Video Track</td><td>&nbsp;&nbsp;</td></tr></table>
 </td></tr>
@@ -1281,6 +1283,11 @@ ItemList tags written by the &quot;mdta&quot; handler.  The prefix of
 <td>Text?</td>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
+<tr>
+<td>'tmcd'</td>
+<td>TimeCode</td>
+<td class=c>-</td>
+<td>--&gt; <a href='QuickTime.html#TimeCode'>QuickTime TimeCode Tags</a></td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='GenMediaInfo'>QuickTime GenMediaInfo Tags</a></h2>
@@ -1355,6 +1362,66 @@ ItemList tags written by the &quot;mdta&quot; handler.  The prefix of
 <td class='r b'>0x25</td><td class=b>= addMax</td>
 <td class=r>&nbsp;</td><td>&nbsp;</td>
 </tr></table></td></tr></table></blockquote>
+
+<h2><a name='TimeCode'>QuickTime TimeCode Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td>'tcmi'</td>
+<td>TCMediaInfo</td>
+<td class=c>-</td>
+<td>--&gt; <a href='QuickTime.html#TCMediaInfo'>QuickTime TCMediaInfo Tags</a></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='TCMediaInfo'>QuickTime TCMediaInfo Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='4 = 0x4'>4</td>
+<td>TextFont</td>
+<td class=c>N</td>
+<td><span class=s>0 = System</span></td></tr>
+<tr class=b>
+<td class=r title='6 = 0x6'>6</td>
+<td>TextFace</td>
+<td class=c>N</td>
+<td><table class=cols><tr>
+  <td>0x0 = Plain
+  <br>Bit 0 = Bold
+  <br>Bit 1 = Italic
+  <br>Bit 2 = Underline</td><td>&nbsp;&nbsp;</td>
+  <td>Bit 3 = Outline
+  <br>Bit 4 = Shadow
+  <br>Bit 5 = Condense
+  <br>Bit 6 = Extend</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
+<tr>
+<td class=r title='8 = 0x8'>8</td>
+<td>TextSize</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='10 = 0xa'>10</td>
+<td>TextColor</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='16 = 0x10'>16</td>
+<td>BackgroundColor</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='22 = 0x16'>22</td>
+<td>FontName</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+</table></td></tr></table></blockquote>
 
 <h2><a name='HintHeader'>QuickTime HintHeader Tags</a></h2>
 <p>MP4 hint media header.</p>
@@ -1723,6 +1790,11 @@ ItemList tags written by the &quot;mdta&quot; handler.  The prefix of
 <tr>
 <td>'chap'</td>
 <td>ChapterList</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'tmcd'</td>
+<td>TimeCode</td>
 <td class=c>N</td>
 <td>&nbsp;</td></tr>
 </table></td></tr></table></blockquote>
@@ -2620,7 +2692,7 @@ multi-language user data tags found, even if they don&#39;t exist in this table.
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Apr 11, 2012</i>
+<br><i>Last revised Apr 16, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

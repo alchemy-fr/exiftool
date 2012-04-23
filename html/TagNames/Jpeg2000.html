@@ -246,7 +246,10 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
 <td>'xml '</td>
 <td>XML</td>
 <td class=c>-</td>
-<td>--&gt; <a href='XMP.html'>XMP Tags</a></td></tr>
+<td>--&gt; <a href='XMP.html'>XMP Tags</a>
+  <br><span class='n s'>(this XML-based information is not actually XMP, but it is parsed using the
+ExifTool XMP module.  Writing of this XML is not currently supported.  XMP
+is written to the UUID-XMP box as per the XMP specification)</span></td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='ColorSpec'>Jpeg2000 ColorSpec Tags</a></h2>
@@ -284,7 +287,8 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
   <br>ColorSpecData</td>
 <td class=c>-<br>N<br>N</td>
 <td>--&gt; <a href='ICC_Profile.html'>ICC_Profile Tags</a>
-  <br>0 = Bi-level
+  <br><span class=s>[!HTML]<table class=cols><tr>
+  <td>0 = Bi-level
   <br>1 = YCbCr(1)
   <br>3 = YCbCr(2)
   <br>4 = YCbCr(3)
@@ -293,8 +297,8 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
   <br>12 = CMYK
   <br>13 = YCCK
   <br>14 = CIELab
-  <br>15 = Bi-level(2)
-  <br>16 = sRGB
+  <br>15 = Bi-level(2)</td><td>&nbsp;&nbsp;</td>
+  <td>16 = sRGB
   <br>17 = Grayscale
   <br>18 = sYCC
   <br>19 = CIEJab
@@ -302,7 +306,8 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
   <br>21 = ROMM-RGB
   <br>22 = YPbPr(1125/60)
   <br>23 = YPbPr(1250/50)
-  <br>24 = e-sYCC</td></tr>
+  <br>24 = e-sYCC</td><td>&nbsp;&nbsp;</td></tr></table>
+</span></td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='FileType'>Jpeg2000 FileType Tags</a></h2>
@@ -360,7 +365,8 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
 <td class=r title='11 = 0xb'>11</td>
 <td>Compression</td>
 <td class=c>N</td>
-<td><span class=s>0 = Uncompressed
+<td><table class=cols><tr>
+  <td>0 = Uncompressed
   <br>1 = Modified Huffman
   <br>2 = Modified READ
   <br>3 = Modified Modified READ
@@ -368,7 +374,8 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
   <br>5 = JPEG
   <br>6 = JPEG-LS
   <br>7 = JPEG 2000
-  <br>8 = JBIG2</span></td></tr>
+  <br>8 = JBIG2</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='CaptureResolution'>Jpeg2000 CaptureResolution Tags</a></h2>
@@ -448,7 +455,7 @@ currently writes only EXIF, IPTC and XMP tags in these images.</p>
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Aug 21, 2011</i>
+<br><i>Last revised Apr 20, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

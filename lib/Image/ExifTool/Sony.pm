@@ -33,6 +33,10 @@ $VERSION = '1.61';
 sub ProcessSRF($$$);
 sub ProcessSR2($$$);
 sub WriteSR2($$$);
+sub ConvLensSpec($);
+sub ConvInvLensSpec($);
+sub PrintLensSpec($);
+sub PrintInvLensSpec($);
 
 # (%sonyLensTypes is filled in based on Minolta LensType's)
 
@@ -75,12 +79,12 @@ my %binaryDataAttrs = (
             Name => 'CameraInfo',
             # count: A33/A35/A55V/A450/A500/A550/A560/A580/NEX3/5/C3/VG10E=15360
             # (but this decoding is not valid for A450,A500,A550 or NEX models)
-            Condition => '$$self{Model} =~ /^(SLT-A(33|35|55V)|DSLR-A(560|580))\b/',
+            Condition => '$$self{Model} =~ /^(SLT-|DSLR-A(560|580))\b/',
             SubDirectory => { TagTable => 'Image::ExifTool::Sony::CameraInfo' },
         },{
-            Name => 'CameraInfoUnknown',
-            # count: A200/A300/A350=5506, A230/A290/A330/A380/A390=6118, A700=368, A850/A900=5478
-            SubDirectory => { TagTable => 'Image::ExifTool::Sony::CameraInfoUnknown' },
+            Name => 'CameraInfo2',
+            # count: A850/A900=5478, A200/A300/A350=5506, A230/A290/A330/A380/A390=6118, A700=368
+            SubDirectory => { TagTable => 'Image::ExifTool::Sony::CameraInfo2' },
         }
     ],
     # 0x0018 - starts with "GYRO" for sweep panorama images (ref 12)
@@ -537,25 +541,10 @@ my %binaryDataAttrs = (
             like LensInfo, but also specifies lens features: DT, E, ZA, G, SSM, SAM,
             OSS, STF, Reflex, Macro and Fisheye
         },
-        # unpack in format compatible with LensInfo, with extra flags word at end
-        ValueConv => sub {
-            my $val = shift;
-            return \$val unless length($val) == 8;
-            my @a = unpack("H2H4H4H2H2H2",$val);
-            $a[1] += 0;  $a[2] += 0;    # remove leading zeros from focal lengths
-            $a[3] /= 10; $a[4] /= 10;   # divide f-numbers by 10
-            return join ' ', @a;
-        },
-        ValueConvInv => sub {
-            my $val = shift;
-            my @a=split(" ", $val);
-            return $val unless @a == 6;
-            $a[3] *= 10; $a[4] *= 10;   # f-numbers are multiplied by 10
-            $_ = hex foreach @a;        # convert from hex
-            return pack 'CnnCCC', @a;
-        },
-        PrintConv => 'Image::ExifTool::Sony::PrintLensSpec($val)',
-        PrintConvInv => 'Image::ExifTool::Sony::PrintInvLensSpec($val)',
+        ValueConv => \&ConvLensSpec,
+        ValueConvInv => \&ConvInvLensSpec,
+        PrintConv => \&PrintLensSpec,
+        PrintConvInv => \&PrintInvLensSpec,
     },
     0xb02b => { #PH (A550 JPEG and A200, A230, A300, A350, A380, A700 and A900 ARW)
         Name => 'FullImageSize',
@@ -609,6 +598,7 @@ my %binaryDataAttrs = (
             14 => 'Smile Shutter', #9 (T200)
             15 => 'Manual',
             18 => 'High Sensitivity', #9
+            19 => 'Macro', #12
             20 => 'Advanced Sports Shooting', #9
             29 => 'Underwater', #9
             33 => 'Gourmet', #9
@@ -812,6 +802,14 @@ my %binaryDataAttrs = (
     %binaryDataAttrs,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
     NOTES => 'Camera information stored by the A33, A35, A55, A560 and A580.',
+    0x00 => { #12
+        Name => 'LensSpec',
+        Format => 'undef[8]',
+        ValueConv => \&ConvLensSpec,
+        ValueConvInv => \&ConvInvLensSpec,
+        PrintConv => \&PrintLensSpec,
+        PrintConvInv => \&PrintInvLensSpec,
+    },
     0x1c => {
         Name => 'AFPointSelected',  # (v8.88: renamed from LocalAFAreaPointSelected)
         Notes => 'not valid when AFAreaMode is "Flexible"', #12
@@ -846,7 +844,7 @@ my %binaryDataAttrs = (
         },
     },
     0x20 => { #12
-        Name => 'AFPointUsed',  # (v8.88: renamed from LocalAFAreaPointUsed)
+        Name => 'AFPoint',  # (v8.88: renamed from LocalAFAreaPointUsed)
         Notes => 'the AF sensor used for focusing. Not valid when AFAreaMode is "Flexible"',
         PrintConvColumns => 2,
         PrintConv => {
@@ -872,10 +870,36 @@ my %binaryDataAttrs = (
     },
 );
 
-# unknown camera information
-%Image::ExifTool::Sony::CameraInfoUnknown = (
+# camera information for other DSLR and NEX models (ref PH)
+%Image::ExifTool::Sony::CameraInfo2 = (
     %binaryDataAttrs,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    NOTES => 'Camera information for other DSLR and NEX models.',
+    0x00 => [ #12
+        {
+            Name => 'LensSpec',
+            # the A850/A900 use a different int16 byte ordering! - PH
+            Condition => '$$self{Model} =~ /^DSLR-A(850|900)\b/',
+            Format => 'undef[8]',
+            ValueConv => sub {
+                my $val = shift;;
+                return ConvLensSpec(pack('v*', unpack('n*', $val)));
+            },
+            ValueConvInv => sub {
+                my $val = shift;
+                return pack('v*', unpack('n*', ConvInvLensSpec($val)));
+            },
+            PrintConv => \&PrintLensSpec,
+            PrintConvInv => \&PrintInvLensSpec,
+        },{
+            Name => 'LensSpec',
+            Format => 'undef[8]',
+            ValueConv => \&ConvLensSpec,
+            ValueConvInv => \&ConvInvLensSpec,
+            PrintConv => \&PrintLensSpec,
+            PrintConvInv => \&PrintInvLensSpec,
+        },
+    ],
 );
 
 # focus information ("WBInfo" for the A100 in Minolta.pm) (ref PH)
@@ -895,17 +919,41 @@ my %binaryDataAttrs = (
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
     FORMAT => 'int16u',
     NOTES => 'Camera settings for the A200, A300, A350, A700, A850 and A900.',
-    0x04 => { #7 (A700, not confirmed for other models)
+    0x00 => { #12
+        Name => 'ExposureTime',
+        Priority => 0,
+        ValueConv => '$val ? 2 ** (6 - Image::ExifTool::Minolta::MinoltaEv($val)) : 0',
+        ValueConvInv => '$val ? int((6 - log($val) / log(2)) * 8 + 0.5) : 0',
+        PrintConv => '$val ? Image::ExifTool::Exif::PrintExposureTime($val) : "Bulb"',
+        PrintConvInv => 'lc($val) eq "bulb" ? 0 : Image::ExifTool::Exif::ConvertFraction($val)',
+    },
+    0x01 => { #12
+        Name => 'FNumber',
+        Priority => 0,
+        ValueConv => '2 ** ((Image::ExifTool::Minolta::MinoltaEv($val) - 1) / 2)',
+        ValueConvInv => 'int((log($val) * 2 / log(2) + 1) * 8 + 0.5)',
+        PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
+        PrintConvInv => '$val',
+    },
+    0x04 => { #7/12
         Name => 'DriveMode',
         PrintConv => {
             1 => 'Single Frame',
-            2 => 'Continuous High',
+            2 => 'Continuous High', # A700/A900; not on A850
             4 => 'Self-timer 10 sec',
-            5 => 'Self-timer 2 sec',
+            5 => 'Self-timer 2 sec, Mirror Lock-Up',
+            6 => 'Single-frame Bracketing',
             7 => 'Continuous Bracketing',
-            12 => 'Continuous Low',
-            18 => 'White Balance Bracketing Low',
-            19 => 'D-Range Optimizer Bracketing Low',
+            10 => 'Remote Commander', #12
+            11 => 'Mirror Lock-Up', #12 (A850/A900; not on A700)
+            12 => 'Continuous Low (old)', #7 (A700, old firmware?)
+            18 => 'Continuous Low', #12
+          # 18 => 'White Balance Bracketing Low (old)', #7 (A700, old firmware?)
+            19 => 'D-Range Optimizer Bracketing Low (old)', #7 (A700, old firmware?)
+            24 => 'White Balance Bracketing Low', #12
+            25 => 'D-Range Optimizer Bracketing Low', #12
+            40 => 'White Balance Bracketing High', #12
+            41 => 'D-Range Optimizer Bracketing High', #12
         },
     },
     0x06 => { #7 (A700, not valid for other models?)
@@ -915,7 +963,7 @@ my %binaryDataAttrs = (
         Notes => 'A700 only',
     },
     0x10 => { #7 (A700)
-        Name => 'FocusMode',
+        Name => 'FocusModeSetting',
         PrintConv => {
             0 => 'Manual',
             1 => 'AF-S',
@@ -1000,6 +1048,14 @@ my %binaryDataAttrs = (
             16 => 'Sepia', #7
         },
     },
+    0x1b => { #12
+        Name => 'ColorSpace',
+        PrintConv => {
+            0 => 'sRGB',
+            1 => 'Adobe RGB',        # (A850, selected via Colorspace menu item)
+            5 => 'Adobe RGB (A700)', # (A700, selected via CreativeStyle menu)
+        },
+    },
     0x1c => {
         Name => 'Sharpness',
         ValueConv => '$val - 10',
@@ -1073,50 +1129,50 @@ my %binaryDataAttrs = (
             3 => 'Off',
         },
     },
-    0x2d => [
-        { #7
-            Name => 'ImageStyle',
-            Condition => '$$self{Model} eq "DSLR-A700"',
-            Notes => 'A700',
-            PrintConvColumns => 2,
-            PrintConv => {
-                1 => 'Standard',
-                2 => 'Vivid',
-                3 => 'Portrait', #PH
-                4 => 'Landscape', #PH
-                5 => 'Sunset', #PH
-                7 => 'Night View/Portrait', #PH (A200/A350 when CreativeStyle was 6!)
-                8 => 'B&W', #PH (guess)
-                9 => 'Adobe RGB',
-                11 => 'Neutral',
-                129 => 'StyleBox1',
-                130 => 'StyleBox2',
-                131 => 'StyleBox3',
-            },
-        },{
-            Name => 'ImageStyle',
-            Notes => 'other models',
-            PrintConvColumns => 2,
-            PrintConv => {
-                1 => 'Standard',
-                2 => 'Vivid',
-                3 => 'Portrait', #PH
-                4 => 'Landscape', #PH
-                5 => 'Sunset', #PH
-                7 => 'Night View/Portrait', #PH (A200/A350 when CreativeStyle was 6!)
-                8 => 'B&W', #PH (guess)
-                9 => 'Adobe RGB',
-                11 => 'Neutral',
-                # the following decoded for the A900 ("custom" is a guess) - PH
-                129 => 'Standard (custom)', #PH
-                130 => 'Vivid (custom)', #PH
-                131 => 'Neutral (custom)', #PH
-                132 => 'Portrait (custom)', #PH
-                133 => 'Landscape (custom)', #PH
-                134 => 'B&W (custom)', #PH
-            },
+    0x2d => { #7
+        Name => 'ImageStyle',
+        PrintConvColumns => 2,
+        PrintConv => {
+            1 => 'Standard',
+            2 => 'Vivid',
+            3 => 'Portrait', #PH
+            4 => 'Landscape', #PH
+            5 => 'Sunset', #PH
+            7 => 'Night View/Portrait', #PH (A200/A350 when CreativeStyle was 6!)
+            8 => 'B&W', #PH (guess)
+            9 => 'Adobe RGB',
+            11 => 'Neutral',
+            129 => 'StyleBox1',
+            130 => 'StyleBox2',
+            131 => 'StyleBox3',
+            132 => 'StyleBox4', #12 (A850)
+            133 => 'StyleBox5', #12 (A850)
+            134 => 'StyleBox6', #12 (A850)
         },
-    ],
+    },
+    0x2e => { #12
+        Name => 'FocusModeSwitch',
+        PrintConv => {
+            0 => 'AF',
+            1 => 'Manual',
+        },
+    },
+    0x2f => { #12
+        Name => 'ShutterSpeedSetting',
+        Notes => 'used in M, S and Program Shift S modes',
+        ValueConv => '$val ? 2 ** (6 - Image::ExifTool::Minolta::MinoltaEv($val)) : 0',
+        ValueConvInv => '$val ? int((6 - log($val) / log(2)) * 8 + 0.5) : 0',
+        PrintConv => '$val ? Image::ExifTool::Exif::PrintExposureTime($val) : "Bulb"',
+        PrintConvInv => 'lc($val) eq "bulb" ? 0 : Image::ExifTool::Exif::ConvertFraction($val)',
+    },
+    0x30 => { #12
+        Name => 'ApertureSetting',
+        Notes => 'used in M, A and Program Shift A modes',
+        ValueConv => '2 ** ((Image::ExifTool::Minolta::MinoltaEv($val) - 1) / 2)',
+        ValueConvInv => 'int((log($val) * 2 / log(2) + 1) * 8 + 0.5)',
+        PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
+        PrintConvInv => '$val',
+    },
     0x3c => {
         Name => 'ExposureProgram',
         Priority => 0,
@@ -1132,6 +1188,27 @@ my %binaryDataAttrs = (
             0 => 'Horizontal (normal)',
             1 => 'Rotate 90 CW', #(NC)
             2 => 'Rotate 270 CW',
+        },
+    },
+    0x4d => { #12
+        Name => 'FocusMode', # (focus mode actually used)
+        PrintConv => {
+            0 => 'Manual',
+            1 => 'AF-S',
+            2 => 'AF-C',
+            3 => 'AF-A',
+        },
+    },
+    0x53 => { #12
+        Name => 'FocusStatus',
+        PrintConv => {
+            0 => 'Not confirmed',
+            4 => 'Not confirmed, Tracking',
+            BITMASK => {
+                0 => 'Confirmed',
+                1 => 'Failed',
+                2 => 'Tracking',
+            },
         },
     },
     0x54 => {
@@ -1183,15 +1260,33 @@ my %binaryDataAttrs = (
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
     FORMAT => 'int16u',
     NOTES => 'Camera settings for the A230, A290, A330, A380 and A390.',
-    # 0x05 - probably WhiteBalanceFineTune
+### 0x00-0x03: same TagID as CameraSettings
+    0x00 => { #12
+        Name => 'ExposureTime',
+        Priority => 0,
+        ValueConv => '$val ? 2 ** (6 - Image::ExifTool::Minolta::MinoltaEv($val)) : 0',
+        ValueConvInv => '$val ? int((6 - log($val) / log(2)) * 8 + 0.5) : 0',
+        PrintConv => '$val ? Image::ExifTool::Exif::PrintExposureTime($val) : "Bulb"',
+        PrintConvInv => 'lc($val) eq "bulb" ? 0 : Image::ExifTool::Exif::ConvertFraction($val)',
+    },
+    0x01 => { #12
+        Name => 'FNumber',
+        Priority => 0,
+        ValueConv => '2 ** ((Image::ExifTool::Minolta::MinoltaEv($val) - 1) / 2)',
+        ValueConvInv => 'int((log($val) * 2 / log(2) + 1) * 8 + 0.5)',
+        PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
+        PrintConvInv => '$val',
+    },
+### 0x04-0x11: subtract 1 from CameraSettings TagID
+    # 0x05 - maybe WhiteBalanceFineTune
     0x0f => { #12/PH (educated guess)
-        Name => 'FocusMode',
+        Name => 'FocusModeSetting',
         PrintConv => {
             0 => 'Manual',
             1 => 'AF-S',
             2 => 'AF-C',
             3 => 'AF-A',
-            # seen 5 for A380
+            # seen 5 for A380 (FocusMode was Manual and FocusStatus was Confirmed)
         },
     },
     0x10 => { #12/PH (educated guess)
@@ -1219,6 +1314,7 @@ my %binaryDataAttrs = (
             9 => 'Top-Left',
         },
     },
+### 0x12-0x18: subtract 2 from CameraSettings TagID
     0x13 => {
         Name => 'MeteringMode',
         PrintConv => {
@@ -1259,6 +1355,7 @@ my %binaryDataAttrs = (
             # (these models don't have Neutral - PH)
         },
     },
+### 0x19-0x1b: subtract 3 from CameraSettings TagID
     0x19 => {
         Name => 'Sharpness',
         ValueConv => '$val - 10',
@@ -1280,7 +1377,7 @@ my %binaryDataAttrs = (
         PrintConv => '$val > 0 ? "+$val" : $val',
         PrintConvInv => '$val',
     },
-    # 0x1e - could be Brightness?
+### 0x1c-0x24: subtract 4 from CameraSettings TagID (not sure about 0x1c)
     0x1f => { #PH (educated guess)
         Name => 'FlashMode',
         PrintConv => {
@@ -1288,6 +1385,7 @@ my %binaryDataAttrs = (
             1 => 'TTL',
         },
     },
+### 0x25-0x27: subtract 6 from CameraSettings TagID
     0x25 => { #PH
         Name => 'LongExposureNoiseReduction',
         PrintConv => { 0 => 'Off', 1 => 'On' },
@@ -1316,6 +1414,24 @@ my %binaryDataAttrs = (
             # (these models don't have Neutral - PH)
         },
     },
+### 0x28-0x3b: subtract 7 from CameraSettings TagID
+    0x28 => { #PH
+        Name => 'ShutterSpeedSetting',
+        Notes => 'used in M, S and Program Shift S modes',
+        ValueConv => '$val ? 2 ** (6 - Image::ExifTool::Minolta::MinoltaEv($val)) : 0',
+        ValueConvInv => '$val ? int((6 - log($val) / log(2)) * 8 + 0.5) : 0',
+        PrintConv => '$val ? Image::ExifTool::Exif::PrintExposureTime($val) : "Bulb"',
+        PrintConvInv => 'lc($val) eq "bulb" ? 0 : Image::ExifTool::Exif::ConvertFraction($val)',
+    },
+    0x29 => { #PH
+        Name => 'ApertureSetting',
+        Notes => 'used in M, A and Program Shift A modes',
+        ValueConv => '2 ** ((Image::ExifTool::Minolta::MinoltaEv($val) - 1) / 2)',
+        ValueConvInv => 'int((log($val) * 2 / log(2) + 1) * 8 + 0.5)',
+        PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
+        PrintConvInv => '$val',
+    },
+### 0x3c-0x59: same TagID as CameraSettings
     0x3c => {
         Name => 'ExposureProgram',
         Priority => 0,
@@ -1331,6 +1447,25 @@ my %binaryDataAttrs = (
             0 => 'Horizontal (normal)',
             1 => 'Rotate 90 CW', #(NC)
             2 => 'Rotate 270 CW',
+        },
+    },
+    0x4d => { #12
+        Name => 'FocusMode', # (focus mode actually used)
+        PrintConv => {
+            0 => 'Manual',
+            1 => 'AF-S',
+            2 => 'AF-C',
+            3 => 'AF-A',
+        },
+    },
+    0x53 => { #12
+        Name => 'FocusStatus',
+        PrintConv => {
+            0 => 'Not Focused',
+            BITMASK => {
+                0 => 'Confirmed',
+                2 => 'Tracking',
+            },
         },
     },
     0x54 => {
@@ -1367,6 +1502,7 @@ my %binaryDataAttrs = (
             50 => '1/2 EV',
         },
     },
+### 0x5a onwards: subtract 1 from CameraSettings TagID
     0x83 => { #PH
         Name => 'ColorSpace',
         PrintConv => {
@@ -1390,15 +1526,15 @@ my %binaryDataAttrs = (
     0x00 => { #12
         Name => 'ShutterSpeedSetting',
         Notes => 'used only in M and S exposure modes',
-        ValueConv => '2 ** (6 - Image::ExifTool::Sony::SonyEv($val))',
-        ValueConvInv => 'int((6 - log($val) / log(2)) * 8 + 0.5)',
-        PrintConv => '$val == 64 ? "Bulb" : Image::ExifTool::Exif::PrintExposureTime($val)',
-        PrintConvInv => '$val =~ /Bulb/i ? 64 : Image::ExifTool::Exif::ConvertFraction($val)',
+        ValueConv => '$val ? 2 ** (6 - Image::ExifTool::Minolta::MinoltaEv($val)) : 0',
+        ValueConvInv => '$val ? int((6 - log($val) / log(2)) * 8 + 0.5) : 0',
+        PrintConv => '$val ? Image::ExifTool::Exif::PrintExposureTime($val) : "Bulb"',
+        PrintConvInv => 'lc($val) eq "bulb" ? 0 : Image::ExifTool::Exif::ConvertFraction($val)',
     },
     0x01 => { #12
         Name => 'ApertureSetting',
         Notes => 'used only in M and A exposure modes',
-        ValueConv => '2 ** ((Image::ExifTool::Sony::SonyEv($val) - 1) / 2)',
+        ValueConv => '2 ** ((Image::ExifTool::Minolta::MinoltaEv($val) - 1) / 2)',
         ValueConvInv => 'int((log($val) * 2 / log(2) + 1) * 8 + 0.5)',
         PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
         PrintConvInv => '$val',
@@ -1425,7 +1561,7 @@ my %binaryDataAttrs = (
         PrintConvInv => 'Image::ExifTool::Exif::ConvertFraction($val)',
     },
     0x04 => { #12
-        Name => 'DriveModeSet',
+        Name => 'DriveModeSetting',
         # Same drivemode info is repeated in 0x0034, but with at least the following exceptions:
         # - 0x0034 not for A550 ? - seen "0"
         # - sweep panorama    (0x05=80): 0x0004=16 and 0x0034=213
@@ -1545,7 +1681,7 @@ my %binaryDataAttrs = (
         Name => 'ColorSpace',
         PrintConv => {
             1 => 'sRGB',
-            2 => 'AdobeRGB',
+            2 => 'Adobe RGB',
         },
     },
     0x0f => { #12
@@ -1747,7 +1883,7 @@ my %binaryDataAttrs = (
         },
     },
     0x34 => { #12
-        Name => 'DriveModeUsed',
+        Name => 'DriveMode', # (drive mode actually used)
         Condition => '$$self{Model} !~ /^DSLR-(A450|A500|A550)$/',
         PrintConv => {
             16 => 'Single Frame',
@@ -1780,7 +1916,7 @@ my %binaryDataAttrs = (
     },
     0x36 => { #12 (not 100% sure about this one)
         Name => 'LiveViewAFMethod',
-        Condition => '$$self{Model} !~ /^(NEX-|DSLR-(A450|A500|A550))$/',
+        Condition => '$$self{Model} !~ /^(NEX-|DSLR-(A450|A500|A550)$)/',
         PrintConv => {
             0 => 'n/a',
             1 => 'Phase-detect AF',
@@ -1805,8 +1941,8 @@ my %binaryDataAttrs = (
         Condition => '$$self{Model} !~ /^(NEX-|DSLR-(A450|A500|A550))$/',
         PrintConv => {
             0 => 'n/a',
-            16 => '40 Segment',             # DSLR with LiveView/OVF switch in OVF position 
-            32 => '1200-zone Evaluative',   # SLT, or DSLR with LiveView/OVF switch in LiveView position 
+            16 => '40 Segment',             # DSLR with LiveView/OVF switch in OVF position
+            32 => '1200-zone Evaluative',   # SLT, or DSLR with LiveView/OVF switch in LiveView position
         },
     },
     0x85 => { #12 (not sure what is difference with 0x2f)
@@ -2354,6 +2490,30 @@ Image::ExifTool::AddCompositeTags('Image::ExifTool::Sony');
 }
 
 #------------------------------------------------------------------------------
+# LensSpec value conversions
+# Inputs: 0) value
+# Returns: converted value
+# Notes: unpacks in format compatible with LensInfo, with extra flags bytes at start and end
+sub ConvLensSpec($)
+{
+    my $val = shift;
+    return \$val unless length($val) == 8;
+    my @a = unpack("H2H4H4H2H2H2",$val);
+    $a[1] += 0;  $a[2] += 0;    # remove leading zeros from focal lengths
+    $a[3] /= 10; $a[4] /= 10;   # divide f-numbers by 10
+    return join ' ', @a;
+}
+sub ConvInvLensSpec($)
+{
+    my $val = shift;
+    my @a=split(" ", $val);
+    return $val unless @a == 6;
+    $a[3] *= 10; $a[4] *= 10;   # f-numbers are multiplied by 10
+    $_ = hex foreach @a;        # convert from hex
+    return pack 'CnnCCC', @a;
+}
+
+#------------------------------------------------------------------------------
 # Print Sony LensSpec value
 # Inputs: 0) LensSpec numerical value
 # Returns: converted LensSpec string (ie. "DT 18-55mm F3.5-5.6 SAM")
@@ -2417,18 +2577,6 @@ sub PrintInvLensSpec($)
         }
     }
     return sprintf "%.2x $sf $lf $sa $la %.2x", $flags>>8, $flags&0xff;
-}
-
-#------------------------------------------------------------------------------
-# Convert from integer EV*8 value to nearest 1/2 or 1/3 EV
-# Inputs: 0) integer EV*8 value (must be positive)
-# Returns: EV rounded to nearest 1/2 or 1/3 step
-sub SonyEv($)
-{
-    my $ev = shift() / 8;
-    my $ev2 = int($ev * 2 + 0.5) / 2;   # round to nearest 1/2 EV
-    my $ev3 = int($ev * 3 + 0.5) / 3;   # round to nearest 1/3 EV
-    return(abs($ev-$ev2) < abs($ev-$ev3) ? $ev2 : $ev3);
 }
 
 #------------------------------------------------------------------------------

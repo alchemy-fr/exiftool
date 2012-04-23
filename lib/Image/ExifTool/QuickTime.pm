@@ -32,7 +32,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.59';
+$VERSION = '1.60';
 
 sub FixWrongFormat($);
 sub ProcessMOV($$;$);
@@ -263,7 +263,13 @@ my %graphicsMode = (
         },
         # (also Samsung WB750 uncompressed thumbnail data starting with "SDIC\0")
     ],
-    skip => { Unknown => 1, Binary => 1 },
+    skip => [
+        {
+            Condition => '$$valPt =~ /^\0.{3}(CNDB|CNCV|CNMN|CNFV|CNTH|CNDM)/s',
+            SubDirectory => { TagTable => 'Image::ExifTool::Canon::Skip' },
+        },
+        { Name => 'Skip', Unknown => 1, Binary => 1 },
+    ],
     wide => { Unknown => 1, Binary => 1 },
     ftyp => { #MP4
         Name => 'FileType',
@@ -1282,7 +1288,8 @@ my %graphicsMode = (
     PROCESS_PROC => \&ProcessMOV,
     GROUPS => { 2 => 'Video' },
     chap => { Name => 'ChapterList', Format => 'int32u' },
-    # also: tmcd, sync, scpt, ssrc, iTunesInfo
+    tmcd => { Name => 'TimeCode', Format => 'int32u' },
+    # also: sync, scpt, ssrc, iTunesInfo
 );
 
 # track aperture mode dimensions atoms
@@ -2031,6 +2038,63 @@ my %graphicsMode = (
         Name => 'Text',
         Flags => ['Binary','Unknown'],
     },
+    tmcd => {
+        Name => 'TimeCode',
+        SubDirectory => { TagTable => 'Image::ExifTool::QuickTime::TimeCode' },
+    },
+);
+
+# TimeCode header
+%Image::ExifTool::QuickTime::TimeCode = (
+    PROCESS_PROC => \&ProcessMOV,
+    tcmi => {
+        Name => 'TCMediaInfo',
+        SubDirectory => { TagTable => 'Image::ExifTool::QuickTime::TCMediaInfo' },
+    },
+);
+
+# TimeCode media info (ref 12)
+%Image::ExifTool::QuickTime::TCMediaInfo = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 2 => 'Video' },
+    4 => {
+        Name => 'TextFont',
+        Format => 'int16u',
+        PrintConv => { 0 => 'System' },
+    },
+    6 => {
+        Name => 'TextFace',
+        Format => 'int16u',
+        PrintConv => { 
+            0 => 'Plain',
+            BITMASK => {
+                0 => 'Bold',
+                1 => 'Italic',
+                2 => 'Underline',
+                3 => 'Outline',
+                4 => 'Shadow',
+                5 => 'Condense',
+                6 => 'Extend',
+            },
+        },
+    },
+    8 => {
+        Name => 'TextSize',
+        Format => 'int16u',
+    },
+    10 => {
+        Name => 'TextColor',
+        Format => 'int16u[3]',
+    },
+    16 => {
+        Name => 'BackgroundColor',
+        Format => 'int16u[3]',
+    },
+    22 => {
+        Name => 'FontName',
+        Format => 'pstring',
+        ValueConv => '$self->Decode($val, $self->Options("CharsetQuickTime"))',
+    },
 );
 
 # Generic media info (ref http://sourceforge.jp/cvs/view/ntvrec/ntvrec/libqtime/gmin.h?view=co)
@@ -2104,6 +2168,7 @@ my %graphicsMode = (
             sdsm => 'Scene Description', #3
             soun => 'Audio Track',
             text => 'Text', #PH (but what type? subtitle?)
+            tmcd => 'Time Code', #PH
            'url '=> 'URL', #3
             vide => 'Video Track',
         },

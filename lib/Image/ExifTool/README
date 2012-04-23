@@ -735,6 +735,9 @@ numerical.
                   references are are also used by Composite tags, which use the
                   the Conv entries to generate the Composite value.
 
+  NoSubStruct   : [XMP tags only] Flag set in flattened tag to break cyclical
+                  recursion in nested structures.
+
   Namespace     : [XMP tags only] Gives standard XMP namespace prefix to use for
                   this tag.  If not defined, the tag table NAMESPACE is used.
 

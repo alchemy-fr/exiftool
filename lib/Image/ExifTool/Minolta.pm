@@ -50,7 +50,7 @@ use vars qw($VERSION %minoltaLensTypes %minoltaTeleconverters %minoltaColorMode
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.88';
+$VERSION = '1.89';
 
 # Full list of product codes for Sony-compatible Minolta lenses
 # (ref http://www.kb.sony.com/selfservice/documentLink.do?externalId=C1000570)
@@ -1609,37 +1609,37 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
         PrintConv => \%offOn,
     },
     0x06 => { #20
-        Name => 'ManualExposureTime',
-        Notes => 'the most recent exposure time set manually by the user',
-        ValueConv => '$val ? 2 ** ((48-$val)/8) : $val',
-        ValueConvInv => '$val ? 48 - 8*log($val)/log(2) : $val',
+        Name => 'ShutterSpeedSetting',
+        Notes => 'used only in M and S exposure modes',
+        ValueConv => '$val ? 2 ** (6 - Image::ExifTool::Minolta::MinoltaEv($val)) : 0',
+        ValueConvInv => '$val ? int((6 - log($val) / log(2)) * 8 + 0.5) : 0',
         PrintConv => '$val ? Image::ExifTool::Exif::PrintExposureTime($val) : "Bulb"',
         PrintConvInv => 'lc($val) eq "bulb" ? 0 : Image::ExifTool::Exif::ConvertFraction($val)',
     },
     0x07 => { #20
-        Name => 'ManualFNumber',
-        Notes => 'the most recent aperture set manually by the user',
-        ValueConv => '2 ** (($val-8)/16)',
-        ValueConvInv => '8 + 16*log($val)/log(2)',
-        PrintConv => 'sprintf("%.1f",$val)',
+        Name => 'ApertureSetting',
+        Notes => 'used only in M and A exposure modes',
+        ValueConv => '2 ** ((Image::ExifTool::Minolta::MinoltaEv($val) - 1) / 2)',
+        ValueConvInv => 'int((log($val) * 2 / log(2) + 1) * 8 + 0.5)',
+        PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
         PrintConvInv => '$val',
     },
     0x08 => { #20
         Name => 'ExposureTime',
-        ValueConv => '$val ? 2 ** ((48-$val)/8) : $val',
-        ValueConvInv => '$val ? 48 - 8*log($val)/log(2) : $val',
+        ValueConv => '$val ? 2 ** (6 - Image::ExifTool::Minolta::MinoltaEv($val)) : 0',
+        ValueConvInv => '$val ? int((6 - log($val) / log(2)) * 8 + 0.5) : 0',
         PrintConv => '$val ? Image::ExifTool::Exif::PrintExposureTime($val) : "Bulb"',
         PrintConvInv => 'lc($val) eq "bulb" ? 0 : Image::ExifTool::Exif::ConvertFraction($val)',
     },
     0x09 => { #15/20
         Name => 'FNumber',
-        ValueConv => '2 ** (($val / 8 - 1) / 2)',
-        ValueConvInv => '$val>0 ? (2*log($val)/log(2)+1) * 8 : undef',
-        PrintConv => 'sprintf("%.1f",$val)',
+        ValueConv => '2 ** ((Image::ExifTool::Minolta::MinoltaEv($val) - 1) / 2)',
+        ValueConvInv => 'int((log($val) * 2 / log(2) + 1) * 8 + 0.5)',
+        PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
         PrintConvInv => '$val',
     },
     0x0a => { #20
-        Name => 'DriveMode2',
+        Name => 'DriveMode2', # (one of these is probably DriveModeSetting like Sony - PH)
         PrintConv => {
             0 => 'Self-timer 10 sec',
             1 => 'Continuous',
@@ -2347,6 +2347,18 @@ sub ConvertWhiteBalance($)
         }
     }
     return $printConv;
+}
+
+#------------------------------------------------------------------------------
+# Convert from integer EV*8 value to nearest 1/2 or 1/3 EV
+# Inputs: 0) integer EV*8 value (must be positive)
+# Returns: EV rounded to nearest 1/2 or 1/3 step
+sub MinoltaEv($)
+{
+    my $ev = shift() / 8;
+    my $ev2 = int($ev * 2 + 0.5) / 2;   # round to nearest 1/2 EV
+    my $ev3 = int($ev * 3 + 0.5) / 3;   # round to nearest 1/3 EV
+    return(abs($ev-$ev2) < abs($ev-$ev3) ? $ev2 : $ev3);
 }
 
 1;  # end

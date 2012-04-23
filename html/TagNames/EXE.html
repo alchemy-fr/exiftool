@@ -20,7 +20,8 @@ DLL libraries.</p>
 <td class=r title='0 = 0x0'>0</td>
 <td>MachineType</td>
 <td class=c>N</td>
-<td><span class=s>0x14c = Intel 386 or later, and compatibles
+<td><table class=cols><tr>
+  <td>0x14c = Intel 386 or later, and compatibles
   <br>0x14d = Intel i860
   <br>0x162 = MIPS R3000
   <br>0x166 = MIPS little endian (R4000)
@@ -46,7 +47,8 @@ DLL libraries.</p>
   <br>0xebc = EFI Byte Code
   <br>0x8664 = AMD AMD64
   <br>0x9041 = Mitsubishi M32R little endian
-  <br>0xc0ee = clr pure MSIL</span></td></tr>
+  <br>0xc0ee = clr pure MSIL</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='2 = 0x2'>2</td>
 <td>TimeStamp</td>
@@ -102,7 +104,8 @@ DLL libraries.</p>
 <td class=r title='44 = 0x2c'>44</td>
 <td>Subsystem</td>
 <td class=c>N</td>
-<td><span class=s>0 = Unknown
+<td><table class=cols><tr>
+  <td>0 = Unknown
   <br>1 = Native
   <br>2 = Windows GUI
   <br>3 = Windows command line
@@ -113,7 +116,8 @@ DLL libraries.</p>
   <br>11 = EFI boot service
   <br>12 = EFI runtime driver
   <br>13 = EFI ROM
-  <br>14 = XBOX</span></td></tr>
+  <br>14 = XBOX</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='PEVersion'>EXE PEVersion Tags</a></h2>
@@ -143,17 +147,20 @@ files.</p>
 <td class=r title='7 = 0x7'>7</td>
 <td>FileFlags</td>
 <td class=c>N</td>
-<td><span class=s>Bit 0 = Debug
+<td><table class=cols><tr>
+  <td>Bit 0 = Debug
   <br>Bit 1 = Pre-release
-  <br>Bit 2 = Patched
-  <br>Bit 3 = Private build
+  <br>Bit 2 = Patched</td><td>&nbsp;&nbsp;</td>
+  <td>Bit 3 = Private build
   <br>Bit 4 = Info inferred
-  <br>Bit 5 = Special build</span></td></tr>
+  <br>Bit 5 = Special build</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='8 = 0x8'>8</td>
 <td>FileOS</td>
 <td class=c>N</td>
-<td><span class=s>0x1 = Win16
+<td><table class=cols><tr>
+  <td>0x1 = Win16
   <br>0x2 = PM-16
   <br>0x3 = PM-32
   <br>0x4 = Win32
@@ -165,18 +172,21 @@ files.</p>
   <br>0x30000 = OS/2 32-bit
   <br>0x30003 = OS/2 32-bit PM-32
   <br>0x40000 = Windows NT
-  <br>0x40004 = Windows NT 32-bit</span></td></tr>
+  <br>0x40004 = Windows NT 32-bit</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='9 = 0x9'>9</td>
 <td>ObjectFileType</td>
 <td class=c>N</td>
-<td><span class=s>0 = Unknown
+<td><table class=cols><tr>
+  <td>0 = Unknown
   <br>1 = Executable application
   <br>2 = Dynamic link library
   <br>3 = Driver
   <br>4 = Font
   <br>5 = VxD
-  <br>7 = Static library</span></td></tr>
+  <br>7 = Static library</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='10 = 0xa'>10</td>
 <td>FileSubtype</td>
@@ -204,8 +214,8 @@ existing StringFileInfo tags even if not listed in this table.</p>
 <tr>
 <td>CharacterSet</td>
 <td class=c>N</td>
-<td><span class=s><span class=n>(extracted from the StringFileInfo value)</span>
-  <br>&#39;0000&#39; = ASCII
+<td><span class=s><span class=n>(extracted from the StringFileInfo value)</span></span><table class=cols><tr>
+  <td>&#39;0000&#39; = ASCII
   <br>&#39;03A4&#39; = Windows, Japan (Shift - JIS X-0208)
   <br>&#39;03A8&#39; = Windows, Chinese (Simplified)
   <br>&#39;03B5&#39; = Windows, Korea (Shift - KSC 5601)
@@ -217,7 +227,8 @@ existing StringFileInfo tags even if not listed in this table.</p>
   <br>&#39;04E5&#39; = Windows, Greek
   <br>&#39;04E6&#39; = Windows, Turkish
   <br>&#39;04E7&#39; = Windows, Hebrew
-  <br>&#39;04E8&#39; = Windows, Arabic</span></td></tr>
+  <br>&#39;04E8&#39; = Windows, Arabic</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td>Comments</td>
 <td class=c>N</td>
@@ -425,7 +436,8 @@ libraries.</p>
 <td class=r title='3 = 0x3'>3</td>
 <td>CPUType</td>
 <td class=c title=' + = List'>N+</td>
-<td><span class=s>-1 = Any
+<td><table class=cols><tr>
+  <td>-1 = Any
   <br>1 = VAX
   <br>2 = ROMP
   <br>4 = NS32032
@@ -434,8 +446,8 @@ libraries.</p>
   <br>7 = x86
   <br>8 = MIPS
   <br>9 = NS32532
-  <br>10 = MC98000
-  <br>11 = HPPA
+  <br>10 = MC98000</td><td>&nbsp;&nbsp;</td>
+  <td>11 = HPPA
   <br>12 = ARM
   <br>13 = MC88000
   <br>14 = SPARC
@@ -443,12 +455,14 @@ libraries.</p>
   <br>16 = i860 little endian
   <br>17 = RS6000
   <br>18 = PowerPC
-  <br>255 = VEO</span></td></tr>
+  <br>255 = VEO</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='4 = 0x4'>4</td>
 <td>CPUSubtype</td>
 <td class=c title=' + = List'>N+</td>
-<td><span class=s>&#39;1 0&#39; = VAX (all)
+<td><table class=cols><tr>
+  <td>&#39;1 0&#39; = VAX (all)
   <br>&#39;1 1&#39; = VAX780
   <br>&#39;1 2&#39; = VAX785
   <br>&#39;1 3&#39; = VAX750
@@ -547,12 +561,14 @@ libraries.</p>
   <br>&#39;18 11&#39; = PowerPC 7450
   <br>&#39;18 100&#39; = PowerPC 970
   <br>&#39;255 1&#39; = VEO 1
-  <br>&#39;255 2&#39; = VEO 2</span></td></tr>
+  <br>&#39;255 2&#39; = VEO 2</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='5 = 0x5'>5</td>
 <td>ObjectFileType</td>
 <td class=c>N</td>
-<td><span class=s>-1 = Static library
+<td><table class=cols><tr>
+  <td>-1 = Static library
   <br>0x1 = Relocatable object
   <br>0x2 = Demand paged executable
   <br>0x3 = Fixed VM shared library
@@ -561,7 +577,8 @@ libraries.</p>
   <br>0x6 = Dynamically bound shared library
   <br>0x7 = Dynamic link editor
   <br>0x8 = Dynamically bound bundle
-  <br>0x9 = Shared library stub for static linking</span></td></tr>
+  <br>0x9 = Shared library stub for static linking</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='PEF'>EXE PEF Tags</a></h2>

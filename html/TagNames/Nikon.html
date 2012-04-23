@@ -176,12 +176,14 @@ causes the other information to be re-encrypted with the new key)</span></span><
 <td title='0x0022 = 34'>0x0022</td>
 <td>ActiveD-Lighting</td>
 <td class=c>int16u</td>
-<td><span class=s>0 = Off
+<td><table class=cols><tr>
+  <td>0 = Off
   <br>1 = Low
-  <br>3 = Normal
-  <br>5 = High
+  <br>3 = Normal</td><td>&nbsp;&nbsp;</td>
+  <td>5 = High
   <br>7 = Extra High
-  <br>65535 = Auto</span></td></tr>
+  <br>65535 = Auto</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0023 = 35'>0x0023</td>
 <td>PictureControlData</td>
@@ -267,12 +269,14 @@ causes the other information to be re-encrypted with the new key)</span></span><
 <td title='0x0087 = 135'>0x0087</td>
 <td>FlashMode</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = Did Not Fire
+<td><table class=cols><tr>
+  <td>0 = Did Not Fire
   <br>1 = Fired, Manual
   <br>3 = Not Ready
   <br>7 = Fired, External
   <br>8 = Fired, Commander Mode
-  <br>9 = Fired, TTL Mode</span></td></tr>
+  <br>9 = Fired, TTL Mode</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x0088 = 136'>0x0088</td>
 <td>AFInfo</td>
@@ -866,12 +870,14 @@ FaceDetectFrameSize)</span></span></td></tr>
 <td class=r title='55 = 0x37'>55</td>
 <td>FilterEffect</td>
 <td class=c>int8u</td>
-<td><span class=s>0x80 = Off
+<td><table class=cols><tr>
+  <td>0x80 = Off
   <br>0x81 = Yellow
-  <br>0x82 = Orange
-  <br>0x83 = Red
+  <br>0x82 = Orange</td><td>&nbsp;&nbsp;</td>
+  <td>0x83 = Red
   <br>0x84 = Green
-  <br>0xff = n/a</span></td></tr>
+  <br>0xff = n/a</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='56 = 0x38'>56</td>
 <td>ToningEffect</td>
@@ -1064,12 +1070,14 @@ FaceDetectFrameSize)</span></span></td></tr>
 <td class=r title='0 = 0x0'>0</td>
 <td>AFAreaMode</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = Single Area
+<td><table class=cols><tr>
+  <td>0 = Single Area
   <br>1 = Dynamic Area
   <br>2 = Dynamic Area (closest subject)
   <br>3 = Group Dynamic
   <br>4 = Single Area (wide)
-  <br>5 = Dynamic Area (wide)</span></td></tr>
+  <br>5 = Dynamic Area (wide)</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='1 = 0x1'>1</td>
 <td>AFPoint</td>
@@ -1190,14 +1198,15 @@ FaceDetectFrameSize)</span></span></td></tr>
 <td class=r title='708 = 0x2c4'>708.1</td>
 <td>ImageQuality</td>
 <td class=c>int8u</td>
-<td><span class=s>[Mask 0x0f]
-  <br>0x0 = NEF (RAW)
+<td><span class=s>[Mask 0x0f]</span><table class=cols><tr>
+  <td>0x0 = NEF (RAW)
   <br>0x1 = JPEG Fine
   <br>0x2 = JPEG Normal
   <br>0x3 = JPEG Basic
   <br>0x4 = NEF (RAW) + JPEG Fine
   <br>0x5 = NEF (RAW) + JPEG Normal
-  <br>0x6 = NEF (RAW) + JPEG Basic</span></td></tr>
+  <br>0x6 = NEF (RAW) + JPEG Basic</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='748 = 0x2ec'>748</td>
 <td>CustomSettingsD80</td>
@@ -1275,15 +1284,16 @@ firmware 1.00 and earlier.</p>
 <td class=r title='723 = 0x2d3'>723.2</td>
 <td>ImageQuality</td>
 <td class=c>int8u</td>
-<td><span class=s>[Mask 0x07]
-  <br>0x0 = NEF (RAW) + JPEG Fine
+<td><span class=s>[Mask 0x07]</span><table class=cols><tr>
+  <td>0x0 = NEF (RAW) + JPEG Fine
   <br>0x1 = NEF (RAW) + JPEG Norm
   <br>0x2 = NEF (RAW) + JPEG Basic
   <br>0x3 = NEF (RAW)
   <br>0x4 = TIF (RGB)
   <br>0x5 = JPEG Fine
   <br>0x6 = JPEG Normal
-  <br>0x7 = JPEG Basic</span></td></tr>
+  <br>0x7 = JPEG Basic</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='769 = 0x301'>769</td>
 <td>CustomSettingsD3</td>
@@ -1348,15 +1358,16 @@ firmware 1.10, 2.00, 2.01 and 2.02.</p>
 <td class=r title='732 = 0x2dc'>732.2</td>
 <td>ImageQuality</td>
 <td class=c>int8u</td>
-<td><span class=s>[Mask 0x07]
-  <br>0x0 = NEF (RAW) + JPEG Fine
+<td><span class=s>[Mask 0x07]</span><table class=cols><tr>
+  <td>0x0 = NEF (RAW) + JPEG Fine
   <br>0x1 = NEF (RAW) + JPEG Norm
   <br>0x2 = NEF (RAW) + JPEG Basic
   <br>0x3 = NEF (RAW)
   <br>0x4 = TIF (RGB)
   <br>0x5 = JPEG Fine
   <br>0x6 = JPEG Normal
-  <br>0x7 = JPEG Basic</span></td></tr>
+  <br>0x7 = JPEG Basic</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='778 = 0x30a'>778</td>
 <td>CustomSettingsD3</td>
@@ -2479,15 +2490,17 @@ D200.</p>
 <td class=r title='16 = 0x10'>16</td>
 <td>FlashColorFilter</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = None
+<td><table class=cols><tr>
+  <td>0 = None
   <br>1 = FL-GL1
-  <br>2 = FL-GL2
-  <br>9 = TN-A1
+  <br>2 = FL-GL2</td><td>&nbsp;&nbsp;</td>
+  <td>9 = TN-A1
   <br>10 = TN-A2
-  <br>65 = Red
-  <br>66 = Blue
+  <br>65 = Red</td><td>&nbsp;&nbsp;</td>
+  <td>66 = Blue
   <br>67 = Yellow
-  <br>68 = Amber</span></td></tr>
+  <br>68 = Amber</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='17 = 0x11'>17.1</td>
 <td>FlashGroupAControlMode</td>
@@ -2595,8 +2608,8 @@ D200.</p>
 <td class=r title='5 = 0x5'>5</td>
 <td>AFAreaMode</td>
 <td class=c>int8u</td>
-<td><span class=s><span class=n>(ContrastDetectAF Off)</span>
-  <br>0 = Single Area
+<td><span class=s><span class=n>(ContrastDetectAF Off)</span></span><table class=cols><tr>
+  <td>0 = Single Area
   <br>1 = Dynamic Area
   <br>2 = Dynamic Area (closest subject)
   <br>3 = Group Dynamic
@@ -2608,8 +2621,8 @@ D200.</p>
   <br>9 = Dynamic Area (3D-tracking)
   <br>10 = Single Area (wide)
   <br>11 = Dynamic Area (wide)
-  <br>12 = Dynamic Area (wide, 3D-tracking)
-  <br><span class=n>(ContrastDetectAF On)</span>
+  <br>12 = Dynamic Area (wide, 3D-tracking)</td><td>&nbsp;&nbsp;</td></tr></table>
+<span class=s><span class=n>(ContrastDetectAF On)</span>
   <br>0 = Contrast-detect
   <br>1 = Contrast-detect (normal area)
   <br>2 = Contrast-detect (wide area)
@@ -3138,7 +3151,8 @@ videos from some Nikon cameras.</p>
 <td title='0x1108822 = 17860642'>0x1108822</td>
 <td>ExposureProgram</td>
 <td class=c>N</td>
-<td><span class=s>0 = Not Defined
+<td><table class=cols><tr>
+  <td>0 = Not Defined
   <br>1 = Manual
   <br>2 = Program AE
   <br>3 = Aperture-priority AE
@@ -3146,7 +3160,8 @@ videos from some Nikon cameras.</p>
   <br>5 = Creative (Slow speed)
   <br>6 = Action (High speed)
   <br>7 = Portrait
-  <br>8 = Landscape</span></td></tr>
+  <br>8 = Landscape</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x1109204 = 17863172'>0x1109204</td>
 <td>ExposureCompensation</td>
@@ -3156,14 +3171,16 @@ videos from some Nikon cameras.</p>
 <td title='0x1109207 = 17863175'>0x1109207</td>
 <td>MeteringMode</td>
 <td class=c>N</td>
-<td><span class=s>0 = Unknown
+<td><table class=cols><tr>
+  <td>0 = Unknown
   <br>1 = Average
   <br>2 = Center-weighted average
   <br>3 = Spot
   <br>4 = Multi-spot
   <br>5 = Multi-segment
   <br>6 = Partial
-  <br>255 = Other</span></td></tr>
+  <br>255 = Other</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x110a434 = 17867828'>0x110a434</td>
 <td>LensModel</td>
@@ -3340,12 +3357,14 @@ videos from some Nikon cameras.</p>
 <td class=r title='68 = 0x44'>68</td>
 <td>WhiteBalance</td>
 <td class=c>N</td>
-<td><span class=s>0 = Auto
+<td><table class=cols><tr>
+  <td>0 = Auto
   <br>1 = Daylight
-  <br>2 = Shade
-  <br>3 = Fluorescent
+  <br>2 = Shade</td><td>&nbsp;&nbsp;</td>
+  <td>3 = Fluorescent
   <br>4 = Tungsten
-  <br>5 = Manual</span></td></tr>
+  <br>5 = Manual</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='72 = 0x48'>72</td>
 <td>FocalLength</td>
@@ -3424,14 +3443,16 @@ of Nikon AVI videos.</p>
 <td title='0x0007 = 7'>0x0007</td>
 <td>Orientation</td>
 <td class=c>N</td>
-<td><span class=s>1 = Horizontal (normal)
+<td><table class=cols><tr>
+  <td>1 = Horizontal (normal)
   <br>2 = Mirror horizontal
   <br>3 = Rotate 180
   <br>4 = Mirror vertical
   <br>5 = Mirror horizontal and rotate 270 CW
   <br>6 = Rotate 90 CW
   <br>7 = Mirror horizontal and rotate 90 CW
-  <br>8 = Rotate 270 CW</span></td></tr>
+  <br>8 = Rotate 270 CW</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x0008 = 8'>0x0008</td>
 <td>ExposureTime</td>
@@ -3456,14 +3477,16 @@ of Nikon AVI videos.</p>
 <td title='0x000c = 12'>0x000c</td>
 <td>MeteringMode</td>
 <td class=c>N</td>
-<td><span class=s>0 = Unknown
+<td><table class=cols><tr>
+  <td>0 = Unknown
   <br>1 = Average
   <br>2 = Center-weighted average
   <br>3 = Spot
   <br>4 = Multi-spot
   <br>5 = Multi-segment
   <br>6 = Partial
-  <br>255 = Other</span></td></tr>
+  <br>255 = Other</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x000f = 15'>0x000f</td>
 <td>FocalLength</td>
@@ -3569,6 +3592,7 @@ ExifTool to choose in these cases (see the
 </tr><tr><td>'00 00 00 00 00 00 E1 12'</td><td>= TC-17E II</td>
 </tr><tr><td>'00 00 00 00 00 00 F1 0C'</td><td>= TC-14E [II] or Sigma APO Tele Converter 1.4x EX DG or Kenko Teleplus PRO 300 DG 1.4x</td>
 </tr><tr><td>'00 00 00 00 00 00 F2 18'</td><td>= TC-20E [II] or Sigma APO Tele Converter 2x EX DG or Kenko Teleplus PRO 300 DG 2.0x</td>
+</tr><tr><td>'00 00 48 48 53 53 00 01'</td><td>= Loreo 40mm F11-22 3D Lens in a Cap 9005</td>
 </tr><tr><td>'00 36 1C 2D 34 3C 00 06'</td><td>= Tamron SP AF 11-18mm f/4.5-5.6 Di II LD Aspherical (IF) (A13)</td>
 </tr><tr><td>'00 3C 1F 37 30 30 00 06'</td><td>= Tokina AT-X 124 AF PRO DX (AF 12-24mm f/4)</td>
 </tr><tr><td>'00 3E 80 A0 38 3F 00 02'</td><td>= Tamron SP AF 200-500mm f/5-6.3 Di LD (IF) (A08)</td>
@@ -3997,7 +4021,7 @@ ExifTool to choose in these cases (see the
 
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Apr 2, 2012</i>
+<br><i>Last revised Apr 17, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

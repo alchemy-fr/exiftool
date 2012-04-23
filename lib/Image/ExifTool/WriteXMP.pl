@@ -274,7 +274,11 @@ sub SetPropertyPath($$;$$$$)
     # set PropertyPath for all flattened tags of this structure if necessary
     # (note: don't do this for variable-namespace structures (undef NAMESPACE))
     my $strTable = $$tagInfo{Struct};
-    if ($strTable and $$strTable{NAMESPACE}) {
+    if ($strTable and $$strTable{NAMESPACE} and not ($parentID and
+        # must test NoSubStruct flag to avoid infinite recursion
+        (($$tagTablePtr{$parentID} and $$tagTablePtr{$parentID}{NoSubStruct}) or
+        length $parentID > 500))) # avoid deep recursion
+    {
         # make sure the structure namespace has been registered
         # (user-defined namespaces may not have been)
         RegisterNamespace($strTable) if ref $$strTable{NAMESPACE};

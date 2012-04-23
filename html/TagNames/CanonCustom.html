@@ -150,12 +150,14 @@ Mark III.</p>
 <td class=r title='19 = 0x13'>19</td>
 <td>LensAFStopButton</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = AF stop
+<td><table class=cols><tr>
+  <td>0 = AF stop
   <br>1 = AF start
   <br>2 = AE lock while metering
   <br>3 = AF point: M -&gt; Auto / Auto -&gt; Ctr.
   <br>4 = AF mode: ONE SHOT &lt;-&gt; AI SERVO
-  <br>5 = IS start</span></td></tr>
+  <br>5 = IS start</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='20 = 0x14'>20</td>
 <td>AIServoTrackingSensitivity</td>
@@ -308,12 +310,14 @@ Mark III.</p>
 <td class=r title='19 = 0x13'>19</td>
 <td>LensAFStopButton</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = AF stop
+<td><table class=cols><tr>
+  <td>0 = AF stop
   <br>1 = AF start
   <br>2 = AE lock while metering
   <br>3 = AF point: M -&gt; Auto / Auto -&gt; Ctr.
   <br>4 = ONE SHOT &lt;-&gt; AI SERVO
-  <br>5 = IS start</span></td></tr>
+  <br>5 = IS start</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='20 = 0x14'>20</td>
 <td>AddOriginalDecisionData</td>
@@ -375,24 +379,28 @@ Mark III.</p>
 <td class=r title='7 = 0x7'>7</td>
 <td>AFPointRegistration</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = Center
+<td><table class=cols><tr>
+  <td>0 = Center
   <br>1 = Bottom
   <br>2 = Right
-  <br>3 = Extreme Right
-  <br>4 = Automatic
+  <br>3 = Extreme Right</td><td>&nbsp;&nbsp;</td>
+  <td>4 = Automatic
   <br>5 = Extreme Left
   <br>6 = Left
-  <br>7 = Top</span></td></tr>
+  <br>7 = Top</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='8 = 0x8'>8</td>
 <td>RawAndJpgRecording</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = RAW+Small/Normal
+<td><table class=cols><tr>
+  <td>0 = RAW+Small/Normal
   <br>1 = RAW+Small/Fine
-  <br>2 = RAW+Medium/Normal
-  <br>3 = RAW+Medium/Fine
+  <br>2 = RAW+Medium/Normal</td><td>&nbsp;&nbsp;</td>
+  <td>3 = RAW+Medium/Fine
   <br>4 = RAW+Large/Normal
-  <br>5 = RAW+Large/Fine</span></td></tr>
+  <br>5 = RAW+Large/Fine</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='9 = 0x9'>9</td>
 <td>AEBSequenceAutoCancel</td>
@@ -451,12 +459,14 @@ Mark III.</p>
 <td class=r title='17 = 0x11'>17</td>
 <td>LensAFStopButton</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = AF stop
+<td><table class=cols><tr>
+  <td>0 = AF stop
   <br>1 = AF start
   <br>2 = AE lock while metering
   <br>3 = AF point: M-&gt;Auto/Auto-&gt;ctr
   <br>4 = One Shot &lt;-&gt; AI servo
-  <br>5 = IS start</span></td></tr>
+  <br>5 = IS start</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='Functions20D'>CanonCustom Functions20D Tags</a></h2>
@@ -575,12 +585,14 @@ Mark III.</p>
 <td class=r title='16 = 0x10'>16</td>
 <td>LensAFStopButton</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = AF stop
+<td><table class=cols><tr>
+  <td>0 = AF stop
   <br>1 = AF start
   <br>2 = AE lock while metering
   <br>3 = AF point: M -&gt; Auto / Auto -&gt; Ctr.
   <br>4 = ONE SHOT &lt;-&gt; AI SERVO
-  <br>5 = IS start</span></td></tr>
+  <br>5 = IS start</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='17 = 0x11'>17</td>
 <td>AddOriginalDecisionData</td>
@@ -712,12 +724,14 @@ Mark III.</p>
 <td class=r title='18 = 0x12'>18</td>
 <td>LensAFStopButton</td>
 <td class=c>int8u</td>
-<td><span class=s>0 = AF stop
+<td><table class=cols><tr>
+  <td>0 = AF stop
   <br>1 = AF start
   <br>2 = AE lock while metering
   <br>3 = AF point: M -&gt; Auto / Auto -&gt; Ctr.
   <br>4 = ONE SHOT &lt;-&gt; AI SERVO
-  <br>5 = IS start</span></td></tr>
+  <br>5 = IS start</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='19 = 0x13'>19</td>
 <td>AddOriginalDecisionData</td>
@@ -1571,15 +1585,16 @@ well as newer tags and values added by later models.</p>
 <td title='0x0506 = 1286'>0x0506</td>
 <td>LensAFStopButton</td>
 <td class=c>int32s</td>
-<td><span class=s><span class=n>(value of 6 not used by 40D, 50D and 5DmkII)</span>
-  <br>0 = AF stop
+<td><span class=s><span class=n>(value of 6 not used by 40D, 50D and 5DmkII)</span></span><table class=cols><tr>
+  <td>0 = AF stop
   <br>1 = AF start
   <br>2 = AE lock
   <br>3 = AF point: M-&gt;Auto/Auto-&gt;ctr
   <br>4 = One Shot &lt;-&gt; AI servo
   <br>5 = IS start
   <br>6 = Switch to registered AF point
-  <br>7 = Spot AF</span></td></tr>
+  <br>7 = Spot AF</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x0507 = 1287'>0x0507</td>
 <td>AFMicroadjustment</td>
@@ -1609,13 +1624,14 @@ well as newer tags and values added by later models.</p>
   <br>2 = 11 points
   <br>3 = Inner 9 points
   <br>4 = Outer 9 points
-  <br><span class=n>(other models)</span>
-  <br>0 = 19 points
+  <br><span class=n>(other models)</span></span><table class=cols><tr>
+  <td>0 = 19 points
   <br>1 = Inner 9 points
   <br>2 = Outer 9 points
   <br>3 = 19 Points, Multi-controller selectable
   <br>4 = Inner 9 Points, Multi-controller selectable
-  <br>5 = Outer 9 Points, Multi-controller selectable</span></td></tr>
+  <br>5 = Outer 9 Points, Multi-controller selectable</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x050a = 1290'>0x050a</td>
 <td>SwitchToRegisteredAFPoint</td>
@@ -1797,57 +1813,58 @@ well as newer tags and values added by later models.</p>
 <td title='0x0704 = 1796'>0x0704</td>
 <td>SetButtonWhenShooting</td>
 <td class=c>int32s</td>
-<td><span class=s><span class=n>(40D, 50D and 5DmkII; value of 5 is new for 50D, and 6 is new for 5DmkII)</span>
-  <br>0 = Normal (disabled)
+<td><span class=s><span class=n>(40D, 50D and 5DmkII; value of 5 is new for 50D, and 6 is new for 5DmkII)</span></span><table class=cols><tr>
+  <td>0 = Normal (disabled)
   <br>1 = Image quality
   <br>2 = Picture style
   <br>3 = Menu display
   <br>4 = Image playback
   <br>5 = Quick control screen
-  <br>6 = Record movie (Live View)
-  <br><span class=n>(60D)</span>
-  <br>0 = Normal (disabled)
+  <br>6 = Record movie (Live View)</td><td>&nbsp;&nbsp;</td></tr></table>
+<span class=s><span class=n>(60D)</span></span><table class=cols><tr>
+  <td>0 = Normal (disabled)
   <br>1 = Image quality
   <br>2 = Picture style
   <br>3 = White balance
   <br>4 = Flash exposure compensation
-  <br>5 = Viewfinder leveling gauge
-  <br><span class=n>(450D, 550D and 600D; value of 5 is new for 550D)</span>
-  <br>0 = Normal (disabled)
+  <br>5 = Viewfinder leveling gauge</td><td>&nbsp;&nbsp;</td></tr></table>
+<span class=s><span class=n>(450D, 550D and 600D; value of 5 is new for 550D)</span></span><table class=cols><tr>
+  <td>0 = Normal (disabled)
   <br>1 = Image quality
   <br>2 = Flash exposure compensation
   <br>3 = LCD monitor On/Off
   <br>4 = Menu display
-  <br>5 = ISO speed
-  <br><span class=n>(1100D)</span>
-  <br>0 = Normal (disabled)
+  <br>5 = ISO speed</td><td>&nbsp;&nbsp;</td></tr></table>
+<span class=s><span class=n>(1100D)</span></span><table class=cols><tr>
+  <td>0 = Normal (disabled)
   <br>1 = Image quality
   <br>2 = Flash exposure compensation
   <br>3 = LCD monitor On/Off
   <br>4 = Menu display
-  <br>5 = Depth-of-field preview
-  <br><span class=n>(1000D)</span>
+  <br>5 = Depth-of-field preview</td><td>&nbsp;&nbsp;</td></tr></table>
+<span class=s><span class=n>(1000D)</span>
   <br>0 = LCD monitor On/Off
   <br>1 = Image quality
   <br>2 = Flash exposure compensation
   <br>3 = Menu display
   <br>4 = Disabled
-  <br><span class=n>(500D)</span>
-  <br>0 = Quick control screen
+  <br><span class=n>(500D)</span></span><table class=cols><tr>
+  <td>0 = Quick control screen
   <br>1 = Image quality
   <br>2 = Flash exposure compensation
   <br>3 = LCD monitor On/Off
   <br>4 = Menu display
-  <br>5 = Disabled
-  <br><span class=n>(1DmkIII and 1DmkIV)</span>
-  <br>0 = Normal (disabled)
+  <br>5 = Disabled</td><td>&nbsp;&nbsp;</td></tr></table>
+<span class=s><span class=n>(1DmkIII and 1DmkIV)</span></span><table class=cols><tr>
+  <td>0 = Normal (disabled)
   <br>1 = White balance
   <br>2 = Image size
   <br>3 = ISO speed
   <br>4 = Picture style
   <br>5 = Record func. + media/folder
   <br>6 = Menu display
-  <br>7 = Image playback</span></td></tr>
+  <br>7 = Image playback</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td title='0x0705 = 1797'>0x0705</td>
 <td>ManualTv</td>
@@ -1956,13 +1973,15 @@ well as newer tags and values added by later models.</p>
 <td title='0x080e = 2062'>0x080e</td>
 <td>AddAspectRatioInfo</td>
 <td class=c>int32s</td>
-<td><span class=s>0 = Off
+<td><table class=cols><tr>
+  <td>0 = Off
   <br>1 = 6:6
   <br>2 = 3:4
-  <br>3 = 4:5
-  <br>4 = 6:7
+  <br>3 = 4:5</td><td>&nbsp;&nbsp;</td>
+  <td>4 = 6:7
   <br>5 = 10:12
-  <br>6 = 5:7</span></td></tr>
+  <br>6 = 5:7</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td title='0x080f = 2063'>0x080f</td>
 <td>AddOriginalDecisionData</td>

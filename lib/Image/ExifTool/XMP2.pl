@@ -838,6 +838,62 @@ my %plusImageSupplier = (
     WorkToDo     => { },
 );
 
+# IDimager structures (ref PH)
+my %sTagStruct;
+%sTagStruct = (
+    STRUCT_NAME => 'TagStructure',
+    NAMESPACE => 'ics',
+    LabelName => { },
+    Reference => { },
+    ParentReference => { },
+    SubLabels => { Struct => \%sTagStruct, List => 'Bag' },
+);
+my %sSubVersion = (
+    STRUCT_NAME => 'SubVersion',
+    NAMESPACE => 'ics',
+    VersRef => { },
+    FileName => { },
+);
+
+# IDimager namespace (ics) (ref PH)
+%Image::ExifTool::XMP::ics = (
+    %xmpTableDefaults,
+    GROUPS => { 0 => 'XMP', 1 => 'XMP-ics', 2 => 'Image' },
+    NAMESPACE => 'ics',
+    NOTES => q{
+        Tags used by IDimager.  Nested TagStructure structures are unrolled to an
+        arbitrary depth of 6 to avoid infinite recursion.
+    },
+    ImageRef => { },
+    TagStructure => { Struct => \%sTagStruct, List => 'Bag' },
+    TagStructureLabelName => { Name => 'LabelName1', Flat => 1 },
+    TagStructureReference => { Name => 'Reference1', Flat => 1 },
+    TagStructureSubLabels => { Name => 'SubLables1', Flat => 1 },
+    TagStructureParentReference => { Name => 'ParentReference1', Flat => 1 },
+    TagStructureSubLabelsLabelName => { Name => 'LabelName2', Flat => 1 },
+    TagStructureSubLabelsReference => { Name => 'Reference2', Flat => 1 },
+    TagStructureSubLabelsSubLabels => { Name => 'SubLables2', Flat => 1 },
+    TagStructureSubLabelsParentReference => { Name => 'ParentReference2', Flat => 1 },
+    TagStructureSubLabelsSubLabelsLabelName => { Name => 'LabelName3', Flat => 1 },
+    TagStructureSubLabelsSubLabelsReference => { Name => 'Reference3', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabels => { Name => 'SubLables3', Flat => 1 },
+    TagStructureSubLabelsSubLabelsParentReference => { Name => 'ParentReference3', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabelsLabelName => { Name => 'LabelName4', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabelsReference => { Name => 'Reference4', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabelsSubLabels => { Name => 'SubLabels4', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabelsParentReference => { Name => 'ParentReference4', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabelsSubLabelsLabelName => { Name => 'LabelName5', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabelsSubLabelsReference => { Name => 'Reference5', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabelsSubLabelsSubLabels => { Name => 'SubLabels5', Flat => 1, NoSubStruct => 1 }, # break infinite recursion
+    TagStructureSubLabelsSubLabelsSubLabelsSubLabelsParentReference => { Name => 'ParentReference5', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabelsSubLabelsSubLabelsLabelName => { Name => 'LabelName6', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabelsSubLabelsSubLabelsReference => { Name => 'Reference6', Flat => 1 },
+    TagStructureSubLabelsSubLabelsSubLabelsSubLabelsSubLabelsParentReference => { Name => 'ParentReference6', Flat => 1 },
+    SubVersions => { Struct => \%sSubVersion, List => 'Bag' },
+    SubVersionsVersRef => { Name => 'SubVersionReference', Flat => 1 },
+    SubVersionsFileName => { Name => 'SubVersionFileName', Flat => 1 },
+);
+
 # ACDSee namespace (acdsee) (ref PH)
 %Image::ExifTool::XMP::acdsee = (
     %xmpTableDefaults,
@@ -995,6 +1051,7 @@ my %plusImageSupplier = (
     r       => { Name => 'CellR' }, # (what is this? Radius?)
 );
 
+# MWG structures
 my %sExtensions = (
     STRUCT_NAME => 'Extensions',
     NAMESPACE   => undef, # variable namespace
@@ -1033,46 +1090,13 @@ my %sRegionStruct = (
     Extensions  => { Struct => \%sExtensions },
     seeAlso => { Namespace => 'rdfs', Resource => 1 },
 );
-my %sKeywordStruct6 = (
-    STRUCT_NAME => 'KeywordStruct6',
+my %sKeywordStruct;
+%sKeywordStruct = (
+    STRUCT_NAME => 'KeywordStruct',
     NAMESPACE   => 'mwg-kw',
     Keyword   => { },
     Applied   => { Writable => 'boolean' },
-);
-my %sKeywordStruct5 = (
-    STRUCT_NAME => 'KeywordStruct5',
-    NAMESPACE   => 'mwg-kw',
-    Keyword   => { },
-    Applied   => { Writable => 'boolean' },
-    Children  => { Struct => \%sKeywordStruct6, List => 'Bag' },
-);
-my %sKeywordStruct4 = (
-    STRUCT_NAME => 'KeywordStruct4',
-    NAMESPACE   => 'mwg-kw',
-    Keyword   => { },
-    Applied   => { Writable => 'boolean' },
-    Children  => { Struct => \%sKeywordStruct5, List => 'Bag' },
-);
-my %sKeywordStruct3 = (
-    STRUCT_NAME => 'KeywordStruct3',
-    NAMESPACE   => 'mwg-kw',
-    Keyword   => { },
-    Applied   => { Writable => 'boolean' },
-    Children  => { Struct => \%sKeywordStruct4, List => 'Bag' },
-);
-my %sKeywordStruct2 = (
-    STRUCT_NAME => 'KeywordStruct2',
-    NAMESPACE   => 'mwg-kw',
-    Keyword   => { },
-    Applied   => { Writable => 'boolean' },
-    Children  => { Struct => \%sKeywordStruct3, List => 'Bag' },
-);
-my %sKeywordStruct1 = (
-    STRUCT_NAME => 'KeywordStruct1',
-    NAMESPACE   => 'mwg-kw',
-    Keyword   => { },
-    Applied   => { Writable => 'boolean' },
-    Children  => { Struct => \%sKeywordStruct2, List => 'Bag' },
+    Children  => { Struct => \%sKeywordStruct, List => 'Bag' },
 );
 
 # MWG 2.0 region namespace tags
@@ -1132,7 +1156,7 @@ my %sKeywordStruct1 = (
         Struct => {
             STRUCT_NAME => 'KeywordInfo',
             NAMESPACE   => 'mwg-kw',
-            Hierarchy => { Struct => \%sKeywordStruct1, List => 'Bag' },
+            Hierarchy => { Struct => \%sKeywordStruct, List => 'Bag' },
         },
     },
     KeywordsHierarchy => { Name => 'HierarchicalKeywords', Flat => 1 },
@@ -1150,7 +1174,7 @@ my %sKeywordStruct1 = (
     KeywordsHierarchyChildrenChildrenChildrenChildren => { Name => 'HierarchicalKeywords4Children', Flat => 1 },
     KeywordsHierarchyChildrenChildrenChildrenChildrenKeyword  => { Name => 'HierarchicalKeywords5', Flat => 1 },
     KeywordsHierarchyChildrenChildrenChildrenChildrenApplied  => { Name => 'HierarchicalKeywords5Applied', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenChildrenChildrenChildren => { Name => 'HierarchicalKeywords5Children', Flat => 1 },
+    KeywordsHierarchyChildrenChildrenChildrenChildrenChildren => { Name => 'HierarchicalKeywords5Children', Flat => 1, NoSubStruct => 1 }, # break infinite recursion
     KeywordsHierarchyChildrenChildrenChildrenChildrenChildrenKeyword => { Name => 'HierarchicalKeywords6', Flat => 1 },
     KeywordsHierarchyChildrenChildrenChildrenChildrenChildrenApplied => { Name => 'HierarchicalKeywords6Applied', Flat => 1 },
 );

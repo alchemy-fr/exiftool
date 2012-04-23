@@ -608,6 +608,7 @@
 </tr><tr><td class=r>0x3120000</td><td>= PowerShot ELPH 310 HS / IXUS 230 HS / IXY 600F</td>
 </tr><tr><td class=r>0x3130000</td><td>= PowerShot SX40 HS</td>
 </tr><tr><td class=r>0x3140000</td><td>= PowerShot ELPH 500 HS / IXUS 320 HS / IXY 32S</td>
+</tr><tr><td class=r>0x3160000</td><td>= PowerShot A1300</td>
 </tr><tr><td class=r>0x3190000</td><td>= PowerShot ELPH 110 HS / IXUS 125 HS / IXY 220F</td>
 </tr><tr><td class=r>0x3200000</td><td>= PowerShot D20</td>
 </tr><tr><td class=r>0x3210000</td><td>= PowerShot A4000 IS</td>
@@ -705,59 +706,69 @@
 <td class=r title='3 = 0x3'>3</td>
 <td>Quality</td>
 <td class=c>int16s</td>
-<td><span class=s>1 = Economy
+<td><table class=cols><tr>
+  <td>1 = Economy
   <br>2 = Normal
-  <br>3 = Fine
-  <br>4 = RAW
+  <br>3 = Fine</td><td>&nbsp;&nbsp;</td>
+  <td>4 = RAW
   <br>5 = Superfine
-  <br>130 = Normal Movie</span></td></tr>
+  <br>130 = Normal Movie</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='4 = 0x4'>4</td>
 <td>CanonFlashMode</td>
 <td class=c>int16s</td>
-<td><span class=s>0 = Off
+<td><table class=cols><tr>
+  <td>0 = Off
   <br>1 = Auto
   <br>2 = On
   <br>3 = Red-eye reduction
   <br>4 = Slow-sync
   <br>5 = Red-eye reduction (Auto)
   <br>6 = Red-eye reduction (On)
-  <br>16 = External flash</span></td></tr>
+  <br>16 = External flash</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='5 = 0x5'>5</td>
 <td>ContinuousDrive</td>
 <td class=c>int16s</td>
-<td><span class=s>0 = Single
+<td><table class=cols><tr>
+  <td>0 = Single
   <br>1 = Continuous
   <br>2 = Movie
   <br>3 = Continuous, Speed Priority
   <br>4 = Continuous, Low
   <br>5 = Continuous, High
-  <br>6 = Silent Single</span></td></tr>
+  <br>6 = Silent Single</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='7 = 0x7'>7</td>
 <td>FocusMode</td>
 <td class=c>int16s</td>
-<td><span class=s>0 = One-shot AF
+<td><table class=cols><tr>
+  <td>0 = One-shot AF
   <br>1 = AI Servo AF
   <br>2 = AI Focus AF
-  <br>3 = Manual Focus (3)
-  <br>4 = Single
+  <br>3 = Manual Focus (3)</td><td>&nbsp;&nbsp;</td>
+  <td>4 = Single
   <br>5 = Continuous
   <br>6 = Manual Focus (6)
-  <br>16 = Pan Focus</span></td></tr>
+  <br>16 = Pan Focus</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='9 = 0x9'>9</td>
 <td>RecordMode</td>
 <td class=c>int16s</td>
-<td><span class=s>1 = JPEG
+<td><table class=cols><tr>
+  <td>1 = JPEG
   <br>2 = CRW+THM
   <br>3 = AVI+THM
-  <br>4 = TIF
-  <br>5 = TIF+JPEG
+  <br>4 = TIF</td><td>&nbsp;&nbsp;</td>
+  <td>5 = TIF+JPEG
   <br>6 = CR2
   <br>7 = CR2+JPEG
-  <br>9 = Video</span></td></tr>
+  <br>9 = Video</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='10 = 0xa'>10</td>
 <td>CanonImageSize</td>
@@ -806,9 +817,9 @@
   <br>17 = Super Macro
   <br>18 = Foliage
   <br>19 = Indoor
-  <br>20 = Fireworks</td><td>&nbsp;&nbsp;</td>
-  <td>21 = Beach
-  <br>22 = Underwater
+  <br>20 = Fireworks
+  <br>21 = Beach</td><td>&nbsp;&nbsp;</td>
+  <td>22 = Underwater
   <br>23 = Snow
   <br>24 = Kids &amp; Pets
   <br>25 = Night Snapshot
@@ -827,10 +838,10 @@
   <br>38 = Creative Auto
   <br>39 = Zoom Blur
   <br>40 = Low Light
-  <br>41 = Nostalgic</td><td>&nbsp;&nbsp;</td>
-  <td>42 = Super Vivid
-  <br>43 = Poster Effect
-  <br>44 = Face Self-timer
+  <br>41 = Nostalgic
+  <br>42 = Super Vivid
+  <br>43 = Poster Effect</td><td>&nbsp;&nbsp;</td>
+  <td>44 = Face Self-timer
   <br>45 = Smile
   <br>46 = Wink Self-timer
   <br>47 = Fisheye Effect
@@ -839,7 +850,9 @@
   <br>50 = Best Image Selection
   <br>51 = High Dynamic Range
   <br>52 = Handheld Night Scene
+  <br>57 = Monochrome
   <br>59 = Scene Intelligent Auto
+  <br>62 = Soft Focus
   <br>257 = Spotlight
   <br>258 = Night 2
   <br>259 = Night+
@@ -882,51 +895,59 @@ others use a range of 0 to 7 where 0 is no sharpening)</span></span></td></tr>
 <td class=r title='17 = 0x11'>17</td>
 <td>MeteringMode</td>
 <td class=c>int16s</td>
-<td><span class=s>0 = Default
+<td><table class=cols><tr>
+  <td>0 = Default
   <br>1 = Spot
   <br>2 = Average
   <br>3 = Evaluative
   <br>4 = Partial
-  <br>5 = Center-weighted average</span></td></tr>
+  <br>5 = Center-weighted average</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='18 = 0x12'>18</td>
 <td>FocusRange</td>
 <td class=c>int16s</td>
-<td><span class=s>0 = Manual
+<td><table class=cols><tr>
+  <td>0 = Manual
   <br>1 = Auto
   <br>2 = Not Known
   <br>3 = Macro
   <br>4 = Very Close
-  <br>5 = Close
-  <br>6 = Middle Range
+  <br>5 = Close</td><td>&nbsp;&nbsp;</td>
+  <td>6 = Middle Range
   <br>7 = Far Range
   <br>8 = Pan Focus
   <br>9 = Super Macro
-  <br>10 = Infinity</span></td></tr>
+  <br>10 = Infinity</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='19 = 0x13'>19</td>
 <td>AFPoint</td>
 <td class=c>int16s</td>
-<td><span class=s>0x2005 = Manual AF point selection
+<td><table class=cols><tr>
+  <td>0x2005 = Manual AF point selection
   <br>0x3000 = None (MF)
   <br>0x3001 = Auto AF point selection
   <br>0x3002 = Right
   <br>0x3003 = Center
   <br>0x3004 = Left
   <br>0x4001 = Auto AF point selection
-  <br>0x4006 = Face Detect</span></td></tr>
+  <br>0x4006 = Face Detect</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='20 = 0x14'>20</td>
 <td>CanonExposureMode</td>
 <td class=c>int16s</td>
-<td><span class=s>0 = Easy
+<td><table class=cols><tr>
+  <td>0 = Easy
   <br>1 = Program AE
   <br>2 = Shutter speed priority AE
   <br>3 = Aperture-priority AE
   <br>4 = Manual
   <br>5 = Depth-of-field AE
   <br>6 = M-Dep
-  <br>7 = Bulb</span></td></tr>
+  <br>7 = Bulb</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='22 = 0x16'>22</td>
 <td>LensType</td>
@@ -1257,7 +1278,8 @@ identify the specific lens model.</p>
 </tr><tr><td>180</td><td>= Canon EF 35mm f/1.4L</td>
 </tr><tr><td>181</td><td>= Canon EF 100-400mm f/4.5-5.6L IS + 1.4x</td>
 </tr><tr><td>182</td><td>= Canon EF 100-400mm f/4.5-5.6L IS + 2x</td>
-</tr><tr><td>183</td><td>= Canon EF 100-400mm f/4.5-5.6L IS</td>
+</tr><tr><td>183</td><td>= Canon EF 100-400mm f/4.5-5.6L IS or Sigma Lens</td>
+</tr><tr><td>183.1</td><td>= Sigma 150mm f/2.8 EX DG OS HSM APO Macro</td>
 </tr><tr><td>184</td><td>= Canon EF 400mm f/2.8L + 2x</td>
 </tr><tr><td>185</td><td>= Canon EF 600mm f/4L IS</td>
 </tr><tr><td>186</td><td>= Canon EF 70-200mm f/4L</td>
@@ -2207,22 +2229,26 @@ lists CameraInfo tags for the 1D and 1DS.</p>
 <td class=r title='136 = 0x88'>136</td>
 <td>FilterEffectMonochrome</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Yellow
-  <br>0x2 = Orange
+  <br>0x1 = Yellow</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Orange
   <br>0x3 = Red
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='140 = 0x8c'>140</td>
 <td>ToningEffectMonochrome</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Sepia
-  <br>0x2 = Blue
+  <br>0x1 = Sepia</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Blue
   <br>0x3 = Purple
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='144 = 0x90'>144</td>
 <td>ContrastUserDef1</td>
@@ -2247,22 +2273,26 @@ lists CameraInfo tags for the 1D and 1DS.</p>
 <td class=r title='160 = 0xa0'>160</td>
 <td>FilterEffectUserDef1</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Yellow
-  <br>0x2 = Orange
+  <br>0x1 = Yellow</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Orange
   <br>0x3 = Red
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='164 = 0xa4'>164</td>
 <td>ToningEffectUserDef1</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Sepia
-  <br>0x2 = Blue
+  <br>0x1 = Sepia</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Blue
   <br>0x3 = Purple
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='168 = 0xa8'>168</td>
 <td>ContrastUserDef2</td>
@@ -2287,22 +2317,26 @@ lists CameraInfo tags for the 1D and 1DS.</p>
 <td class=r title='184 = 0xb8'>184</td>
 <td>FilterEffectUserDef2</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Yellow
-  <br>0x2 = Orange
+  <br>0x1 = Yellow</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Orange
   <br>0x3 = Red
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='188 = 0xbc'>188</td>
 <td>ToningEffectUserDef2</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Sepia
-  <br>0x2 = Blue
+  <br>0x1 = Sepia</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Blue
   <br>0x3 = Purple
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='192 = 0xc0'>192</td>
 <td>ContrastUserDef3</td>
@@ -2327,22 +2361,26 @@ lists CameraInfo tags for the 1D and 1DS.</p>
 <td class=r title='208 = 0xd0'>208</td>
 <td>FilterEffectUserDef3</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Yellow
-  <br>0x2 = Orange
+  <br>0x1 = Yellow</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Orange
   <br>0x3 = Red
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='212 = 0xd4'>212</td>
 <td>ToningEffectUserDef3</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Sepia
-  <br>0x2 = Blue
+  <br>0x1 = Sepia</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Blue
   <br>0x3 = Purple
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='216 = 0xd8'>216</td>
 <td>UserDef1PictureStyle</td>
@@ -2789,12 +2827,14 @@ camera.</p>
 <td class=r title='255 = 0xff'>255</td>
 <td>FilterEffectMonochrome</td>
 <td class=c>int8s</td>
-<td><span class=s>-559038737 = n/a
+<td><table class=cols><tr>
+  <td>-559038737 = n/a
   <br>0 = None
-  <br>1 = Yellow
-  <br>2 = Orange
+  <br>1 = Yellow</td><td>&nbsp;&nbsp;</td>
+  <td>2 = Orange
   <br>3 = Red
-  <br>4 = Green</span></td></tr>
+  <br>4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='256 = 0x100'>256</td>
 <td>SaturationUserDef1</td>
@@ -2839,12 +2879,14 @@ camera.</p>
 <td class=r title='264 = 0x108'>264</td>
 <td>ToningEffectMonochrome</td>
 <td class=c>int8s</td>
-<td><span class=s>-559038737 = n/a
+<td><table class=cols><tr>
+  <td>-559038737 = n/a
   <br>0 = None
-  <br>1 = Sepia
-  <br>2 = Blue
+  <br>1 = Sepia</td><td>&nbsp;&nbsp;</td>
+  <td>2 = Blue
   <br>3 = Purple
-  <br>4 = Green</span></td></tr>
+  <br>4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='265 = 0x109'>265</td>
 <td>ColorToneUserDef1</td>
@@ -3729,22 +3771,26 @@ camera.</p>
 <td class=r title='136 = 0x88'>136</td>
 <td>FilterEffectMonochrome</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Yellow
-  <br>0x2 = Orange
+  <br>0x1 = Yellow</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Orange
   <br>0x3 = Red
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='140 = 0x8c'>140</td>
 <td>ToningEffectMonochrome</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Sepia
-  <br>0x2 = Blue
+  <br>0x1 = Sepia</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Blue
   <br>0x3 = Purple
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='144 = 0x90'>144</td>
 <td>ContrastUnknown?</td>
@@ -3769,22 +3815,26 @@ camera.</p>
 <td class=r title='160 = 0xa0'>160</td>
 <td>FilterEffectUnknown?</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Yellow
-  <br>0x2 = Orange
+  <br>0x1 = Yellow</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Orange
   <br>0x3 = Red
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='164 = 0xa4'>164</td>
 <td>ToningEffectUnknown?</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Sepia
-  <br>0x2 = Blue
+  <br>0x1 = Sepia</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Blue
   <br>0x3 = Purple
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='168 = 0xa8'>168</td>
 <td>ContrastUserDef1</td>
@@ -3809,22 +3859,26 @@ camera.</p>
 <td class=r title='184 = 0xb8'>184</td>
 <td>FilterEffectUserDef1</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Yellow
-  <br>0x2 = Orange
+  <br>0x1 = Yellow</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Orange
   <br>0x3 = Red
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='188 = 0xbc'>188</td>
 <td>ToningEffectUserDef1</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Sepia
-  <br>0x2 = Blue
+  <br>0x1 = Sepia</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Blue
   <br>0x3 = Purple
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='192 = 0xc0'>192</td>
 <td>ContrastUserDef2</td>
@@ -3849,22 +3903,26 @@ camera.</p>
 <td class=r title='208 = 0xd0'>208</td>
 <td>FilterEffectUserDef2</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Yellow
-  <br>0x2 = Orange
+  <br>0x1 = Yellow</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Orange
   <br>0x3 = Red
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='212 = 0xd4'>212</td>
 <td>ToningEffectUserDef2</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Sepia
-  <br>0x2 = Blue
+  <br>0x1 = Sepia</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Blue
   <br>0x3 = Purple
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='216 = 0xd8'>216</td>
 <td>ContrastUserDef3</td>
@@ -3889,22 +3947,26 @@ camera.</p>
 <td class=r title='232 = 0xe8'>232</td>
 <td>FilterEffectUserDef3</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Yellow
-  <br>0x2 = Orange
+  <br>0x1 = Yellow</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Orange
   <br>0x3 = Red
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='236 = 0xec'>236</td>
 <td>ToningEffectUserDef3</td>
 <td class=c>int32s</td>
-<td><span class=s>0xdeadbeef = n/a
+<td><table class=cols><tr>
+  <td>0xdeadbeef = n/a
   <br>0x0 = None
-  <br>0x1 = Sepia
-  <br>0x2 = Blue
+  <br>0x1 = Sepia</td><td>&nbsp;&nbsp;</td>
+  <td>0x2 = Blue
   <br>0x3 = Purple
-  <br>0x4 = Green</span></td></tr>
+  <br>0x4 = Green</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='240 = 0xf0'>240</td>
 <td>UserDef1PictureStyle</td>
@@ -4953,13 +5015,15 @@ right and downwards respectively)</span></span></td></tr>
 <td class=r title='1 = 0x1'>1</td>
 <td>AFAreaMode</td>
 <td class=c>N</td>
-<td><span class=s>0 = Off (Manual Focus)
+<td><table class=cols><tr>
+  <td>0 = Off (Manual Focus)
   <br>2 = Single-point AF
   <br>4 = Multi-point AF or AI AF
   <br>5 = Face Detect AF
   <br>7 = Zone AF
   <br>8 = AF Point Expansion
-  <br>9 = Spot AF</span></td></tr>
+  <br>9 = Spot AF</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='2 = 0x2'>2</td>
 <td>NumAFPoints</td>
@@ -5065,17 +5129,20 @@ images with a directory number of 164 or greater)</span></span></td></tr>
 <td class=r title='6 = 0x6'>6</td>
 <td>RawJpgQuality</td>
 <td class=c>int16s</td>
-<td><span class=s>1 = Economy
+<td><table class=cols><tr>
+  <td>1 = Economy
   <br>2 = Normal
-  <br>3 = Fine
-  <br>4 = RAW
+  <br>3 = Fine</td><td>&nbsp;&nbsp;</td>
+  <td>4 = RAW
   <br>5 = Superfine
-  <br>130 = Normal Movie</span></td></tr>
+  <br>130 = Normal Movie</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='7 = 0x7'>7</td>
 <td>RawJpgSize</td>
 <td class=c>int16s</td>
-<td><span class=s>0 = Large
+<td><table class=cols><tr>
+  <td>0 = Large
   <br>1 = Medium
   <br>2 = Small
   <br>5 = Medium 1
@@ -5083,15 +5150,16 @@ images with a directory number of 164 or greater)</span></span></td></tr>
   <br>7 = Medium 3
   <br>8 = Postcard
   <br>9 = Widescreen
-  <br>10 = Medium Widescreen
-  <br>14 = Small 1
+  <br>10 = Medium Widescreen</td><td>&nbsp;&nbsp;</td>
+  <td>14 = Small 1
   <br>15 = Small 2
   <br>16 = Small 3
   <br>128 = 640x480 Movie
   <br>129 = Medium Movie
   <br>130 = Small Movie
   <br>137 = 1280x720 Movie
-  <br>142 = 1920x1080 Movie</span></td></tr>
+  <br>142 = 1920x1080 Movie</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr>
 <td class=r title='8 = 0x8'>8</td>
 <td>LongExposureNoiseReduction2</td>
@@ -5410,12 +5478,14 @@ valid for all camera models)</span></span></td></tr>
 <td class=r title='3 = 0x3'>3</td>
 <td>ModifiedSharpnessFreq</td>
 <td class=c>int16s</td>
-<td><span class=s>0 = n/a
+<td><table class=cols><tr>
+  <td>0 = n/a
   <br>1 = Lowest
-  <br>2 = Low
-  <br>3 = Standard
+  <br>2 = Low</td><td>&nbsp;&nbsp;</td>
+  <td>3 = Standard
   <br>4 = High
-  <br>5 = Highest</span></td></tr>
+  <br>5 = Highest</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='4 = 0x4'>4</td>
 <td>ModifiedSensorRedLevel</td>
@@ -5468,12 +5538,14 @@ valid for all camera models)</span></span></td></tr>
 <td class=r title='1 = 0x1'>1</td>
 <td>PreviewQuality</td>
 <td class=c>int32u</td>
-<td><span class=s>1 = Economy
+<td><table class=cols><tr>
+  <td>1 = Economy
   <br>2 = Normal
-  <br>3 = Fine
-  <br>4 = RAW
+  <br>3 = Fine</td><td>&nbsp;&nbsp;</td>
+  <td>4 = RAW
   <br>5 = Superfine
-  <br>130 = Normal Movie</span></td></tr>
+  <br>130 = Normal Movie</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='2 = 0x2'>2</td>
 <td>PreviewImageLength</td>
@@ -6249,13 +6321,15 @@ option is used.</p>
 <td class=r title='0 = 0x0'>0</td>
 <td>ColorDataVersion</td>
 <td class=c>int16s</td>
-<td><span class=s>2 = 2 (1DmkIII)
+<td><table class=cols><tr>
+  <td>2 = 2 (1DmkIII)
   <br>3 = 3 (40D)
   <br>4 = 4 (1DSmkIII)
   <br>5 = 5 (450D/1000D)
   <br>6 = 6 (50D/5DmkII)
   <br>7 = 7 (500D/550D/7D/1DmkIV)
-  <br>9 = 9 (1100D)</span></td></tr>
+  <br>9 = 9 (1100D)</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 <tr class=b>
 <td class=r title='63 = 0x3f'>63</td>
 <td>ColorCoefs</td>
@@ -7015,15 +7089,17 @@ to the one printed on the lens)</span></span></td></tr>
 <td class=r title='1 = 0x1'>1</td>
 <td>AmbienceSelection</td>
 <td class=c>int32s</td>
-<td><span class=s>0 = Standard
+<td><table class=cols><tr>
+  <td>0 = Standard
   <br>1 = Vivid
-  <br>2 = Warm
-  <br>3 = Soft
+  <br>2 = Warm</td><td>&nbsp;&nbsp;</td>
+  <td>3 = Soft
   <br>4 = Cool
-  <br>5 = Intense
-  <br>6 = Brighter
+  <br>5 = Intense</td><td>&nbsp;&nbsp;</td>
+  <td>6 = Brighter
   <br>7 = Darker
-  <br>8 = Monochrome</span></td></tr>
+  <br>8 = Monochrome</td><td>&nbsp;&nbsp;</td></tr></table>
+</td></tr>
 </table></td></tr></table></blockquote>
 
 <h2><a name='FilterInfo'>Canon FilterInfo Tags</a></h2>
@@ -7081,9 +7157,23 @@ cameras such as the PowerShot S95.</p>
 <td><span class=s><span class=n>(the full THM image, embedded metadata is extracted as the first sub-document)</span></span></td></tr>
 </table></td></tr></table></blockquote>
 
+<h2><a name='Skip'>Canon Skip Tags</a></h2>
+<p>Information found in the &quot;skip&quot; atom of Canon MOV videos.</p>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td>'CNDB'</td>
+<td>Unknown_CNDB?</td>
+<td class=c>N</td>
+<td>&nbsp;</td></tr>
+</table></td></tr></table></blockquote>
+
 <hr>
 (This document generated automatically by Image::ExifTool::BuildTagLookup)
-<br><i>Last revised Apr 15, 2012</i>
+<br><i>Last revised Apr 18, 2012</i>
 <p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
 </body>
 </html>

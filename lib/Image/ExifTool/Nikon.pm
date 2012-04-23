@@ -52,7 +52,7 @@ use vars qw($VERSION %nikonLensIDs %nikonTextEncoding);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '2.59';
+$VERSION = '2.60';
 
 sub LensIDConv($$$);
 sub ProcessNikonAVI($$$);
@@ -506,6 +506,8 @@ sub ProcessNikonCaptureEditVersions($$$);
     '03 43 5C 81 35 35 02 00' => 'Soligor AF C/D Zoom UMCS 70-210mm 1:4.5',
     '12 4A 5C 81 31 3D 09 00' => 'Soligor AF C/D Auto Zoom+Macro 70-210mm 1:4-5.6 UMCS',
     '12 36 69 97 35 42 09 00' => 'Soligor AF Zoom 100-400mm 1:4.5-6.7 MC',
+#
+    '00 00 48 48 53 53 00 01' => 'Loreo 40mm F11-22 3D Lens in a Cap 9005', #PH
 #
     '00 00 00 00 00 00 00 01' => 'Manual Lens No CPU',
 #

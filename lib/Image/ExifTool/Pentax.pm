@@ -51,7 +51,7 @@ use vars qw($VERSION %pentaxLensTypes);
 use Image::ExifTool::Exif;
 use Image::ExifTool::HP;
 
-$VERSION = '2.43';
+$VERSION = '2.44';
 
 sub CryptShutterCount($$);
 sub PrintFilter($$$);
@@ -402,6 +402,7 @@ my %pentaxModelID = (
     0x12ee4 => 'Q',
     0x12ef8 => 'K-01',
     0x12f0c => 'Optio RZ18',
+    0x12f16 => 'Optio VS20',
     0x12f2a => 'Optio WG-2 GPS',
 );
 
@@ -814,6 +815,8 @@ my %binaryDataAttrs = (
             60 => 'Kids', #13
             61 => 'Blur Reduction', #13
             65 => 'Half-length Portrait', #JD
+            80 => 'Miniature', #PH (VS20)
+            83 => 'Fisheye', #PH (VS20)
             221 => 'P', #PH (Optio 555)
             255=> 'PICT', #PH (Optio 555)
         }],
