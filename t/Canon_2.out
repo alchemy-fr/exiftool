@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.69
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.94
 [File, System, Image] FileName - File Name: Canon1DmkIII.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 8.1 kB
@@ -74,8 +74,8 @@
 [MakerNotes, Canon, Camera] 17 - Metering Mode: Evaluative
 [MakerNotes, Canon, Camera] 18 - Focus Range: Not Known
 [MakerNotes, Canon, Camera] 20 - Canon Exposure Mode: Program AE
-[MakerNotes, Canon, Camera] 23 - Long Focal: 35 mm
-[MakerNotes, Canon, Camera] 24 - Short Focal: 16 mm
+[MakerNotes, Canon, Camera] 23 - Max Focal Length: 35 mm
+[MakerNotes, Canon, Camera] 24 - Min Focal Length: 16 mm
 [MakerNotes, Canon, Camera] 25 - Focal Units: 1/mm
 [MakerNotes, Canon, Camera] 26 - Max Aperture: 2.8
 [MakerNotes, Canon, Camera] 27 - Min Aperture: 23
@@ -124,8 +124,8 @@
 [MakerNotes, Canon, Camera] 98 - Color Temperature: 5200
 [MakerNotes, Canon, Camera] 134 - Picture Style: Neutral
 [MakerNotes, Canon, Camera] 273 - Lens Type: Canon EF 16-35mm f/2.8L II
-[MakerNotes, Canon, Camera] 275 - Short Focal: 16 mm
-[MakerNotes, Canon, Camera] 277 - Long Focal: 35 mm
+[MakerNotes, Canon, Camera] 275 - Min Focal Length: 16 mm
+[MakerNotes, Canon, Camera] 277 - Max Focal Length: 35 mm
 [MakerNotes, Canon, Camera] 310 - Firmware Version: 5.3.1
 [MakerNotes, Canon, Image] 370 - File Index: 232
 [MakerNotes, Canon, Camera] 374 - Shutter Count: 1
@@ -270,6 +270,8 @@
 [MakerNotes, Canon, Camera] 0 - Aspect Ratio: 3:2
 [MakerNotes, Canon, Camera] 1 - Cropped Image Width: 3888
 [MakerNotes, Canon, Camera] 2 - Cropped Image Height: 2592
+[MakerNotes, Canon, Camera] 3 - Cropped Image Left: 0
+[MakerNotes, Canon, Camera] 4 - Cropped Image Top: 0
 [MakerNotes, Canon, Image] 1 - Tone Curve: Standard
 [MakerNotes, Canon, Image] 2 - Sharpness: 0
 [MakerNotes, Canon, Image] 3 - Sharpness Frequency: n/a

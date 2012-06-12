@@ -1,8 +1,8 @@
-  ExifToolVersion = 8.77
+  ExifToolVersion = 8.94
   FileName = CanonRaw.crw
   Directory = t/images
   FileSize = 6816
-  FileModifyDate = 1327256981
+  FileModifyDate = 1327321117
   FilePermissions = 33188
   FileType = CRW
   MIMEType = image/x-canon-crw
@@ -122,8 +122,8 @@
   | | | | AFPoint = 8197
   | | | | CanonExposureMode = 1
   | | | | LensType = -1
-  | | | | LongFocal = 55
-  | | | | ShortFocal = 18
+  | | | | MaxFocalLength = 55
+  | | | | MinFocalLength = 18
   | | | | FocalUnits = 1
   | | | | MaxAperture = 116
   | | | | MinAperture = 285

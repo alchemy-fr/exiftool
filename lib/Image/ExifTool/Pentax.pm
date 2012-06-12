@@ -51,7 +51,7 @@ use vars qw($VERSION %pentaxLensTypes);
 use Image::ExifTool::Exif;
 use Image::ExifTool::HP;
 
-$VERSION = '2.44';
+$VERSION = '2.45';
 
 sub CryptShutterCount($$);
 sub PrintFilter($$$);
@@ -279,14 +279,16 @@ sub PrintFilter($$$);
     '8 255.3' => 'Sigma 4.5mm F2.8 EX DC HSM Circular Fisheye', #PH
     '8 255.4' => 'Sigma 50-200mm F4-5.6 DC OS', #26
     '9 0' => '645 Manual Lens', #PH (NC)
+    '10 0' => '645 A Series Lens', #PH
     '11 4' => 'smc PENTAX-FA 645 45-85mm F4.5', #PH
     '11 8' => 'smc PENTAX-FA 645 80-160mm F4.5', #PH
     '11 11' => 'smc PENTAX-FA 645 35mm F3.5 AL [IF]', #PH
+    '11 16' => 'smc PENTAX-FA 645 33-55mm F4.5 AL', #PH
     '11 17' => 'smc PENTAX-FA 645 150-300mm F5.6 ED [IF]', #PH
     '13 18' => 'smc PENTAX-D FA 645 55mm F2.8 AL [IF] SDM AW', #PH
     '13 19' => 'smc PENTAX-D FA 645 25mm F4 AL [IF] SDM AW', #PH
     # Q-mount lenses
-    '21 0' => 'Pentax Q manual lens', #PH
+    '21 0' => 'Pentax Q Manual Lens', #PH
     '21 1' => '01 Standard Prime 8.5mm F1.9', #PH
     '21 2' => '02 Standard Zoom 5-15mm F2.8-4.5', #PH (NC)
     '21 3' => '03 Fish-eye 3.2mm F5.6', #PH (NC)

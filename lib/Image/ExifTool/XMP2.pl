@@ -1201,6 +1201,18 @@ my %sKeywordStruct;
     CollectionsCollectionURI  => { Name => 'CollectionURI',  Flat => 1 },
 );
 
+# FastPictureViewer namespace properties (http://www.fastpictureviewer.com/help/#rtfcomments)
+%Image::ExifTool::XMP::fpv = (
+    %xmpTableDefaults,
+    GROUPS => { 1 => 'XMP-fpv', 2 => 'Image' },
+    NAMESPACE => 'fpv',
+    NOTES => q{
+        Fast Picture Viewer tags (see
+        L<http://www.fastpictureviewer.com/help/#rtfcomments>).
+    },
+    RichTextComment => { },
+);
+
 # SVG namespace properties (ref 9)
 %Image::ExifTool::XMP::SVG = (
     GROUPS => { 0 => 'SVG', 1 => 'SVG', 2 => 'Image' },

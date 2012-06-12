@@ -12,7 +12,7 @@
 use strict;
 require 5.004;
 
-my $version = '8.89';
+my $version = '8.94';
 
 # add our 'lib' directory to the include list BEFORE 'use Image::ExifTool'
 my $exeDir;
@@ -136,6 +136,9 @@ my $outOpt;         # output file or directory name
 my $overwriteOrig;  # flag to overwrite original file
 my $pause;          # pause before returning
 my $preserveTime;   # flag to preserve times of updated files
+my $progress;       # progress cound
+my $progressMax;    # total number of files to process
+my $progStr;        # progress message string
 my $quiet;          # flag to disable printing of informational messages / warnings
 my $recurse;        # recurse into subdirectories
 my $rtnVal;         # command return value (0=success)
@@ -331,6 +334,8 @@ undef $listItem;
 undef $multiFile;
 undef $outOpt;
 undef $preserveTime;
+undef $progress;
+undef $progressMax;
 undef $recurse;
 undef $scanWritable;
 undef $showGroup;
@@ -364,6 +369,7 @@ $json = 0;
 $listSep = ', ';
 $outFormat = 0;
 $overwriteOrig = 0;
+$progStr = '';
 $quiet = 0;
 $saveCount = 0;
 $seqFileNum = 0;
@@ -795,6 +801,11 @@ for (;;) {
     (/^p$/ or $a eq 'printformat') and LoadPrintFormat(shift), next;
     (/^P$/ or $a eq 'preserve') and $preserveTime = 1, next;
     /^password$/i and $mainTool->Options(Password => shift), next;
+    if ($a eq 'progress') {
+        $progress = 0;
+        $verbose = 0 unless defined $verbose;
+        next;
+    }
     /^q(uiet)?$/i and ++$quiet, next;
     /^r(ecurse)?$/i and $recurse = 1, next;
     if ($a eq 'require') { # undocumented, added in version 8.65
@@ -915,7 +926,7 @@ for (;;) {
         $mainTool->Options(Duplicates=>1);
         next;
     }
-    /^z(ip)?$/i and $doUnzip = 1, $mainTool->Options(Compress => 1), next;
+    /^z(ip)?$/i and $doUnzip = 1, $mainTool->Options(Compress => 1, Compact => 1), next;
     $_ eq '' and push(@files, '-'), next;   # read STDIN
     length $_ eq 1 and $_ ne '*' and Error("Unknown option -$_\n"), next Command;
     if (/^[^<]+(<?)=(.*)/s) {
@@ -1341,7 +1352,14 @@ if (@fileOrder) {
         }
         return $a cmp $b;   # default to sort by name
     } @allFiles;
+} elsif (defined $progress) {
+    # expand FILE argument to count the number of files to process
+    my @allFiles;
+    ProcessFiles(undef, \@allFiles);
+    @files = @allFiles;
 }
+# set file count for progress message
+$progressMax = scalar @files if defined $progress;
 
 # store duplicate database information under canonical filenames
 my @dbKeys = keys %database;
@@ -1495,7 +1513,7 @@ sub GetImageInfo($$)
             }
         }
         unless ($result) {
-            $verbose and print "-------- $file (failed condition)\n";
+            $verbose and print "-------- $file (failed condition)$progStr\n";
             ++$countFailed;
             return;
         }
@@ -1504,7 +1522,7 @@ sub GetImageInfo($$)
         undef $info if $verbose;
     }
     if (defined $deleteOrig) {
-        print "======== $file\n" if defined $verbose;
+        print "======== $file$progStr\n" if defined $verbose;
         ++$count;
         my $original = "${file}_original";
         -e $original or return;
@@ -1530,7 +1548,7 @@ sub GetImageInfo($$)
     }
 
     if ($isWriting) {
-        print "======== $file\n" if defined $verbose;
+        print "======== $file$progStr\n" if defined $verbose;
         SetImageInfo($exifTool, $orig);
         $info = $exifTool->GetInfo('Warning', 'Error');
         PrintErrors($exifTool, $info, $file);
@@ -1547,7 +1565,7 @@ sub GetImageInfo($$)
         }
         return;
     } else {
-        my $tag;
+        my ($tag, $o);
         # extract EXIF information from this file
         unless ($file eq '-' or -e $file) {
             Warn "File not found: $file\n";
@@ -1555,15 +1573,18 @@ sub GetImageInfo($$)
             ++$countBad;
             return;
         }
+        # print file/progress message
         unless ($binaryOutput or $textOut or %printFmt or $html > 1 or $csv) {
             if ($html) {
                 require Image::ExifTool::HTML;
                 my $f = Image::ExifTool::HTML::EscapeHTML($file);
                 print "<!-- $f -->\n";
             } elsif (not ($json or $xml)) {
-                print "======== $file\n" if $multiFile and not $quiet;
+                $o = \*STDOUT if ($multiFile and not $quiet) or $progress;
             }
         }
+        $o = \*STDERR if $progress and not $o;
+        $o and print $o "======== $file$progStr\n";
         if ($info) {
             # get the information we wanted
             if (@tags and not %printFmt) {
@@ -2675,13 +2696,17 @@ sub ProcessFiles($;$)
     my ($exifTool, $list) = @_;
     my $file;
     foreach $file (@files) {
+        if (defined $progressMax) {
+            ++$progress;
+            $progStr = " [$progress/$progressMax]";
+        }
         if (-d $file) {
             $multiFile = $validFile = 1;
             ScanDir($mainTool, $file, $list);
         } elsif ($filterFlag and not AcceptFile($file)) {
             if (-e $file) {
                 $filtered = 1;
-                $verbose and print "-------- $file (wrong extension)\n";
+                $verbose and print "-------- $file (wrong extension)$progStr\n";
             } else {
                 Warn "File not found: $file\n";
                 $rtnVal = 1;
@@ -2924,6 +2949,16 @@ sub CreateDirectory($)
 }
 
 #------------------------------------------------------------------------------
+# Get source file name for specified file
+# Inputs: 0) file name
+sub SourceFile($)
+{
+    my $file = shift;
+    return $file unless $srcFmt;
+    return FilenameSPrintf($srcFmt, $file);
+}
+
+#------------------------------------------------------------------------------
 # Open output text file
 # Inputs: 0) file name format string
 # Returns: 0) file reference (or undef on error), 1) file name if opened
@@ -3092,16 +3127,6 @@ sub PrintTagList($@)
 }
 
 #------------------------------------------------------------------------------
-# Get source file name for specified file
-# Inputs: 0) file name
-sub SourceFile($)
-{
-    my $file = shift;
-    return $file unless $srcFmt;
-    return FilenameSPrintf($srcFmt, $file);
-}
-
-#------------------------------------------------------------------------------
 # Print warnings and errors from info hash
 # Inputs: 0) ExifTool object ref, 1) info hash, 2) file name
 sub PrintErrors($$$)
@@ -3170,37 +3195,37 @@ supported by ExifTool (r = read, w = write, c = create):
 
   File Types
   ------------+-------------+-------------+-------------+------------
-  3FR   r     | EIP   r     | LNK   r     | PAC   r     | RWZ   r
-  3G2   r     | EPS   r/w   | M2TS  r     | PAGES r     | RM    r
-  3GP   r     | ERF   r/w   | M4A/V r     | PBM   r/w   | SO    r
-  ACR   r     | EXE   r     | MEF   r/w   | PDF   r/w   | SR2   r/w
-  AFM   r     | EXIF  r/w/c | MIE   r/w/c | PEF   r/w   | SRF   r
-  AI    r/w   | EXR   r     | MIFF  r     | PFA   r     | SRW   r/w
-  AIFF  r     | F4A/V r     | MKA   r     | PFB   r     | SVG   r
-  APE   r     | FFF   r/w   | MKS   r     | PFM   r     | SWF   r
-  ARW   r/w   | FLA   r     | MKV   r     | PGF   r     | THM   r/w
-  ASF   r     | FLAC  r     | MNG   r/w   | PGM   r/w   | TIFF  r/w
-  AVI   r     | FLV   r     | MOS   r/w   | PICT  r     | TTC   r
-  BMP   r     | FPX   r     | MOV   r     | PMP   r     | TTF   r
-  BTF   r     | GIF   r/w   | MP3   r     | PNG   r/w   | VRD   r/w/c
-  CHM   r     | GZ    r     | MP4   r     | PPM   r/w   | VSD   r
-  COS   r     | HDP   r/w   | MPC   r     | PPT   r     | WAV   r
-  CR2   r/w   | HDR   r     | MPG   r     | PPTX  r     | WDP   r/w
-  CRW   r/w   | HTML  r     | MPO   r/w   | PS    r/w   | WEBP  r
-  CS1   r/w   | ICC   r/w/c | MQV   r     | PSB   r/w   | WEBM  r
-  DCM   r     | IDML  r     | MRW   r/w   | PSD   r/w   | WMA   r
-  DCP   r/w   | IIQ   r/w   | MXF   r     | PSP   r     | WMV   r
-  DCR   r     | IND   r/w   | NEF   r/w   | QTIF  r     | WV    r
-  DFONT r     | INX   r     | NRW   r/w   | RA    r     | X3F   r/w
-  DIVX  r     | ITC   r     | NUMBERS r   | RAF   r/w   | XCF   r
-  DJVU  r     | J2C   r     | ODP   r     | RAM   r     | XLS   r
-  DLL   r     | JNG   r/w   | ODS   r     | RAR   r     | XLSX  r
-  DNG   r/w   | JP2   r/w   | ODT   r     | RAW   r/w   | XMP   r/w/c
-  DOC   r     | JPEG  r/w   | OFR   r     | RIFF  r     | ZIP   r
-  DOCX  r     | K25   r     | OGG   r     | RSRC  r     |
-  DV    r     | KDC   r     | OGV   r     | RTF   r     |
-  DVB   r     | KEY   r     | ORF   r/w   | RW2   r/w   |
-  DYLIB r     | LA    r     | OTF   r     | RWL   r/w   |
+  3FR   r     | EIP   r     | LNK   r     | PAC   r     | RWL   r/w
+  3G2   r     | EPS   r/w   | M2TS  r     | PAGES r     | RWZ   r
+  3GP   r     | ERF   r/w   | M4A/V r     | PBM   r/w   | RM    r
+  ACR   r     | EXE   r     | MEF   r/w   | PCD   r     | SO    r
+  AFM   r     | EXIF  r/w/c | MIE   r/w/c | PDF   r/w   | SR2   r/w
+  AI    r/w   | EXR   r     | MIFF  r     | PEF   r/w   | SRF   r
+  AIFF  r     | F4A/V r     | MKA   r     | PFA   r     | SRW   r/w
+  APE   r     | FFF   r/w   | MKS   r     | PFB   r     | SVG   r
+  ARW   r/w   | FLA   r     | MKV   r     | PFM   r     | SWF   r
+  ASF   r     | FLAC  r     | MNG   r/w   | PGF   r     | THM   r/w
+  AVI   r     | FLV   r     | MOS   r/w   | PGM   r/w   | TIFF  r/w
+  BMP   r     | FPX   r     | MOV   r     | PICT  r     | TTC   r
+  BTF   r     | GIF   r/w   | MP3   r     | PMP   r     | TTF   r
+  CHM   r     | GZ    r     | MP4   r     | PNG   r/w   | VRD   r/w/c
+  COS   r     | HDP   r/w   | MPC   r     | PPM   r/w   | VSD   r
+  CR2   r/w   | HDR   r     | MPG   r     | PPT   r     | WAV   r
+  CRW   r/w   | HTML  r     | MPO   r/w   | PPTX  r     | WDP   r/w
+  CS1   r/w   | ICC   r/w/c | MQV   r     | PS    r/w   | WEBP  r
+  DCM   r     | IDML  r     | MRW   r/w   | PSB   r/w   | WEBM  r
+  DCP   r/w   | IIQ   r/w   | MXF   r     | PSD   r/w   | WMA   r
+  DCR   r     | IND   r/w   | NEF   r/w   | PSP   r     | WMV   r
+  DFONT r     | INX   r     | NRW   r/w   | QTIF  r     | WV    r
+  DIVX  r     | ITC   r     | NUMBERS r   | RA    r     | X3F   r/w
+  DJVU  r     | J2C   r     | ODP   r     | RAF   r/w   | XCF   r
+  DLL   r     | JNG   r/w   | ODS   r     | RAM   r     | XLS   r
+  DNG   r/w   | JP2   r/w   | ODT   r     | RAR   r     | XLSX  r
+  DOC   r     | JPEG  r/w   | OFR   r     | RAW   r/w   | XMP   r/w/c
+  DOCX  r     | K25   r     | OGG   r     | RIFF  r     | ZIP   r
+  DV    r     | KDC   r     | OGV   r     | RSRC  r     |
+  DVB   r     | KEY   r     | ORF   r/w   | RTF   r     |
+  DYLIB r     | LA    r     | OTF   r     | RW2   r/w   |
 
   Meta Information
   ----------------------+----------------------+---------------------
@@ -3294,6 +3319,7 @@ L<Processing control|/Processing control>
   -overwrite_original_in_place     Overwrite original by copying tmp file
   -P          (-preserve)          Preserve date/time of original file
   -password PASSWD                 Password for processing protected files
+  -progress                        Show file progress count
   -q          (-quiet)             Quiet processing
   -r          (-recurse)           Recursively process subdirectories
   -scanForXMP                      Brute force XMP scan
@@ -3574,8 +3600,8 @@ This option is mainly used for extracting embedded images or other binary
 data, but it may also be useful for some text strings since control
 characters (such as newlines) are not replaced by '.' as they are in the
 default output.  List items are separated by a newline when extracted with
-the B<-b> option.  May be combined with C<-X> to extract binary data in XML
-format.
+the B<-b> option.  May be combined with C<-php> or C<-X> to extract binary
+data in PHP or XML format.
 
 =item B<-c> I<FMT> (B<-coordFormat>)
 
@@ -3862,7 +3888,7 @@ with this command:
 
 produces output like this:
 
-    -- Generated by ExifTool 8.89 --
+    -- Generated by ExifTool 8.94 --
     File: a.jpg - 2003:10:31 15:44:19
     (f/5.6, 1/60s, ISO 100)
     File: b.jpg - 2006:05:23 11:57:38
@@ -3909,10 +3935,10 @@ column-align values.
 =item B<-sep> I<STR> (B<-separator>)
 
 Specify separator string for items in list-type tags.  When reading, the
-default is ", ".  When writing, this option causes values assigned to
-list-type tags to be split into individual items at each substring matching
-the specified separator.  Space characters in the separator string match
-zero or more whitespace characters.
+default is to join list items with ", ".  When writing, this option causes
+values assigned to list-type tags to be split into individual items at each
+substring matching I<STR> (otherwise they are not split by default).  Space
+characters in I<STR> match zero or more whitespace characters in the value.
 
 =item B<-sort>
 
@@ -3957,7 +3983,7 @@ level greater than 0, most other options are ignored and normal console
 output is suppressed unless specific tags are extracted.  Using B<-v0>
 causes the console output buffer to be flushed after each line (which may be
 useful to avoid delays when piping exiftool output), and prints the name of
-each processed file when writing.
+each processed file when writing.  Also see the B<-progress> option.
 
 =item B<-w>[!] I<EXT> or I<FMT> (B<-textOut>)
 
@@ -4266,6 +4292,15 @@ Specify password to allow processing of password-protected PDF documents.
 If a password is required but not given, a warning is issued and the
 document is not processed.  Ignored if a password is not required.
 
+=item B<-progress>
+
+Show file progress count in messages.  The progress count appears in
+brackets after then name of each processed file, and gives the current file
+number and the total number of files to be processed.  Implies the B<-v0>
+option, which prints the name of each processed file when writing.  When
+combined with the [tt]-if[/tt] option, the total count includes all files
+before the condition is applied.
+
 =item B<-q> (B<-quiet>)
 
 Quiet processing.  One B<-q> suppresses normal informational messages, and a
@@ -4306,7 +4341,8 @@ When reading, causes information to be extracted from .gz and .bz2
 compressed images.  (Only one image per archive.  Requires gzip and bzip2 to
 be installed on the system.)  When writing, causes compressed information to
 be written if supported by the image format.  (ie. The PNG format supports
-compressed text.)
+compressed text.)  This option also disables the recommended padding in
+embedded XMP, saving 2424 bytes when writing XMP in a file.
 
 =back
 
@@ -4355,9 +4391,9 @@ Windows) to prevent filename expansion.  For example:
     exiftool -geotag "TRACKDIR/*.log" IMAGEDIR
 
 Currently supported track file formats are GPX, NMEA RMC/GGA/GLL, KML, IGC,
-Garmin XML and TCX, Magellan PMGNTRK, and Honeywell PTNTHPR.  See
-L</GEOTAGGING EXAMPLES> for examples.  Also see "geotag.html" in the full
-ExifTool distribution and the
+Garmin XML and TCX, Magellan PMGNTRK, Honeywell PTNTHPR, and Winplus Beacon
+text files.  See L</GEOTAGGING EXAMPLES> for examples.  Also see
+"geotag.html" in the full ExifTool distribution and the
 L<Image::ExifTool Options|Image::ExifTool/Options> for more details and for
 information about geotag configuration options.
 

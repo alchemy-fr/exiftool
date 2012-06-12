@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.81
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.94
 [File, System, Image] FileName - File Name: Writer_9_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 9.5 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:03:04 15:24:17-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:06:04 09:17:45-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -86,8 +86,8 @@
 [MakerNotes, Canon, Camera] 18 - Focus Range: Not Known
 [MakerNotes, Canon, Camera] 20 - Canon Exposure Mode: Manual
 [MakerNotes, Canon, Camera] 22 - Lens Type: Unknown (-1)
-[MakerNotes, Canon, Camera] 23 - Long Focal: 55 mm
-[MakerNotes, Canon, Camera] 24 - Short Focal: 18 mm
+[MakerNotes, Canon, Camera] 23 - Max Focal Length: 55 mm
+[MakerNotes, Canon, Camera] 24 - Min Focal Length: 18 mm
 [MakerNotes, Canon, Camera] 25 - Focal Units: 1/mm
 [MakerNotes, Canon, Camera] 26 - Max Aperture: 4
 [MakerNotes, Canon, Camera] 27 - Min Aperture: 27
@@ -159,7 +159,7 @@
 [MakerNotes, Canon, Camera] 9 - AF Area Y Positions: 0 0 -506 0 506 0 0
 [MakerNotes, Canon, Camera] 10 - AF Points In Focus: (none)
 [MakerNotes, Canon, Camera] 19 - Thumbnail Image Valid Area: 0 159 7 112
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.81
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.94
 [XMP, XMP-aux, Camera] Lens - Lens: 18.0 - 55.0 mm
 [XMP, XMP-exif, Image] ComponentsConfiguration - Components Configuration: Y, Cb, Cr, -
 [XMP, XMP-exif, Image] CompressedBitsPerPixel - Compressed Bits Per Pixel: 9

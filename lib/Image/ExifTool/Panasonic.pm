@@ -29,7 +29,7 @@ use vars qw($VERSION %leicaLensTypes);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.65';
+$VERSION = '1.66';
 
 sub ProcessPanasonicType2($$$);
 sub WhiteBalanceConv($;$$);
@@ -486,6 +486,7 @@ my %shootingMode = (
                 3 => '+1',
                 4 => '+2',
                 # Note: Other Contrast tags will be "Normal" in any of these modes:
+                # 5 - seen for Portrait (FX80)
                 7 => 'Nature (Color Film)', # (GF1,G2; GF3 "Miniature")
                 9 => 'Expressive', #(GF3)
                 12 => 'Smooth (Color Film) or Pure (My Color)', #(GF1,G2 "Smooth Color")
@@ -633,7 +634,7 @@ my %shootingMode = (
         Name => 'ProgramISO', # (maybe should rename this ISOSetting?)
         Writable => 'int16u',
         PrintConv => {
-            OTHER => sub { return shift },
+            OTHER => sub { shift },
             65534 => 'Intelligent ISO', #PH (FS7)
             65535 => 'n/a',
         },
@@ -868,6 +869,15 @@ my %shootingMode = (
         },
     },
     # 0x7a,0x7b: 0
+    0x86 => { #http://dev.exiv2.org/issues/825
+        Name => 'ManometerPressure',
+        Writable => 'int16u',
+        RawConv => '$val==65535 ? undef : $val',
+        ValueConv => '$val / 10',
+        ValueConvInv => '$val * 10',
+        PrintConv => 'sprintf("%.1f kPa",$val)',
+        PrintConvInv => '$val=~s/ ?kPa//i; $val',
+    },
     0x0e00 => {
         Name => 'PrintIM',
         Description => 'Print Image Matching',

@@ -86,6 +86,7 @@ html/TagNames/PSP.html
 html/TagNames/Panasonic.html
 html/TagNames/PanasonicRaw.html
 html/TagNames/Pentax.html
+html/TagNames/PhotoCD.html
 html/TagNames/PhotoMechanic.html
 html/TagNames/Photoshop.html
 html/TagNames/PostScript.html
@@ -278,6 +279,7 @@ lib/Image/ExifTool/PSP.pm
 lib/Image/ExifTool/Panasonic.pm
 lib/Image/ExifTool/PanasonicRaw.pm
 lib/Image/ExifTool/Pentax.pm
+lib/Image/ExifTool/PhotoCD.pm
 lib/Image/ExifTool/PhotoMechanic.pm
 lib/Image/ExifTool/Photoshop.pm
 lib/Image/ExifTool/PostScript.pm
@@ -446,6 +448,7 @@ t/IPTC_4.out
 t/IPTC_5.out
 t/IPTC_6.out
 t/IPTC_7.out
+t/IPTC_8.out
 t/ITC.t
 t/ITC_2.out
 t/InDesign.t
@@ -566,6 +569,8 @@ t/Pentax.t
 t/Pentax_2.out
 t/Pentax_3.out
 t/Pentax_4.out
+t/PhotoCD.t
+t/PhotoCD_2.out
 t/PhotoMechanic.t
 t/PhotoMechanic_2.out
 t/PhotoMechanic_3.out
@@ -783,6 +788,7 @@ t/images/Panasonic.jpg
 t/images/Panasonic.rw2
 t/images/Pentax.avi
 t/images/Pentax.jpg
+t/images/PhotoCD.pcd
 t/images/PhotoMechanic.jpg
 t/images/Photoshop.psd
 t/images/PostScript.eps

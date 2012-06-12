@@ -1062,6 +1062,7 @@ L<http://www.adobe.com/devnet/xmp/> for the official XMP specification.
   digiKam                                       XMP digiKam
   exif                                          XMP exif
   extensis                                      XMP extensis
+  fpv                                           XMP fpv
   ics                                           XMP ics
   iptcCore                                      XMP iptcCore
   iptcExt                                       XMP iptcExt
@@ -1627,6 +1628,15 @@ Tags used by Extensis Portfolio.
   RoutedTo                                      string
   RoutingNotes                                  string
   WorkToDo                                      string
+
+=head3 XMP fpv Tags
+
+Fast Picture Viewer tags (see
+L<http://www.fastpictureviewer.com/help/#rtfcomments>).
+
+  Tag Name                                      Writable
+  --------                                      --------
+  RichTextComment                               string
 
 =head3 XMP ics Tags
 
@@ -3406,8 +3416,10 @@ This information is found in the PSD file header.
            CanonCameraInfo1DmkIIN               Canon CameraInfo1DmkIIN
            CanonCameraInfo1DmkIII               Canon CameraInfo1DmkIII
            CanonCameraInfo1DmkIV                Canon CameraInfo1DmkIV
+           CanonCameraInfo1DX                   Canon CameraInfo1DX
            CanonCameraInfo5D                    Canon CameraInfo5D
            CanonCameraInfo5DmkII                Canon CameraInfo5DmkII
+           CanonCameraInfo5DmkIII               Canon CameraInfo5DmkIII
            CanonCameraInfo7D                    Canon CameraInfo7D
            CanonCameraInfo40D                   Canon CameraInfo40D
            CanonCameraInfo50D                   Canon CameraInfo50D
@@ -3447,7 +3459,9 @@ This information is found in the PSD file header.
   0x0024   FaceDetect1                          Canon FaceDetect1
   0x0025   FaceDetect2                          Canon FaceDetect2
   0x0026   CanonAFInfo2                         Canon AFInfo2
+  0x0027   ContrastInfo                         Canon ContrastInfo
   0x0028   ImageUniqueID                        int8u
+  0x0035   TimeInfo                             Canon TimeInfo
   0x0081   RawDataOffset                        N
   0x0083   OriginalDecisionDataOffset           int32u*
   0x0090   CustomFunctions1D                    CanonCustom Functions1D
@@ -3484,6 +3498,7 @@ This information is found in the PSD file header.
            ColorData4                           Canon ColorData4
            ColorData5                           Canon ColorData5
            ColorData6                           Canon ColorData6
+           ColorData7                           Canon ColorData7
            ColorDataUnknown                     Canon ColorDataUnknown
   0x4002   CRWParam?                            N
   0x4003   ColorInfo                            Canon ColorInfo
@@ -3521,8 +3536,8 @@ This information is found in the PSD file header.
      19    AFPoint                              int16s
      20    CanonExposureMode                    int16s
      22    LensType                             int16s
-     23    LongFocal                            int16u
-     24    ShortFocal                           int16u
+     23    MaxFocalLength                       int16u
+     24    MinFocalLength                       int16u
      25    FocalUnits                           int16s
      26    MaxAperture                          int16s
      27    MinAperture                          int16s
@@ -3610,8 +3625,8 @@ lists CameraInfo tags for the 1D and 1DS.
       4    ExposureTime                         int8u
      10    FocalLength                          int16u
      13    LensType                             int16uRev
-     14    ShortFocal                           int16u
-     16    LongFocal                            int16u
+     14    MinFocalLength                       int16u
+     16    MaxFocalLength                       int16u
      65    SharpnessFrequency                   int8u
      66    Sharpness                            int8s
      68    WhiteBalance                         int8u
@@ -3632,8 +3647,8 @@ CameraInfo tags for the 1DmkII and 1DSmkII.
       4    ExposureTime                         int8u
       9    FocalLength                          int16uRev
      12    LensType                             int16uRev
-     17    ShortFocal                           int16uRev
-     19    LongFocal                            int16uRev
+     17    MinFocalLength                       int16uRev
+     19    MaxFocalLength                       int16uRev
      45    FocalType                            int8u
      54    WhiteBalance                         int8u
      55    ColorTemperature                     int16uRev
@@ -3655,8 +3670,8 @@ CameraInfo tags for the 1DmkIIN.
       4    ExposureTime                         int8u
       9    FocalLength                          int16uRev
      12    LensType                             int16uRev
-     17    ShortFocal                           int16uRev
-     19    LongFocal                            int16uRev
+     17    MinFocalLength                       int16uRev
+     19    MaxFocalLength                       int16uRev
      54    WhiteBalance                         int8u
      55    ColorTemperature                     int16uRev
     115    PictureStyle                         int8u
@@ -3685,8 +3700,8 @@ CameraInfo tags for the 1DmkIII and 1DSmkIII.
      98    ColorTemperature                     int16u
     134    PictureStyle                         int8u
     273    LensType                             int16uRev
-    275    ShortFocal                           int16uRev
-    277    LongFocal                            int16uRev
+    275    MinFocalLength                       int16uRev
+    277    MaxFocalLength                       int16uRev
     310    FirmwareVersion                      string[6]
     370    FileIndex                            int32u
     374    ShutterCount                         int32u
@@ -3761,7 +3776,8 @@ Custom picture style information for various models.
 
 =head3 Canon CameraInfo1DmkIV Tags
 
-CameraInfo tags for the 1DmkIV.
+CameraInfo tags for the 1DmkIV.  Indices shown are for firmware versions
+1.0.x, but they may be different for other firmware versions.
 
   Index1   Tag Name                             Writable
   ------   --------                             --------
@@ -3777,254 +3793,45 @@ CameraInfo tags for the 1DmkIV.
      53    CameraOrientation                    int8u
      84    FocusDistanceUpper                   int16uRev
      86    FocusDistanceLower                   int16uRev
-    119    WhiteBalance                         int16u
     120    WhiteBalance                         int16u
-    123    ColorTemperature                     int16u
     124    ColorTemperature                     int16u
-    334    LensType                             int16uRev
     335    LensType                             int16uRev
-    336    ShortFocal                           int16uRev
-    337    ShortFocal                           int16uRev
-    338    LongFocal                            int16uRev
-    339    LongFocal                            int16uRev
-    488    FirmwareVersion                      N
+    337    MinFocalLength                       int16uRev
+    339    MaxFocalLength                       int16uRev
     493    FirmwareVersion                      N
-    551    FileIndex                            int32u
     556    FileIndex                            int32u
-    563    DirectoryIndex                       int32u
     568    DirectoryIndex                       int32u
-    867    PictureStyleInfo                     Canon PSInfo
     872    PictureStyleInfo                     Canon PSInfo
 
-=head3 Canon CameraInfo5D Tags
+=head3 Canon CameraInfo1DX Tags
 
-CameraInfo tags for the EOS 5D.
-
-  Index1   Tag Name                             Writable
-  ------   --------                             --------
-      3    FNumber                              int8u
-      4    ExposureTime                         int8u
-      6    ISO                                  int8u
-     12    LensType                             int16uRev
-     23    CameraTemperature                    int8u
-     27    MacroMagnification                   int8s
-     39    CameraOrientation                    int8s
-     40    FocalLength                          int16uRev
-     56    AFPointsInFocus5D                    int16uRev
-     84    WhiteBalance                         int16u
-     88    ColorTemperature                     int16u
-    108    PictureStyle                         int8u
-    147    ShortFocal                           int16uRev
-    149    LongFocal                            int16uRev
-    151    LensType                             int16uRev
-    164    FirmwareRevision                     string[8]
-    172    ShortOwnerName                       string[16]
-    204    DirectoryIndex                       int32u
-    208    FileIndex                            int16u
-    232    ContrastStandard                     int8s
-    233    ContrastPortrait                     int8s
-    234    ContrastLandscape                    int8s
-    235    ContrastNeutral                      int8s
-    236    ContrastFaithful                     int8s
-    237    ContrastMonochrome                   int8s
-    238    ContrastUserDef1                     int8s
-    239    ContrastUserDef2                     int8s
-    240    ContrastUserDef3                     int8s
-    241    SharpnessStandard                    int8s
-    242    SharpnessPortrait                    int8s
-    243    SharpnessLandscape                   int8s
-    244    SharpnessNeutral                     int8s
-    245    SharpnessFaithful                    int8s
-    246    SharpnessMonochrome                  int8s
-    247    SharpnessUserDef1                    int8s
-    248    SharpnessUserDef2                    int8s
-    249    SharpnessUserDef3                    int8s
-    250    SaturationStandard                   int8s
-    251    SaturationPortrait                   int8s
-    252    SaturationLandscape                  int8s
-    253    SaturationNeutral                    int8s
-    254    SaturationFaithful                   int8s
-    255    FilterEffectMonochrome               int8s
-    256    SaturationUserDef1                   int8s
-    257    SaturationUserDef2                   int8s
-    258    SaturationUserDef3                   int8s
-    259    ColorToneStandard                    int8s
-    260    ColorTonePortrait                    int8s
-    261    ColorToneLandscape                   int8s
-    262    ColorToneNeutral                     int8s
-    263    ColorToneFaithful                    int8s
-    264    ToningEffectMonochrome               int8s
-    265    ColorToneUserDef1                    int8s
-    266    ColorToneUserDef2                    int8s
-    267    ColorToneUserDef3                    int8s
-    268    UserDef1PictureStyle                 int16u
-    270    UserDef2PictureStyle                 int16u
-    272    UserDef3PictureStyle                 int16u
-    284    TimeStamp                            int32u
-
-=head3 Canon CameraInfo5DmkII Tags
-
-CameraInfo tags for the EOS 5D Mark II.
+CameraInfo tags for the EOS 1D X.  Indices shown are for firmware version
+6.5.1, but they may be different for other firmware versions.
 
   Index1   Tag Name                             Writable
   ------   --------                             --------
       3    FNumber                              int8u
       4    ExposureTime                         int8u
       6    ISO                                  int8u
-      7    HighlightTonePriority                int8u
-     21    FlashMeteringMode                    int8u
-     25    CameraTemperature                    int8u
-     27    MacroMagnification                   int8u
-     30    FocalLength                          int16uRev
-     49    CameraOrientation                    int8u
-     80    FocusDistanceUpper                   int16uRev
-     82    FocusDistanceLower                   int16uRev
-    111    WhiteBalance                         int16u
-    115    ColorTemperature                     int16u
-    167    PictureStyle                         int8u
-    189    HighISONoiseReduction                int8u
-    191    AutoLightingOptimizer                int8u
-    230    LensType                             int16uRev
-    232    ShortFocal                           int16uRev
-    234    LongFocal                            int16uRev
-    346    CameraInfo5DmkII_2a                  Canon CameraInfo5DmkII_2
-    382    CameraInfo5DmkII_2b                  Canon CameraInfo5DmkII_2
-
-=head3 Canon CameraInfo5DmkII_2 Tags
-
-More CameraInfo tags for the EOS 5D Mark II.
-
-  Index1   Tag Name                             Writable
-  ------   --------                             --------
-      0    FirmwareVersion                      N
-     61    FileIndex                            int32u
-     73    DirectoryIndex                       int32u
-    377    PictureStyleInfo                     Canon PSInfo
-
-=head3 Canon CameraInfo7D Tags
-
-CameraInfo tags for the EOS 7D.
-
-  Index1   Tag Name                             Writable
-  ------   --------                             --------
-      3    FNumber                              int8u
-      4    ExposureTime                         int8u
-      6    ISO                                  int8u
-      7    HighlightTonePriority                int8u
-      8    MeasuredEV2                          int8u
-      9    MeasuredEV                           int8u
-     21    FlashMeteringMode                    int8u
-     25    CameraTemperature                    int8u
-     30    FocalLength                          int16uRev
-     32    CameraInfo7D_2a                      Canon CameraInfo7D_2
-     36    CameraInfo7D_2b                      Canon CameraInfo7D_2
-
-=head3 Canon CameraInfo7D_2 Tags
-
-More CameraInfo tags for the EOS 7D.
-
-  Index1   Tag Name                             Writable
-  ------   --------                             --------
-     17    CameraOrientation                    int8u
-     48    FocusDistanceUpper                   int16uRev
-     50    FocusDistanceLower                   int16uRev
-     83    WhiteBalance                         int16u
-     87    ColorTemperature                     int16u
-    165    HighISONoiseReduction                int8u
-    238    LensType                             int16uRev
-    240    ShortFocal                           int16uRev
-    242    LongFocal                            int16uRev
-    392    FirmwareVersion                      N
-    455    FileIndex                            int32u
-    467    DirectoryIndex                       int32u
-    771    PictureStyleInfo                     Canon PSInfo
-
-=head3 Canon CameraInfo40D Tags
-
-CameraInfo tags for the EOS 40D.
-
-  Index1   Tag Name                             Writable
-  ------   --------                             --------
-      3    FNumber                              int8u
-      4    ExposureTime                         int8u
-      6    ISO                                  int8u
-     21    FlashMeteringMode                    int8u
-     24    CameraTemperature                    int8u
-     27    MacroMagnification                   int8u
-     29    FocalLength                          int16uRev
-     48    CameraOrientation                    int8u
-     67    FocusDistanceUpper                   int16uRev
-     69    FocusDistanceLower                   int16uRev
-    111    WhiteBalance                         int16u
-    115    ColorTemperature                     int16u
-    214    LensType                             int16uRev
-    216    ShortFocal                           int16uRev
-    218    LongFocal                            int16uRev
-    255    FirmwareVersion                      string[6]
-    307    FileIndex                            int32u
-    319    DirectoryIndex                       int32u
-    603    PictureStyleInfo                     Canon PSInfo
-   2347    LensModel                            string[64]
-
-=head3 Canon CameraInfo50D Tags
-
-CameraInfo tags for the EOS 50D.
-
-  Index1   Tag Name                             Writable
-  ------   --------                             --------
-      3    FNumber                              int8u
-      4    ExposureTime                         int8u
-      6    ISO                                  int8u
-      7    HighlightTonePriority                int8u
-     21    FlashMeteringMode                    int8u
-     25    CameraTemperature                    int8u
-     30    FocalLength                          int16uRev
-     49    CameraOrientation                    int8u
-     80    FocusDistanceUpper                   int16uRev
-     82    FocusDistanceLower                   int16uRev
-    111    WhiteBalance                         int16u
-    115    ColorTemperature                     int16u
-    167    PictureStyle                         int8u
-    189    HighISONoiseReduction                int8u
-    191    AutoLightingOptimizer                int8u
-    234    LensType                             int16uRev
-    236    ShortFocal                           int16uRev
-    238    LongFocal                            int16uRev
-    346    FirmwareVersion                      N
-    350    FirmwareVersion                      N
-    407    FileIndex                            int32u
-    411    FileIndex                            int32u
-    419    DirectoryIndex                       int32u
-    423    DirectoryIndex                       int32u
-    723    PictureStyleInfo                     Canon PSInfo
-    727    PictureStyleInfo                     Canon PSInfo
-
-=head3 Canon CameraInfo60D Tags
-
-CameraInfo tags for the EOS 60D.
-
-  Index1   Tag Name                             Writable
-  ------   --------                             --------
-      3    FNumber                              int8u
-      4    ExposureTime                         int8u
-      6    ISO                                  int8u
-     25    CameraTemperature                    int8u
-     30    FocalLength                          int16uRev
-     54    CameraOrientation                    int8u
-     85    FocusDistanceUpper                   int16uRev
-     87    FocusDistanceLower                   int16uRev
-    125    ColorTemperature                     int16u
-    232    LensType                             int16uRev
-    234    ShortFocal                           int16uRev
-    236    LongFocal                            int16uRev
-    409    FirmwareVersion                      N
-    473    FileIndex                            int32u
-    485    DirectoryIndex                       int32u
-    801    PictureStyleInfo2                    Canon PSInfo2
+     27    CameraTemperature                    int8u
+     32    FocalLength                          int16uRev
+    122    CameraOrientation                    int8u
+    137    FocusDistanceUpper                   int16uRev
+    139    FocusDistanceLower                   int16uRev
+    181    WhiteBalance                         int16u
+    185    ColorTemperature                     int16u
+    237    PictureStyle                         int8u
+    416    LensType                             int16uRev
+    418    MinFocalLength                       int16uRev
+    420    MaxFocalLength                       int16uRev
+    625    FirmwareVersion                      N
+    713    FileIndex                            int32u
+    725    DirectoryIndex                       int32u
+   1005    PictureStyleInfo                     Canon PSInfo2
 
 =head3 Canon PSInfo2 Tags
 
-Custom picture style information for the EOS 60D.
+Custom picture style information for the EOS 5DmkIII, 60D, 600D and 1100D.
 
   Index1   Tag Name                             Writable
   ------   --------                             --------
@@ -4092,6 +3899,241 @@ Custom picture style information for the EOS 60D.
     242    UserDef2PictureStyle                 int16u
     244    UserDef3PictureStyle                 int16u
 
+=head3 Canon CameraInfo5D Tags
+
+CameraInfo tags for the EOS 5D.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      3    FNumber                              int8u
+      4    ExposureTime                         int8u
+      6    ISO                                  int8u
+     12    LensType                             int16uRev
+     23    CameraTemperature                    int8u
+     27    MacroMagnification                   int8s
+     39    CameraOrientation                    int8s
+     40    FocalLength                          int16uRev
+     56    AFPointsInFocus5D                    int16uRev
+     84    WhiteBalance                         int16u
+     88    ColorTemperature                     int16u
+    108    PictureStyle                         int8u
+    147    MinFocalLength                       int16uRev
+    149    MaxFocalLength                       int16uRev
+    151    LensType                             int16uRev
+    164    FirmwareRevision                     string[8]
+    172    ShortOwnerName                       string[16]
+    204    DirectoryIndex                       int32u
+    208    FileIndex                            int16u
+    232    ContrastStandard                     int8s
+    233    ContrastPortrait                     int8s
+    234    ContrastLandscape                    int8s
+    235    ContrastNeutral                      int8s
+    236    ContrastFaithful                     int8s
+    237    ContrastMonochrome                   int8s
+    238    ContrastUserDef1                     int8s
+    239    ContrastUserDef2                     int8s
+    240    ContrastUserDef3                     int8s
+    241    SharpnessStandard                    int8s
+    242    SharpnessPortrait                    int8s
+    243    SharpnessLandscape                   int8s
+    244    SharpnessNeutral                     int8s
+    245    SharpnessFaithful                    int8s
+    246    SharpnessMonochrome                  int8s
+    247    SharpnessUserDef1                    int8s
+    248    SharpnessUserDef2                    int8s
+    249    SharpnessUserDef3                    int8s
+    250    SaturationStandard                   int8s
+    251    SaturationPortrait                   int8s
+    252    SaturationLandscape                  int8s
+    253    SaturationNeutral                    int8s
+    254    SaturationFaithful                   int8s
+    255    FilterEffectMonochrome               int8s
+    256    SaturationUserDef1                   int8s
+    257    SaturationUserDef2                   int8s
+    258    SaturationUserDef3                   int8s
+    259    ColorToneStandard                    int8s
+    260    ColorTonePortrait                    int8s
+    261    ColorToneLandscape                   int8s
+    262    ColorToneNeutral                     int8s
+    263    ColorToneFaithful                    int8s
+    264    ToningEffectMonochrome               int8s
+    265    ColorToneUserDef1                    int8s
+    266    ColorToneUserDef2                    int8s
+    267    ColorToneUserDef3                    int8s
+    268    UserDef1PictureStyle                 int16u
+    270    UserDef2PictureStyle                 int16u
+    272    UserDef3PictureStyle                 int16u
+    284    TimeStamp                            int32u
+
+=head3 Canon CameraInfo5DmkII Tags
+
+CameraInfo tags for the EOS 5D Mark II.  Indices shown are for firmware
+version 1.0.6, but they may be different for other firmware versions.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      3    FNumber                              int8u
+      4    ExposureTime                         int8u
+      6    ISO                                  int8u
+      7    HighlightTonePriority                int8u
+     21    FlashMeteringMode                    int8u
+     25    CameraTemperature                    int8u
+     27    MacroMagnification                   int8u
+     30    FocalLength                          int16uRev
+     49    CameraOrientation                    int8u
+     80    FocusDistanceUpper                   int16uRev
+     82    FocusDistanceLower                   int16uRev
+    111    WhiteBalance                         int16u
+    115    ColorTemperature                     int16u
+    167    PictureStyle                         int8u
+    189    HighISONoiseReduction                int8u
+    191    AutoLightingOptimizer                int8u
+    230    LensType                             int16uRev
+    232    MinFocalLength                       int16uRev
+    234    MaxFocalLength                       int16uRev
+    382    FirmwareVersion                      N
+    443    FileIndex                            int32u
+    455    DirectoryIndex                       int32u
+    759    PictureStyleInfo                     Canon PSInfo
+
+=head3 Canon CameraInfo5DmkIII Tags
+
+CameraInfo tags for the EOS 5D Mark III.  Indices shown are for firmware
+versions 1.0.x, but they may be different for other firmware versions.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      3    FNumber                              int8u
+      4    ExposureTime                         int8u
+      6    ISO                                  int8u
+     27    CameraTemperature                    int8u
+     35    FocalLength                          int16uRev
+    125    CameraOrientation                    int8u
+    140    FocusDistanceUpper                   int16uRev
+    142    FocusDistanceLower                   int16uRev
+    188    WhiteBalance                         int16u
+    192    ColorTemperature                     int16u
+    244    PictureStyle                         int8u
+    339    LensType                             int16uRev
+    341    MinFocalLength                       int16uRev
+    343    MaxFocalLength                       int16uRev
+    572    FirmwareVersion                      N
+    652    FileIndex                            int32u
+    656    FileIndex2                           int32u
+    664    DirectoryIndex                       int32u
+    668    DirectoryIndex2                      int32u
+    944    PictureStyleInfo                     Canon PSInfo2
+
+=head3 Canon CameraInfo7D Tags
+
+CameraInfo tags for the EOS 7D.  Indices shown are for firmware versions
+1.0.x, but they may be different for other firmware versions.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      3    FNumber                              int8u
+      4    ExposureTime                         int8u
+      6    ISO                                  int8u
+      7    HighlightTonePriority                int8u
+      8    MeasuredEV2                          int8u
+      9    MeasuredEV                           int8u
+     21    FlashMeteringMode                    int8u
+     25    CameraTemperature                    int8u
+     30    FocalLength                          int16uRev
+     53    CameraOrientation                    int8u
+     84    FocusDistanceUpper                   int16uRev
+     86    FocusDistanceLower                   int16uRev
+    119    WhiteBalance                         int16u
+    123    ColorTemperature                     int16u
+    201    HighISONoiseReduction                int8u
+    274    LensType                             int16uRev
+    276    MinFocalLength                       int16uRev
+    278    MaxFocalLength                       int16uRev
+    428    FirmwareVersion                      N
+    491    FileIndex                            int32u
+    503    DirectoryIndex                       int32u
+    807    PictureStyleInfo                     Canon PSInfo
+
+=head3 Canon CameraInfo40D Tags
+
+CameraInfo tags for the EOS 40D.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      3    FNumber                              int8u
+      4    ExposureTime                         int8u
+      6    ISO                                  int8u
+     21    FlashMeteringMode                    int8u
+     24    CameraTemperature                    int8u
+     27    MacroMagnification                   int8u
+     29    FocalLength                          int16uRev
+     48    CameraOrientation                    int8u
+     67    FocusDistanceUpper                   int16uRev
+     69    FocusDistanceLower                   int16uRev
+    111    WhiteBalance                         int16u
+    115    ColorTemperature                     int16u
+    214    LensType                             int16uRev
+    216    MinFocalLength                       int16uRev
+    218    MaxFocalLength                       int16uRev
+    255    FirmwareVersion                      string[6]
+    307    FileIndex                            int32u
+    319    DirectoryIndex                       int32u
+    603    PictureStyleInfo                     Canon PSInfo
+   2347    LensModel                            string[64]
+
+=head3 Canon CameraInfo50D Tags
+
+CameraInfo tags for the EOS 50D.  Indices shown are for firmware versions
+1.0.x, but they may be different for other firmware versions.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      3    FNumber                              int8u
+      4    ExposureTime                         int8u
+      6    ISO                                  int8u
+      7    HighlightTonePriority                int8u
+     21    FlashMeteringMode                    int8u
+     25    CameraTemperature                    int8u
+     30    FocalLength                          int16uRev
+     49    CameraOrientation                    int8u
+     80    FocusDistanceUpper                   int16uRev
+     82    FocusDistanceLower                   int16uRev
+    111    WhiteBalance                         int16u
+    115    ColorTemperature                     int16u
+    167    PictureStyle                         int8u
+    189    HighISONoiseReduction                int8u
+    191    AutoLightingOptimizer                int8u
+    234    LensType                             int16uRev
+    236    MinFocalLength                       int16uRev
+    238    MaxFocalLength                       int16uRev
+    350    FirmwareVersion                      N
+    411    FileIndex                            int32u
+    423    DirectoryIndex                       int32u
+    727    PictureStyleInfo                     Canon PSInfo
+
+=head3 Canon CameraInfo60D Tags
+
+CameraInfo tags for the EOS 60D.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      3    FNumber                              int8u
+      4    ExposureTime                         int8u
+      6    ISO                                  int8u
+     25    CameraTemperature                    int8u
+     30    FocalLength                          int16uRev
+     54    CameraOrientation                    int8u
+     85    FocusDistanceUpper                   int16uRev
+     87    FocusDistanceLower                   int16uRev
+    125    ColorTemperature                     int16u
+    232    LensType                             int16uRev
+    234    MinFocalLength                       int16uRev
+    236    MaxFocalLength                       int16uRev
+    409    FirmwareVersion                      N
+    473    FileIndex                            int32u
+    485    DirectoryIndex                       int32u
+    801    PictureStyleInfo2                    Canon PSInfo2
+
 =head3 Canon CameraInfo450D Tags
 
 CameraInfo tags for the EOS 450D.
@@ -4140,8 +4182,8 @@ CameraInfo tags for the EOS 500D.
     188    HighISONoiseReduction                int8u
     190    AutoLightingOptimizer                int8u
     246    LensType                             int16uRev
-    248    ShortFocal                           int16uRev
-    250    LongFocal                            int16uRev
+    248    MinFocalLength                       int16uRev
+    250    MaxFocalLength                       int16uRev
     400    FirmwareVersion                      N
     467    FileIndex                            int32u
     479    DirectoryIndex                       int32u
@@ -4167,8 +4209,8 @@ CameraInfo tags for the EOS 550D.
     124    ColorTemperature                     int16u
     176    PictureStyle                         int8u
     255    LensType                             int16uRev
-    257    ShortFocal                           int16uRev
-    259    LongFocal                            int16uRev
+    257    MinFocalLength                       int16uRev
+    259    MaxFocalLength                       int16uRev
     420    FirmwareVersion                      N
     484    FileIndex                            int32u
     496    DirectoryIndex                       int32u
@@ -4194,8 +4236,8 @@ CameraInfo tags for the EOS 600D and 1100D.
     127    ColorTemperature                     int16u
     179    PictureStyle                         int8u
     234    LensType                             int16uRev
-    236    ShortFocal                           int16uRev
-    238    LongFocal                            int16uRev
+    236    MinFocalLength                       int16uRev
+    238    MaxFocalLength                       int16uRev
     411    FirmwareVersion                      N
     475    FileIndex                            int32u
     487    DirectoryIndex                       int32u
@@ -4220,8 +4262,8 @@ CameraInfo tags for the EOS 1000D.
     111    WhiteBalance                         int16u
     115    ColorTemperature                     int16u
     226    LensType                             int16uRev
-    228    ShortFocal                           int16uRev
-    230    LongFocal                            int16uRev
+    228    MinFocalLength                       int16uRev
+    230    MaxFocalLength                       int16uRev
     267    FirmwareVersion                      string[6]
     311    DirectoryIndex                       int32u
     323    FileIndex                            int32u
@@ -4389,6 +4431,20 @@ Newer version of the AFInfo record containing much of the same information
            Canon_AFInfo2_0x000d?                N
      14    PrimaryAFPoint                       N
 
+=head3 Canon ContrastInfo Tags
+
+  Index2   Tag Name                             Writable
+  ------   --------                             --------
+      4    IntelligentContrast                  int16s
+
+=head3 Canon TimeInfo Tags
+
+  Index4   Tag Name                             Writable
+  ------   --------                             --------
+      1    TimeZone                             int32s
+      2    TimeZoneCity                         int32s
+      3    DaylightSavings                      int32s
+
 =head3 Canon FileInfo Tags
 
   Index2   Tag Name                             Writable
@@ -4432,6 +4488,8 @@ Newer version of the AFInfo record containing much of the same information
       0    AspectRatio                          int32u
       1    CroppedImageWidth                    int32u
       2    CroppedImageHeight                   int32u
+      3    CroppedImageLeft                     int32u
+      4    CroppedImageTop                      int32u
 
 =head3 Canon Processing Tags
 
@@ -4682,7 +4740,7 @@ These tags are used by the 1DmkIIN, 5D, 30D and 400D.
 =head3 Canon ColorData4 Tags
 
 These tags are used by the 1DmkIII, 1DSmkIII, 1DmkIV, 5DmkII, 7D, 40D, 50D,
-450D, 500D, 550D, 1000D and 1100D.
+60D, 450D, 500D, 550D, 1000D and 1100D.
 
   Index2   Tag Name                             Writable
   ------   --------                             --------
@@ -4825,11 +4883,81 @@ These tags are used by the EOS 600D.
     188    ColorCalib?                          Canon ColorCalib
     404    RawMeasuredRGGB                      int32u[4]
 
+=head3 Canon ColorData7 Tags
+
+These tags are used by the EOS 1DX and 5DmkIII.
+
+  Index2   Tag Name                             Writable
+  ------   --------                             --------
+      0    ColorDataVersion                     int16s
+     63    WB_RGGBLevelsAsShot                  int16s[4]
+     67    ColorTempAsShot                      int16s
+     68    WB_RGGBLevelsAuto                    int16s[4]
+     72    ColorTempAuto                        int16s
+     73    WB_RGGBLevelsMeasured                int16s[4]
+     77    ColorTempMeasured                    int16s
+     78    WB_RGGBLevelsUnknown?                int16s[4]
+     82    ColorTempUnknown?                    int16s
+     83    WB_RGGBLevelsUnknown2?               int16s[4]
+     87    ColorTempUnknown2?                   int16s
+     88    WB_RGGBLevelsUnknown3?               int16s[4]
+     92    ColorTempUnknown3?                   int16s
+     93    WB_RGGBLevelsUnknown4?               int16s[4]
+     97    ColorTempUnknown4?                   int16s
+     98    WB_RGGBLevelsUnknown5?               int16s[4]
+    102    ColorTempUnknown5?                   int16s
+    103    WB_RGGBLevelsDaylight                int16s[4]
+    107    ColorTempDaylight                    int16s
+    108    WB_RGGBLevelsShade                   int16s[4]
+    112    ColorTempShade                       int16s
+    113    WB_RGGBLevelsCloudy                  int16s[4]
+    117    ColorTempCloudy                      int16s
+    118    WB_RGGBLevelsTungsten                int16s[4]
+    122    ColorTempTungsten                    int16s
+    123    WB_RGGBLevelsFluorescent             int16s[4]
+    127    ColorTempFluorescent                 int16s
+    128    WB_RGGBLevelsKelvin                  int16s[4]
+    132    ColorTempKelvin                      int16s
+    133    WB_RGGBLevelsFlash                   int16s[4]
+    137    ColorTempFlash                       int16s
+    138    WB_RGGBLevelsUnknown6?               int16s[4]
+    142    ColorTempUnknown6?                   int16s
+    143    WB_RGGBLevelsUnknown7?               int16s[4]
+    147    ColorTempUnknown7?                   int16s
+    148    WB_RGGBLevelsUnknown8?               int16s[4]
+    152    ColorTempUnknown8?                   int16s
+    153    WB_RGGBLevelsUnknown9?               int16s[4]
+    157    ColorTempUnknown9?                   int16s
+    158    WB_RGGBLevelsUnknown10?              int16s[4]
+    162    ColorTempUnknown10?                  int16s
+    163    WB_RGGBLevelsUnknown11?              int16s[4]
+    167    ColorTempUnknown11?                  int16s
+    168    WB_RGGBLevelsUnknown12?              int16s[4]
+    172    ColorTempUnknown12?                  int16s
+    173    WB_RGGBLevelsUnknown13?              int16s[4]
+    177    ColorTempUnknown13?                  int16s
+    178    WB_RGGBLevelsUnknown14?              int16s[4]
+    182    ColorTempUnknown14?                  int16s
+    183    WB_RGGBLevelsUnknown15?              int16s[4]
+    187    ColorTempUnknown15?                  int16s
+    188    WB_RGGBLevelsUnknown16?              int16s[4]
+    192    ColorTempUnknown16?                  int16s
+    193    WB_RGGBLevelsUnknown17?              int16s[4]
+    197    ColorTempUnknown17?                  int16s
+    198    WB_RGGBLevelsUnknown18?              int16s[4]
+    202    ColorTempUnknown18?                  int16s
+    203    WB_RGGBLevelsUnknown19?              int16s[4]
+    207    ColorTempUnknown19?                  int16s
+    208    WB_RGGBLevelsUnknown20?              int16s[4]
+    212    ColorTempUnknown20?                  int16s
+    213    ColorCalib?                          Canon ColorCalib
+    429    RawMeasuredRGGB                      int32u[4]
+
 =head3 Canon ColorDataUnknown Tags
 
   Index2   Tag Name                             Writable
   ------   --------                             --------
-  [no tags known]
+      0    ColorDataVersion                     N
 
 =head3 Canon ColorInfo Tags
 
@@ -6033,8 +6161,8 @@ SubIFD0 through SubIFD5 tags are written a number of newer Kodak models.
   0xfa52   KodakImageHeight                     int16u
   0xfa54   ThumbnailWidth                       int16u
   0xfa55   ThumbnailHeight                      int16u
-  0xfa57   PreviewWidth                         int16u
-  0xfa58   PreviewHeight                        int16u
+  0xfa57   PreviewImageWidth                    int16u
+  0xfa58   PreviewImageHeight                   int16u
 
 =head3 Kodak SubIFD1 Tags
 
@@ -6642,7 +6770,9 @@ located in 5 different places.)
   0x0001   MinoltaCameraSettingsOld             Minolta CameraSettings
   0x0003   MinoltaCameraSettings                Minolta CameraSettings
   0x0004   MinoltaCameraSettings7D              Minolta CameraSettings7D
-  0x0018   ImageStabilization                   N
+  0x0010   CameraInfoA100                       Minolta CameraInfoA100
+  0x0018   ISInfoA100                           Minolta ISInfoA100
+           ImageStabilization                   N
   0x0020   WBInfoA100                           Minolta WBInfoA100
   0x0040   CompressedImageSize                  int32u
   0x0081   PreviewImage                         undef
@@ -6762,25 +6892,105 @@ tags are disabled.
     113    ImageStabilization                   int16u
     117    ZoneMatchingOn                       int16u
 
+=head3 Minolta CameraInfoA100 Tags
+
+Camera information for the Sony DSLR-A100.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      1    ActiveAFSensor                       int8u
+      2    ActiveAFSensorStatus                 int8s[2]
+      4    Top-RightAFStatus                    int8s[2]
+      6    Bottom-RightAFStatus                 int8s[2]
+      8    BottomAFStatus                       int8s[2]
+     10    MiddleHorizontalAFStatus             int8s[2]
+     12    CenterVerticalAFStatus               int8s[2]
+     14    TopAFStatus                          int8s[2]
+     16    Top-LeftAFStatus                     int8s[2]
+     18    Bottom-LeftAFStatus                  int8s[2]
+     20    FocusLocked                          int8u
+     21    AFPoint                              int8u
+     22    AFMode                               int8u
+     45    LeftAFStatus                         int8s[2]
+     47    CenterHorizontalAFStatus             int8s[2]
+     49    RightAFStatus                        int8s[2]
+
+=head3 Minolta ISInfoA100 Tags
+
+Image stabilization information for the Sony DSLR-A100.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      0    ImageStabilization                   int16u
+
 =head3 Minolta WBInfoA100 Tags
 
 White balance information for the Sony DSLR-A100.
 
   Index1   Tag Name                             Writable
   ------   --------                             --------
+     14    DriveMode                            int8u
+     16    Rotation                             int8u
+     20    ImageStabilizationSetting            int8u
+     21    DynamicRangeOptimizerMode            int8u
+     42    ExposureCompensationMode             int8u
+     43    WBBracketShotNumber                  int8u
+     44    WhiteBalanceBracketing               int8u
+     45    ExposureBracketShotNumber            int8u
+     49    FlashFunction                        int16u
+     52    ExposureMode                         int16u
+     54    ColorMode                            int16u
+     56    AverageLV                            int16u
+     60    FrameNumber                          int8u
     150    WB_RGBLevels                         int16u[3]
     174    WB_GBRGLevels                        int16u[4]
-    772    WB_RBPresetFlash                     int16u[2]
-    776    WB_RBPresetCoolWhiteF                int16u[2]
-   1000    WB_RBPresetTungsten                  int16u[2]
-   1004    WB_RBPresetDaylight                  int16u[2]
-   1008    WB_RBPresetCloudy                    int16u[2]
-   1012    WB_RBPresetFlash                     int16u[2]
-   1020    WB_RedPresetsFluorescent             int16u[7]
-   1034    WB_BluePresetsFluorescent            int16u[7]
-   1048    WB_RBPresetShade                     int16u[2]
-   1060    WB_RBPresetCustom                    int16u[2]
+    192    WB_RedLevelsTungsten                 int16u[7]
+    206    WB_BlueLevelsTungsten                int16u[7]
+    220    WB_RedLevelsDaylight                 int16u[7]
+    234    WB_BlueLevelsDaylight                int16u[7]
+    248    WB_RedLevelsCloudy                   int16u[7]
+    262    WB_BlueLevelsCloudy                  int16u[7]
+    276    WB_RedLevelsFlash                    int16u[7]
+    290    WB_BlueLevelsFlash                   int16u[7]
+    332    WB_RedLevelsFluorescent              int16u[7]
+    346    WB_BlueLevelsFluorescent             int16u[7]
+    360    WB_RedLevelsShade                    int16u[7]
+    374    WB_BlueLevelsShade                   int16u[7]
+    392    WB_RedLevel6500K                     int16u
+    394    WB_BlueLevel6500K                    int16u
+    396    WB_RedLevelCustom                    int16u
+    398    WB_BlueLevelCustom                   int16u
+    408    WB_RedLevel3500K                     int16u
+    410    WB_BlueLevel3500K                    int16u
+    446    WB_RedLevelsKelvin                   int16u[75]
+    596    WB_BlueLevelsKelvin                  int16u[75]
+    772    WB_RBLevelsFlash                     int16u[2]
+    776    WB_RBLevelsCoolWhiteF                int16u[2]
+   1000    WB_RBLevelsTungsten                  int16u[2]
+   1004    WB_RBLevelsDaylight                  int16u[2]
+   1008    WB_RBLevelsCloudy                    int16u[2]
+   1012    WB_RBLevelsFlash                     int16u[2]
+   1020    WB_RedLevelsFluorescent              int16u[7]
+   1034    WB_BlueLevelsFluorescent             int16u[7]
+   1048    WB_RBLevelsShade                     int16u[2]
+   1056    WB_RBLevels6500K                     int16u[2]
+   1060    WB_RBLevelsCustom                    int16u[2]
+   1072    WB_RBLevels3500K                     int16u[2]
+   1320    WB_RBLevelsDaylight                  int16u[2]
+   1350    WB_RGBLevels                         int16u[3]
+   1576    AEMeteringSegments                   int8u[40]
+   1680    MeasuredLV                           int8u
+   1681    BrightnessValue                      int8u
+  18872    ExposureTime                         int8u
+  18874    ISO                                  int8u
   18875    FocusDistance                        int8u
+  18877    LensType                             int16uRev
+  18880    ExposureCompensation                 int8s
+  18881    FlashExposureComp                    int8s
+  18882    ImageStabilization                   int8u
+  18883    BrightnessValue                      int8u
+  18885    MaxAperture                          int8u
+  18887    FNumber                              int8u
   18908    InternalSerialNumber                 string[12]
 
 =head3 Minolta CameraSettings5D Tags
@@ -8911,6 +9121,40 @@ u7040 and u9010.
       3    ThumbnailLength                      N
       4    ThumbnailOffset                      N
 
+=head3 Olympus MOV3 Tags
+
+QuickTime information found in the TAGS atom of MOV videos from the E-M5.
+
+  Tag ID   Tag Name                             Writable
+  ------   --------                             --------
+  'OLYM'   OlympusAtom                          Olympus OLYM2
+
+=head3 Olympus OLYM2 Tags
+
+  Tag ID   Tag Name                             Writable
+  ------   --------                             --------
+  'prms'   MakerNotes                           Olympus prms
+  'scrn'   PreviewInfo                          Olympus scrn2
+  'thmb'   ThumbInfo                            Olympus thmb2
+
+=head3 Olympus prms Tags
+
+Information extracted from the "prms" atom in MOV videos from Olympus models
+such as the OM E-M5.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+     18    Make                                 N
+     44    Model                                N
+    131    DateTime1                            N
+    157    DateTime2                            N
+
+=head3 Olympus scrn2 Tags
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      2    OlympusPreview                       Olympus scrn
+
 =head3 Olympus scrn Tags
 
 Information extracted from the "scrn" atom of Olympus MP4 videos.
@@ -8919,6 +9163,15 @@ Information extracted from the "scrn" atom of Olympus MP4 videos.
   ------   --------                             --------
       0    PreviewImageLength                   N
       4    PreviewImage                         N
+
+=head3 Olympus thmb2 Tags
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      0    ThumbnailWidth                       N
+      2    ThumbnailHeight                      N
+      4    ThumbnailLength                      N
+      8    ThumbnailImage                       N
 
 =head3 Olympus thmb Tags
 
@@ -8954,10 +9207,7 @@ This information is found in Olympus AVI videos.
      94    FNumber                              N
     131    DateTime1                            N
     157    DateTime2                            N
-    297    ThumbnailWidth                       N
-    299    ThumbnailHeight                      N
-    301    ThumbnailLength                      N
-    305    ThumbnailImage                       N
+    297    ThumbInfo                            Olympus thmb2
 
 =head3 Olympus WAV Tags
 
@@ -9753,6 +10003,7 @@ These tags are used in Panasonic/Leica cameras.
   0x006f   Landmark                             undef
   0x0070   IntelligentResolution                int8u
   0x0079   IntelligentD-Range                   int16u
+  0x0086   ManometerPressure                    int16u
   0x0e00   PrintIM                              PrintIM
   0x8000   MakerNoteVersion                     undef
   0x8001   SceneMode                            int16u
@@ -10329,13 +10580,15 @@ between different models.
 =head2 Sony Tags
 
 The following information has been decoded from the MakerNotes of Sony
-cameras.
+cameras.  Some of these tags have been inherited from the Minolta
+MakerNotes.
 
   Tag ID   Tag Name                             Writable
   ------   --------                             --------
   0x0010   CameraInfo                           Sony CameraInfo
            CameraInfo2                          Sony CameraInfo2
   0x0020   FocusInfo                            Sony FocusInfo
+           MoreInfo                             Sony MoreInfo
   0x0102   Quality                              int32u
   0x0104   FlashExposureComp                    rational64s
   0x0105   Teleconverter                        int32u
@@ -10351,6 +10604,7 @@ cameras.
   0x1002   MultiBurstImageHeight                int16u
   0x1003   Panorama                             Sony Panorama
   0x2001   PreviewImage                         undef
+  0x2002   Rating                               int32u
   0x2004   Contrast                             int32s
   0x2005   Saturation                           int32s
   0x2006   Sharpness                            int32s
@@ -10359,6 +10613,7 @@ cameras.
   0x2009   HighISONoiseReduction                int16u
   0x200a   HDR                                  int32u
   0x200b   MultiFrameNoiseReduction             int32u
+  0x200e   PictureEffect                        int16u
   0x2011   VignettingCorrection                 int32u
   0x2012   LateralChromaticAberration           int32u
   0x2013   DistortionCorrection                 int32u
@@ -10395,11 +10650,15 @@ cameras.
 
 =head3 Sony CameraInfo Tags
 
-Camera information stored by the A33, A35, A55, A560 and A580.
+Camera information stored by the A33, A35, A55, A450, A500, A550, A560,
+A580, NEX-3/5/C3 and VG10E.  Some tags are valid only for some of these
+models.
 
   Index1   Tag Name                             Writable
   ------   --------                             --------
       0    LensSpec                             undef[8]
+     14    FocalLength                          int16u
+     16    FocalLengthTeleZoom                  int16u
      28    AFPointSelected                      int8u
      29    FocusMode                            int8u
      32    AFPoint                              int8u
@@ -10414,9 +10673,80 @@ Camera information for other DSLR and NEX models.
 
 =head3 Sony FocusInfo Tags
 
+More camera settings and focus information decoded for models such as the
+A200, A230, A290, A300, A330, A350, A380, A390, A700, A850 and A900.
+
   Index1   Tag Name                             Writable
   ------   --------                             --------
+     14    DriveMode2                           int8u
+     16    Rotation                             int8u
+     20    ImageStabilizationSetting            int8u
+     21    DynamicRangeOptimizerMode            int8u
+     43    BracketShotNumber                    int8u
+     44    WhiteBalanceBracketing               int8u
+     45    BracketShotNumber2                   int8u
+     46    DynamicRangeOptimizerBracket         int8u
+     47    ExposureBracketShotNumber            int8u
+     63    ExposureProgram                      int8u
+     65    CreativeStyle                        int8u
    2491    FocusPosition                        int8u
+
+=head3 Sony MoreInfo Tags
+
+More camera settings information decoded for the A450, A500, A550, A560,
+A580, A33, A35, A55, NEX-3/5/C3 and VG10E.
+
+  Tag ID   Tag Name                             Writable
+  ------   --------                             --------
+  0x0001   MoreSettings                         Sony MoreSettings
+  0x0002   FaceInfo                             Sony FaceInfo
+  0x0107   TiffMeteringImage                    N
+
+=head3 Sony MoreSettings Tags
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      1    DriveMode2                           int8u
+      2    ExposureProgram                      int8u
+      3    MeteringMode                         int8u
+      4    DynamicRangeOptimizerSetting         int8u
+      5    DynamicRangeOptimizerLevel           int8u
+      6    ColorSpace                           int8u
+      7    CreativeStyleSetting                 int8u
+      8    ContrastSetting                      int8s
+      9    SaturationSetting                    int8s
+     10    SharpnessSetting                     int8s
+     13    WhiteBalanceSetting                  int8u
+     14    ColorTemperatureSetting              int8u
+     15    ColorCompensationFilterSet           int8s
+     16    FlashMode                            int8u
+     17    LongExposureNoiseReduction           int8u
+     18    HighISONoiseReduction                int8u
+     19    FocusMode                            int8u
+     21    MultiFrameNoiseReduction             int8u
+     22    HDRSetting                           int8u
+     23    HDRLevel                             int8u
+     24    ViewingMode                          int8u
+     25    FaceDetection                        int8u
+     30    ExposureCompensationSet              int8u
+     31    FlashExposureCompSet                 int8u
+     32    LiveViewAFMethod                     int8u
+     38    FNumber                              int8u
+     39    ExposureTime                         int8u
+
+=head3 Sony FaceInfo Tags
+
+  Index2   Tag Name                             Writable
+  ------   --------                             --------
+      0    FacesDetected                        int16u
+      1    Face1Position                        int16u[4]
+      6    Face2Position                        int16u[4]
+     11    Face3Position                        int16u[4]
+     16    Face4Position                        int16u[4]
+     21    Face5Position                        int16u[4]
+     26    Face6Position                        int16u[4]
+     31    Face7Position                        int16u[4]
+     36    Face8Position                        int16u[4]
 
 =head3 Sony CameraSettings Tags
 
@@ -10426,8 +10756,10 @@ Camera settings for the A200, A300, A350, A700, A850 and A900.
   ------   --------                             --------
       0    ExposureTime                         int16u
       1    FNumber                              int16u
-      4    DriveMode                            int16u
+      4    DriveMode                            int16u & 0xff
       6    WhiteBalanceFineTune                 int16s
+     12    ColorTemperatureSetting              int16u
+     13    ColorCompensationFilterSet           int16u
      16    FocusModeSetting                     int16u
      17    AFAreaMode                           int16u
      18    AFPointSelected                      int16u
@@ -10453,7 +10785,7 @@ Camera settings for the A200, A300, A350, A700, A850 and A900.
      47    ShutterSpeedSetting                  int16u
      48    ApertureSetting                      int16u
      60    ExposureProgram                      int16u
-     61    ImageStabilization                   int16u
+     61    ImageStabilizationSetting            int16u
      63    Rotation                             int16u
      77    FocusMode                            int16u
      83    FocusStatus                          int16u
@@ -10471,6 +10803,8 @@ Camera settings for the A230, A290, A330, A380 and A390.
   ------   --------                             --------
       0    ExposureTime                         int16u
       1    FNumber                              int16u
+     11    ColorTemperatureSetting              int16u
+     12    ColorCompensationFilterSet           int16u
      15    FocusModeSetting                     int16u
      16    AFAreaMode                           int16u
      17    AFPointSelected                      int16u
@@ -10489,7 +10823,7 @@ Camera settings for the A230, A290, A330, A380 and A390.
      40    ShutterSpeedSetting                  int16u
      41    ApertureSetting                      int16u
      60    ExposureProgram                      int16u
-     61    ImageStabilization                   int16u
+     61    ImageStabilizationSetting            int16u
      63    Rotation                             int16u
      77    FocusMode                            int16u
      83    FocusStatus                          int16u
@@ -10497,6 +10831,7 @@ Camera settings for the A230, A290, A330, A380 and A390.
      85    AspectRatio                          int16u
      86    Quality                              int16u
      88    ExposureLevelIncrements              int16u
+    126    DriveMode                            int16u & 0xff
     131    ColorSpace                           int16u
 
 =head3 Sony CameraSettings3 Tags
@@ -10509,10 +10844,10 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.
       0    ShutterSpeedSetting                  int8u
       1    ApertureSetting                      int8u
       2    ISOSetting                           int8u
-      3    ExposureCompensation                 int8u
+      3    ExposureCompensationSet              int8u
       4    DriveModeSetting                     int8u
       5    ExposureProgram                      int8u
-      6    FocusMode                            int8u
+      6    FocusModeSetting                     int8u
       7    MeteringMode                         int8u
       9    SonyImageSize                        int8u
      10    AspectRatio                          int8u
@@ -10521,7 +10856,12 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.
      13    DynamicRangeOptimizerLevel           int8u
      14    ColorSpace                           int8u
      15    CreativeStyleSetting                 int8u
+     16    ContrastSetting                      int8s
+     17    SaturationSetting                    int8s
+     18    SharpnessSetting                     int8s
      22    WhiteBalanceSetting                  int8u
+     23    ColorTemperatureSetting              int8u
+     24    ColorCompensationFilterSet           int8s
      32    FlashMode                            int8u
      33    FlashControl                         int8u
      35    FlashExposureCompSet                 int8u
@@ -10530,8 +10870,8 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.
      38    HighISONoiseReduction                int8u
      39    SmileShutterMode                     int8u
      40    RedEyeReduction                      int8u
-     45    AutoHDR                              int8u
-     46    AutoHDRLevel                         int8u
+     45    HDRSetting                           int8u
+     46    HDRLevel                             int8u
      47    ViewingMode                          int8u
      48    FaceDetection                        int8u
      49    SmileShutter                         int8u
@@ -10539,14 +10879,14 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.
      51    SweepPanoramaDirection               int8u
      52    DriveMode                            int8u
      53    MultiFrameNoiseReduction             int8u
-     54    LiveViewAFMethod                     int8u
+     54    LiveViewAFSetting                    int8u
      56    3DPanoramaSize                       int8u
     132    LiveViewMetering                     int8u
     133    ViewingMode2                         int8u
     135    FlashAction                          int8u
     139    LiveViewFocusMode                    int8u
     268    SequenceNumber                       int8u
-    276    ImageNumber                          int16u
+    276    ImageNumber                          int16u & 0x3fff
 
 =head3 Sony CameraSettingsUnknown Tags
 
@@ -10580,6 +10920,8 @@ rotation -- the width is always the longer dimension.
   ------   --------                             --------
       2    FaceInfoOffset                       N
       6    SonyDateTime                         string[20]
+     26    SonyImageHeight                      int16u
+     28    SonyImageWidth                       int16u
      48    FacesDetected                        int16u
      50    FaceInfoLength                       N
      72    FaceInfo1                            Sony FaceInfo1
@@ -11107,6 +11449,7 @@ These tags are used in Minolta RAW format (MRW) images.
      77    ColorFilter                          int8u
      78    ColorTemperature                     int8u
      79    ColorFilter                          int8u
+     80    RawDataLength                        N
 
 =head3 MinoltaRaw WBG Tags
 
@@ -14673,47 +15016,6 @@ the official specification.
   'wrapmodes'          WrapModes                N
   'xDensity'           XResolution              N
 
-=head2 Radiance Tags
-
-Information extracted from Radiance RGBE HDR images.  Tag ID's are all
-uppercase as stored in the file, but converted to lowercase by when
-extracting to avoid conflicts with internal ExifTool variables.  See
-L<http://radsite.lbl.gov/radiance/refer/filefmts.pdf> and
-L<http://www.graphics.cornell.edu/online/formats/rgbe/> for the
-specification.
-
-  Tag ID               Tag Name                 Writable
-  ------               --------                 --------
-  '_command'           Command                  N
-  '_orient'            Orientation              N
-  'colorcorr'          ColorCorrection          N
-  'exposure'           Exposure                 N
-  'format'             Format                   N
-  'gamma'              Gamma                    N
-  'pixaspect'          PixelAspectRatio         N
-  'primaries'          ColorPrimaries           N
-  'software'           Software                 N
-  'view'               View                     N
-
-=head2 PGF Tags
-
-The following table lists information extracted from the header of
-Progressive Graphics File (PGF) images.  As well, information is extracted
-from the embedded PNG metadata image if it exists.  See
-L<http://www.libpgf.org/> for the PGF specification.
-
-  Index1   Tag Name                             Writable
-  ------   --------                             --------
-      3    PGFVersion                           N
-      8    ImageWidth                           N
-     12    ImageHeight                          N
-     16    PyramidLevels                        N
-     17    Quality                              N
-     18    BitsPerPixel                         N
-     19    ColorComponents                      N
-     20    ColorMode                            N
-     21    BackgroundColor                      N
-
 =head2 MIFF Tags
 
 The MIFF (Magick Image File Format) format allows aribrary tag names to be
@@ -14757,6 +15059,25 @@ decode any tags found in the image.
   'signature'          Signature                N
   'units'              Units                    N
   'white-point'        WhitePoint               N
+
+=head2 PGF Tags
+
+The following table lists information extracted from the header of
+Progressive Graphics File (PGF) images.  As well, information is extracted
+from the embedded PNG metadata image if it exists.  See
+L<http://www.libpgf.org/> for the PGF specification.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      3    PGFVersion                           N
+      8    ImageWidth                           N
+     12    ImageHeight                          N
+     16    PyramidLevels                        N
+     17    Quality                              N
+     18    BitsPerPixel                         N
+     19    ColorComponents                      N
+     20    ColorMode                            N
+     21    BackgroundColor                      N
 
 =head2 PSP Tags
 
@@ -14802,6 +15123,61 @@ PSPSHAPE, PSPTUBE and TUB extensions).
   Tag ID   Tag Name                             Writable
   ------   --------                             --------
   0x0003   EXIFInfo                             EXIF
+
+=head2 PhotoCD Tags
+
+Tags extracted from Kodak Photo CD Image Pac (PCD) files.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      7    SpecificationVersion                 N
+      9    AuthoringSoftwareRelease             N
+     11    ImageMagnificationDescriptor         N
+     13    CreateDate                           N
+     17    ModifyDate                           N
+     21    ImageMedium                          N
+     22    ProductType                          N
+     42    ScannerVendorID                      N
+     62    ScannerProductID                     N
+     78    ScannerFirmwareVersion               N
+     82    ScannerFirmwareDate                  N
+     90    ScannerSerialNumber                  N
+    110    ScannerPixelSize                     N
+    112    ImageWorkstationMake                 N
+    132    CharacterSet                         N
+    133    CharacterEscapeSequence?             N
+    165    PhotoFinisherName                    N
+    228    SceneBalanceAlgorithmRevision        N
+    230    SceneBalanceAlgorithmCommand         N
+    325    SceneBalanceAlgorithmFilmID          N
+    331    CopyrightStatus                      N
+    332    CopyrightFileName                    N
+   1538    Orientation                          N
+  1538.1    ImageWidth                           N
+  1538.2    ImageHeight                          N
+  1538.3    CompressionClass                     N
+
+=head2 Radiance Tags
+
+Information extracted from Radiance RGBE HDR images.  Tag ID's are all
+uppercase as stored in the file, but converted to lowercase by when
+extracting to avoid conflicts with internal ExifTool variables.  See
+L<http://radsite.lbl.gov/radiance/refer/filefmts.pdf> and
+L<http://www.graphics.cornell.edu/online/formats/rgbe/> for the
+specification.
+
+  Tag ID               Tag Name                 Writable
+  ------               --------                 --------
+  '_command'           Command                  N
+  '_orient'            Orientation              N
+  'colorcorr'          ColorCorrection          N
+  'exposure'           Exposure                 N
+  'format'             Format                   N
+  'gamma'              Gamma                    N
+  'pixaspect'          PixelAspectRatio         N
+  'primaries'          ColorPrimaries           N
+  'software'           Software                 N
+  'view'               View                     N
 
 =head2 PDF Tags
 
@@ -16254,6 +16630,7 @@ multi-language user data tags found, even if they don't exist in this table.
                OlympusTags1                     Olympus MOV1
                OlympusTags2                     Olympus MOV2
                OlympusTags3                     Olympus MP4
+               OlympusTags4                     Olympus MOV3
                PentaxTags                       Pentax MOV
                SamsungTags                      Samsung MP4
                SanyoMOV                         Sanyo MOV
@@ -23166,11 +23543,13 @@ without modifying the file itself.
   Geotime                    -                  Y
   ICC_Profile                ICC_Profile        Y!
   ID3Size                    File               N
+  IPTC                       IPTC               Y!
   ImageHeight                File               N
   ImageWidth                 File               N
   JPEGDigest                 File               N
   MIMEType                   File               N
   MaxVal                     File               N
+  NewGUID                    ExifTool           N
   Now                        ExifTool           N
   PreviewImage               File               Y
   PreviewPNG                 File               N
@@ -23314,18 +23693,18 @@ information is extracted.
                        PostScript:BoundingBox
   JpgFromRaw           JpgFromRawStart          Y
                        JpgFromRawLength
-  Lens                 ShortFocal               N
-                       LongFocal
-  Lens35efl            ShortFocal               N
-                       LongFocal
+  Lens                 Canon:MinFocalLength     N
+                       Canon:MaxFocalLength
+  Lens35efl            Canon:MinFocalLength     N
+                       Canon:MaxFocalLength
                        Lens
                        ScaleFactor35efl
   LensID               LensType                 N
                        FocalLength
                        MaxAperture
                        MaxApertureValue
-                       ShortFocal
-                       LongFocal
+                       MinFocalLength
+                       MaxFocalLength
                        LensModel
                        LensFocalRange
                        LensSpec

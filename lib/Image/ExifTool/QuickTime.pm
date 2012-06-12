@@ -32,7 +32,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.60';
+$VERSION = '1.61';
 
 sub FixWrongFormat($);
 sub ProcessMOV($$;$);
@@ -870,6 +870,14 @@ my %graphicsMode = (
             SubDirectory => {
                 TagTable => 'Image::ExifTool::Olympus::MP4',
                 ByteOrder => 'LittleEndian',
+            },
+        },
+        {
+            Name => 'OlympusTags4',
+            Condition => '$$valPt =~ /^.{16}OLYM\0/s',
+            SubDirectory => {
+                TagTable => 'Image::ExifTool::Olympus::MOV3',
+                Start => 12,
             },
         },
         {

@@ -261,7 +261,8 @@ sub AddChunks($$)
             }
         } elsif ($dir eq 'IPTC') {
             $exifTool->VPrint(0, "Creating IPTC profile:\n");
-            # write new IPTC data
+            # write new IPTC data (stored in a Photoshop directory)
+            $dirInfo{DirName} = 'Photoshop';
             $tagTablePtr = Image::ExifTool::GetTagTable('Image::ExifTool::Photoshop::Main');
             $buff = $exifTool->WriteDirectory(\%dirInfo, $tagTablePtr);
             if (defined $buff and length $buff) {

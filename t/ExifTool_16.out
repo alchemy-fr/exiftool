@@ -26,13 +26,14 @@ FocalUnits : 1/mm
 FocusMode : Manual Focus (3)
 FocusRange : Not Known
 LensType : Unknown (-1)
-LongFocal : 55 mm
 MacroMode : Unknown (0)
 ManualFlashOutput : n/a
 MaxAperture : 4
+MaxFocalLength : 55 mm
 MeasuredRGGB : 998 1022 1026 808
 MeteringMode : Center-weighted average
 MinAperture : 27
+MinFocalLength : 18 mm
 NumAFPoints : 7
 OpticalZoomCode : n/a
 OwnerName : Phil Harvey
@@ -43,7 +44,6 @@ SelfTimer : Off
 SerialNumber : 0560018150
 SerialNumberFormat : Format 1
 Sharpness : +1
-ShortFocal : 18 mm
 ThumbnailImageValidArea : 0 159 7 112
 ValidAFPoints : 7
 WB_RGGBLevelsAuto : 1719 832 831 990
@@ -175,4 +175,4 @@ FileName : Canon.jpg
 FilePermissions : rw-r--r--
 FileSize : 2.6 kB
 ---- System:Time ----
-FileModifyDate : 2006:10:03 15:10:31-04:00
+FileModifyDate : 2007:05:01 07:34:38-04:00

@@ -23,7 +23,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.30';
+$VERSION = '1.31';
 
 sub ProcessKodakIFD($$$);
 sub ProcessKodakText($$$);
@@ -955,11 +955,11 @@ sub WriteKodakIFD($$$);
         Writable => 'int16u',
     },
     0xfa57 => {
-        Name => 'PreviewWidth',
+        Name => 'PreviewImageWidth',
         Writable => 'int16u',
     },
     0xfa58 => {
-        Name => 'PreviewHeight',
+        Name => 'PreviewImageHeight',
         Writable => 'int16u',
     },
 );

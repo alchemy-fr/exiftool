@@ -52,7 +52,7 @@ EncodingProcess: Baseline DCT, Huffman coding
 ExifByteOrder: Little-endian (Intel, II)
 ExifImageHeight: 120
 ExifImageWidth: 160
-ExifToolVersion: 8.35
+ExifToolVersion: 8.94
 ExifVersion: 0221
 ExposureCompensation: 0
 ExposureCompensation (1): 0
@@ -62,7 +62,7 @@ ExposureTime (1): 128
 FNumber: 14.0
 FNumber (1): 14
 FOV: 37.7 deg
-FileModifyDate: 2010:10:11 08:48:10-04:00
+FileModifyDate: 2012:06:04 09:17:44-04:00
 FileName: Writer_2_failed.jpg
 FileNumber: 118-1861
 FilePermissions: rw-r--r--
@@ -101,19 +101,20 @@ Lens35efl: 18.0 - 55.0 mm (35 mm equivalent: 27.9 - 85.3 mm)
 LensID: Unknown 18-55mm
 LensType: Unknown (-1)
 LightValue: 5.6
-LongFocal: 55 mm
 MIMEType: image/jpeg
 MacroMode: Unknown (0)
 Make: Canon
 ManualFlashOutput: n/a
 MaxAperture: 4
 MaxApertureValue: 4.5
+MaxFocalLength: 55 mm
 MeasuredEV: -1.25
 MeasuredEV2: -1.25
 MeasuredRGGB: 998 1022 1026 808
 MeteringMode: Center-weighted average
 MeteringMode (1): Average
 MinAperture: 27
+MinFocalLength: 18 mm
 Model: Canon EOS DIGITAL REBEL
 ModifyDate: 2003:12:04 06:46:52
 NDFilter: n/a
@@ -138,7 +139,6 @@ SerialNumber: 0560018150
 SerialNumberFormat: Format 1
 Sharpness: +1
 ShootingMode: Bulb
-ShortFocal: 18 mm
 ShutterSpeed: 4
 ShutterSpeedValue: 0
 SlowShutter: None

@@ -961,6 +961,7 @@ sub SetNewValuesFromFile($$;@)
         Lang            => $$options{Lang},
         LargeFileSupport=> $$options{LargeFileSupport},
         List            => 1,
+        ListSep         => $$options{ListSep},
         MakerNotes      => 1,
         MissingTagValue => $$options{MissingTagValue},
         Password        => $$options{Password},
@@ -2570,7 +2571,9 @@ sub ReverseLookup($$)
             $val = hex($val);   # convert hex value
         }
     } else {
-        my $qval = quotemeta $val;
+        my $qval = $val;
+        $qval =~ s/\s+$//;      # remove trailing whitespace
+        $qval = quotemeta $qval;
         my @patterns = (
             "^$qval\$",         # exact match
             "^(?i)$qval\$",     # case-insensitive
@@ -3693,6 +3696,20 @@ sub TimeNow(;$)
     return sprintf("%4d:%.2d:%.2d %.2d:%.2d:%.2d%s",
                    $tm[5]+1900, $tm[4]+1, $tm[3],
                    $tm[2], $tm[1], $tm[0], $tz);
+}
+
+#------------------------------------------------------------------------------
+# Generate a new, random GUID
+# Inputs: <none>
+# Returns: GUID string
+my $guidCount;
+sub NewGUID()
+{
+    my @tm = localtime time;
+    $guidCount = 0 unless defined $guidCount and ++$guidCount < 0x100;
+    return sprintf('%.4d%.2d%.2d%.2d%.2d%.2d%.2X%.4X%.4X%.4X%.4X',
+                   $tm[5]+1900, $tm[4]+1, $tm[3], $tm[2], $tm[1], $tm[0], $guidCount,
+                   $$ & 0xffff, rand(0x10000), rand(0x10000), rand(0x10000));
 }
 
 #------------------------------------------------------------------------------

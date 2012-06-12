@@ -42,6 +42,7 @@
 #              27) Jens Kriese private communication
 #              28) Warren Hatch private communication (D3v2.00 with SB-800 and SB-900)
 #              29) Anonymous contribution 2011/05/25 (D700, D7000)
+#              30) http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3833.30.html
 #              JD) Jens Duttke private communication
 #------------------------------------------------------------------------------
 
@@ -52,7 +53,7 @@ use vars qw($VERSION %nikonLensIDs %nikonTextEncoding);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '2.60';
+$VERSION = '2.63';
 
 sub LensIDConv($$$);
 sub ProcessNikonAVI($$$);
@@ -261,6 +262,8 @@ sub ProcessNikonCaptureEditVersions($$$);
     'AF 54 44 44 0C 0C B1 06' => 'AF-S Nikkor 35mm f/1.4G',
     'B0 4C 50 50 14 14 B2 06' => 'AF-S Nikkor 50mm f/1.8G',
     'B1 48 48 48 24 24 B3 06' => 'AF-S DX Micro Nikkor 40mm f/2.8G', #27
+    'B3 4C 62 62 14 14 B5 06' => 'AF-S Nikkor 85mm f/1.8G',
+    'B5 4C 3C 3C 14 14 B7 06' => 'AF-S Nikkor 28mm f/1.8G', #30
     '01 00 00 00 00 00 02 00' => 'TC-16A',
     '01 00 00 00 00 00 08 00' => 'TC-16A',
     '00 00 00 00 00 00 F1 0C' => 'TC-14E [II] or Sigma APO Tele Converter 1.4x EX DG or Kenko Teleplus PRO 300 DG 1.4x',
@@ -279,9 +282,9 @@ sub ProcessNikonCaptureEditVersions($$$);
     '02 46 37 37 25 25 02 00' => 'Sigma 24mm F2.8 Super Wide II Macro',
     '26 58 3C 3C 14 14 1C 02' => 'Sigma 28mm F1.8 EX DG Aspherical Macro',
     '48 54 3E 3E 0C 0C 4B 06' => 'Sigma 30mm F1.4 EX DC HSM',
-    '02 48 50 50 24 24 02 00' => 'Sigma Macro 50mm F2.8', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4027.0.html
     'F8 54 3E 3E 0C 0C 4B 06' => 'Sigma 30mm F1.4 EX DC HSM', #JD
     'DE 54 50 50 0C 0C 4B 06' => 'Sigma 50mm F1.4 EX DG HSM',
+    '02 48 50 50 24 24 02 00' => 'Sigma Macro 50mm F2.8', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4027.0.html
     '32 54 50 50 24 24 35 02' => 'Sigma Macro 50mm F2.8 EX DG',
     'E3 54 50 50 24 24 35 02' => 'Sigma Macro 50mm F2.8 EX DG', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3215.0.html
     '79 48 5C 5C 24 24 1C 06' => 'Sigma Macro 70mm F2.8 EX DG', #JD
@@ -433,9 +436,10 @@ sub ProcessNikonCaptureEditVersions($$$);
     '00 47 53 80 30 3C 00 06' => 'Tamron AF 55-200mm f/4-5.6 Di II LD (A15)',
     'F7 53 5C 80 24 24 84 06' => 'Tamron SP AF 70-200mm f/2.8 Di LD (IF) Macro (A001)',
     'FE 53 5C 80 24 24 84 06' => 'Tamron SP AF 70-200mm f/2.8 Di LD (IF) Macro (A001)',
+    'F7 53 5C 80 24 24 40 06' => 'Tamron SP AF 70-200mm F/2.8 Di LD (IF) Macro (A001)',
     '69 48 5C 8E 30 3C 6F 02' => 'Tamron AF 70-300mm f/4-5.6 LD Macro 1:2 (772D)',
     '69 47 5C 8E 30 3C 00 02' => 'Tamron AF 70-300mm f/4-5.6 Di LD Macro 1:2 (A17N)',
-    '00 48 5C 8E 30 3C 00 06' => 'Tamron AF 70-300mm f/4-5.6 Di LD Macro 1:2 (A17)', #JD
+    '00 48 5C 8E 30 3C 00 06' => 'Tamron AF 70-300mm f/4-5.6 Di LD Macro 1:2 (A17NII)', #JD
     'F1 47 5C 8E 30 3C DF 0E' => 'Tamron SP 70-300mm f/4-5.6 Di VC USD (A005)',
     '20 3C 80 98 3D 3D 1E 02' => 'Tamron AF 200-400mm f/5.6 LD IF (75D)',
     '00 3E 80 A0 38 3F 00 02' => 'Tamron SP AF 200-500mm f/5-6.3 Di LD (IF) (A08)',
@@ -612,6 +616,9 @@ my %retouchValues = ( #PH
     30 => 'Color Outline',
     31 => 'Soft Filter',
     33 => 'Miniature Effect',
+    34 => 'Skin Softening', # (S9200)
+    38 => 'Selective Color', # (S9200)
+    40 => 'Drawing', # (S9200)
 );
 
 my %offOn = ( 0 => 'Off', 1 => 'On' );
@@ -1324,8 +1331,8 @@ my %binaryDataAttrs = (
                 DirOffset => 10,
             },
         },
-        {   # (D3100=0215,D7000/D5100=0216)
-            Condition => '$$valPt =~ /^021[56]/',
+        {   # (D3100=0215,D7000/D5100=0216,D4/D800/D3200=0217)
+            Condition => '$$valPt =~ /^021[567]/',
             Name => 'ColorBalance0215',
             SubDirectory => {
                 TagTable => 'Image::ExifTool::Nikon::ColorBalance4',

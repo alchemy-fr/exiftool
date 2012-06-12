@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.81
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.94
 [File, System, Image] FileName - File Name: CanonRaw_4_failed.crw
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 12 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:03:04 15:24:02-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:06:04 09:17:08-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: CRW
 [File, File, Image] MIMEType - MIME Type: image/x-canon-crw
@@ -86,8 +86,8 @@
 [MakerNotes, Canon, Camera] 19 - AF Point: Manual AF point selection
 [MakerNotes, Canon, Camera] 20 - Canon Exposure Mode: Manual
 [MakerNotes, Canon, Camera] 22 - Lens Type: Unknown (-1)
-[MakerNotes, Canon, Camera] 23 - Long Focal: 55 mm
-[MakerNotes, Canon, Camera] 24 - Short Focal: 18 mm
+[MakerNotes, Canon, Camera] 23 - Max Focal Length: 55 mm
+[MakerNotes, Canon, Camera] 24 - Min Focal Length: 18 mm
 [MakerNotes, Canon, Camera] 25 - Focal Units: 1/mm
 [MakerNotes, Canon, Camera] 26 - Max Aperture: 4
 [MakerNotes, Canon, Camera] 27 - Min Aperture: 27
@@ -138,7 +138,7 @@
 [MakerNotes, CanonRaw, Image] 3 - Raw Jpg Width: 2048
 [MakerNotes, CanonRaw, Image] 4 - Raw Jpg Height: 1360
 [MakerNotes, CanonRaw, Camera] 6203 - Serial Number Format: Format 1
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.81
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.94
 [XMP, XMP-aux, Camera] Lens - Lens: 18.0 - 55.0 mm
 [XMP, XMP-aux, Camera] OwnerName - Owner Name: Phil Harvey
 [XMP, XMP-aux, Camera] SerialNumber - Serial Number: 1234

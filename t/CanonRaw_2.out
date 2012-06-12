@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.77
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.94
 [File, System, Image] FileName - File Name: CanonRaw.crw
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 6.7 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:01:22 13:29:41-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:01:23 07:18:37-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: CRW
 [File, File, Image] MIMEType - MIME Type: image/x-canon-crw
@@ -85,8 +85,8 @@
 [MakerNotes, Canon, Camera] 19 - AF Point: Manual AF point selection
 [MakerNotes, Canon, Camera] 20 - Canon Exposure Mode: Program AE
 [MakerNotes, Canon, Camera] 22 - Lens Type: Unknown (-1)
-[MakerNotes, Canon, Camera] 23 - Long Focal: 55 mm
-[MakerNotes, Canon, Camera] 24 - Short Focal: 18 mm
+[MakerNotes, Canon, Camera] 23 - Max Focal Length: 55 mm
+[MakerNotes, Canon, Camera] 24 - Min Focal Length: 18 mm
 [MakerNotes, Canon, Camera] 25 - Focal Units: 1/mm
 [MakerNotes, Canon, Camera] 26 - Max Aperture: 3.6
 [MakerNotes, Canon, Camera] 27 - Min Aperture: 22

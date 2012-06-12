@@ -15,7 +15,7 @@ use strict;
 use vars qw($VERSION $AUTOLOAD %iptcCharset);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.44';
+$VERSION = '1.45';
 
 %iptcCharset = (
     "\x1b%G"  => 'UTF8',
@@ -1069,6 +1069,16 @@ sub ProcessIPTC($$$)
         $pos = 0;
         $dirEnd = $pos + $dirLen;
         # NOTE: MUST NOT access $dirInfo DataPt, DirStart or DataLen after this!
+    }
+    # extract IPTC as a block if specified
+    if ($exifTool->{REQ_TAG_LOOKUP}{iptc} or ($exifTool->{OPTIONS}{Binary} and
+        not $exifTool->{EXCL_TAG_LOOKUP}{iptc}))
+    {
+        if ($pos or $dirLen != length($$dataPt)) {
+            $exifTool->FoundTag('IPTC', substr($$dataPt, $pos, $dirLen));
+        } else {
+            $exifTool->FoundTag('IPTC', $$dataPt);
+        }
     }
     while ($pos + 5 <= $dirEnd) {
         my $buff = substr($$dataPt, $pos, 5);

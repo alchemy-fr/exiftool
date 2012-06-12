@@ -1,4 +1,4 @@
-  ExifToolVersion = 8.17
+  ExifToolVersion = 8.94
   FileName = Canon.jpg
   Directory = t/images
   FileSize = 2697
@@ -169,10 +169,10 @@ JPEG APP1 (2442 bytes):
   | | | | LensType = -1
   | | | | - Tag 0x0016 (2 bytes, int16s[1]):
   | | | |     0414: ff ff                                           [..]
-  | | | | LongFocal = 55
+  | | | | MaxFocalLength = 55
   | | | | - Tag 0x0017 (2 bytes, int16u[1]):
   | | | |     0416: 37 00                                           [7.]
-  | | | | ShortFocal = 18
+  | | | | MinFocalLength = 18
   | | | | - Tag 0x0018 (2 bytes, int16u[1]):
   | | | |     0418: 12 00                                           [..]
   | | | | FocalUnits = 1

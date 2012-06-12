@@ -20,7 +20,7 @@ sub ProcessGE2($$$);
 sub WriteUnknownOrPreview($$$);
 sub FixLeicaBase($$;$);
 
-$VERSION = '1.72';
+$VERSION = '1.75';
 
 my $debug;          # set to 1 to enable debugging code
 
@@ -502,8 +502,8 @@ my $debug;          # set to 1 to enable debugging code
         },
     },
     {
-        Name => 'MakerNoteLeica4', # used by the M9
-        # (M9 starts with "LEICA0\x03\0")
+        Name => 'MakerNoteLeica4', # used by the M9/M-Monochrom
+        # (M9 and M Monochrom start with "LEICA0\x03\0")
         Condition => '$$self{Make} =~ /^Leica Camera AG/ and $$valPt =~ /^LEICA0/',
         SubDirectory => {
             TagTable => 'Image::ExifTool::Panasonic::Leica4',
@@ -513,9 +513,10 @@ my $debug;          # set to 1 to enable debugging code
         },
     },
     {
-        Name => 'MakerNoteLeica5', # used by the X1
+        Name => 'MakerNoteLeica5', # used by the X1/X2
         # (X1 starts with "LEICA\0\x01\0", Make is "LEICA CAMERA AG")
-        Condition => '$$valPt =~ /^LEICA\0\x01\0/',
+        # (X2 starts with "LEICA\0\x05\0", Make is "LEICA CAMERA AG")
+        Condition => '$$valPt =~ /^LEICA\0[\x01\x05]\0/',
         SubDirectory => {
             TagTable => 'Image::ExifTool::Panasonic::Leica5',
             Start => '$valuePtr + 8',
@@ -901,8 +902,10 @@ sub GetMakerNoteOffset($)
     } elsif ($make =~ /^(Panasonic|JVC)\b/) {
         push @offsets, 0;
     } elsif ($make =~ /^SONY/) {
-        # DSLR and "PREMI" models use an offset of 4
-        if ($model =~ /^(DSLR|SLT|NEX)-/ or $$exifTool{OlympusCAMER}) {
+        # earlier DSLR and "PREMI" models use an offset of 4
+        if ($model =~ /^(DSLR-.*|SLT-A(33|35|55V)|NEX-(3|5|C3|VG10E))$/ or
+            $$exifTool{OlympusCAMER})
+        {
             push @offsets, 4;
         } else {
             push @offsets, 0;
@@ -1109,8 +1112,9 @@ sub FixBase($$)
         if ($$dirInfo{FixBase} and $$dirInfo{FixBase} == 2) {
             return 0 if $diff >=0 and $diff <= 24;
         }
-        # (used for testing to extract differences)
+        # ******** (used for testing to extract differences) ********
         # $exifTool->FoundTag('Diff', $diff);
+        # $exifTool->FoundTag('MakeDiff',$makeDiff);
     }
 #
 # handle entry-based offsets
@@ -1320,11 +1324,19 @@ IFD_TRY: for ($offset=$firstTry; $offset<=$lastTry; $offset+=2) {
                 my $entry = $pos + 2 + 12 * $index;
                 my $format = Get16u($dataPt, $entry+2);
                 my $count = Get32u($dataPt, $entry+4);
-                # allow everything to be zero if not first entry
-                # because some manufacturers pad with null entries
-                next unless $format or $count or $index == 0;
-                # patch for Canon EOS 40D firmware 1.0.4 bug: allow zero format for last entry
-                next if $format==0 and $index==$num-1 and $$exifTool{Model}=~/EOS 40D/;
+                unless ($format) {
+                    # patch for buggy Samsung NX200 JPEG MakerNotes entry count
+                    if ($num == 23 and $index == 21 and $$exifTool{Make} eq 'SAMSUNG') {
+                        Set16u(21, $dataPt, $pos);  # really 21 IFD entries!
+                        $exifTool->Warn('Fixed incorrect Makernote entry count', 1);
+                        last;
+                    }
+                    # allow everything to be zero if not first entry
+                    # because some manufacturers pad with null entries
+                    next unless $count or $index == 0;
+                    # patch for Canon EOS 40D firmware 1.0.4 bug: allow zero format for last entry
+                    next if $index==$num-1 and $$exifTool{Model}=~/EOS 40D/;
+                }
                 # patch for Sony cameras like the DSC-P10 that have invalid MakerNote entries
                 next if $num == 12 and $$exifTool{Make} eq 'SONY' and $index >= 8;
                 # (would like to verify tag ID, but some manufactures don't

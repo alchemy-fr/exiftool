@@ -138,11 +138,15 @@ is an explanation of the meaning of each special key:
   which the unnumbered tag is known.
 
   NAMESPACE : Namespace prefix for tags in the XMP table.  If this isn't a
-  standard (pre-defined) namespace, then the URI must be defined as well.  To do
-  this, the NAMESPACE value is a reference to either a list or a hash, where the
-  first element (or hash key) is the namespace prefix and and the second element
-  (or hash value) is the URI.  This is undef for XMP tables in which tags have
-  variable namespaces, and in this case each tag must have a Namespace entry.
+  standard namespace defined in %Image::ExifTool::XMP::nsURI, then the URI must
+  be defined as well (however, this is not recommended for pre-defined
+  namespaces because then non-standard namespace prefixes won't be recognized). 
+  To define the URI, the NAMESPACE value is a reference to a hash where the key
+  is the namespace prefix and and the value is the URI (alternatively, a
+  reference to a 2-element array containing the prefix and URI is also allowed
+  for backward compatibility).  The NAMESAPCE value may be undef for XMP tables
+  where tags have variable namespaces (in this case each tag must have a
+  Namespace entry).
 
   PREFERRED : Set to true if the tags in this table should always be added when
   writing information.  Overrides the order specified by SetNewGroups().  When
@@ -748,7 +752,10 @@ numerical.
                   extracting tag to allow dynamic Format, etc for BinaryData
                   tags.  May access $self, and assign a new value to $format to
                   dynamically set the tag format, and/or increment $varSize to
-                  add a byte offset to subsequent tags.
+                  add a byte offset to subsequent tags.  $varSize may be set to
+                  a large number to effectively abort processing of the
+                  directory after this tag.  Must have corresponding DATAMEMBER
+                  entry in writable tables.
 
   TagID         : [reserved] Used internally to save the table key for this tag.
                   Note: For XMP tables this corresponds to the XMP property

@@ -1,7 +1,7 @@
 # Before "make install", this script should be runnable with "make test".
 # After "make install" it should work as "perl t/IPTC.t".
 
-BEGIN { $| = 1; print "1..7\n"; $Image::ExifTool::noConfig = 1; }
+BEGIN { $| = 1; print "1..8\n"; $Image::ExifTool::noConfig = 1; }
 END {print "not ok 1\n" unless $loaded;}
 
 # test 1: Load the module(s)
@@ -134,6 +134,23 @@ my $testnum = 1;
         ['IPTC:Keywords' => 'Two'],
     );
     print 'not ' unless writeCheck(\@writeInfo, $testname, $testnum, 't/images/IPTC.jpg', 1);
+    print "ok $testnum\n";
+}
+
+# test 8: Write IPTC as a block
+{
+    ++$testnum;
+    my $exifTool = new Image::ExifTool;
+    my $testfile = "t/${testname}_${testnum}_failed.jpg";
+    unlink $testfile;
+    $exifTool->SetNewValuesFromFile('t/images/IPTC.jpg', 'IPTC');
+    my $ok = writeInfo($exifTool,'t/images/Writer.jpg',$testfile);
+    my $info = $exifTool->ImageInfo($testfile, 'IPTC:*');
+    if (check($exifTool, $info, $testname, $testnum) and $ok) {
+        unlink $testfile;
+    } else {
+        print 'not ';
+    }
     print "ok $testnum\n";
 }
 

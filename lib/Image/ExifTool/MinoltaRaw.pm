@@ -17,7 +17,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Minolta;
 
-$VERSION = '1.12';
+$VERSION = '1.13';
 
 sub ProcessMRW($$;$);
 sub WriteMRW($$;$);
@@ -308,7 +308,7 @@ sub WriteMRW($$;$);
     },
     76 => { #3
         Name => 'ColorTemperature',
-        Condition => '$$self{Make} =~ /^SONY/ and $$self{Model} eq "DSLR-A100"',
+        Condition => '$$self{Model} eq "DSLR-A100"',
         Notes => 'A100',
         ValueConv => '$val * 100',
         ValueConvInv => '$val / 100',
@@ -317,12 +317,12 @@ sub WriteMRW($$;$);
     },
     77 => { #3
         Name => 'ColorFilter',
-        Condition => '$$self{Make} =~ /^SONY/ and $$self{Model} eq "DSLR-A100"',
+        Condition => '$$self{Model} eq "DSLR-A100"',
         Notes => 'A100',
     },
     78 => { #3
         Name => 'ColorTemperature',
-        Condition => '$$self{Make} =~ /^SONY/ and $$self{Model} =~ /^DSLR-A(200|700)$/',
+        Condition => '$$self{Model} =~ /^DSLR-A(200|700)$/',
         Notes => 'A200 and A700',
         ValueConv => '$val * 100',
         ValueConvInv => '$val / 100',
@@ -331,8 +331,15 @@ sub WriteMRW($$;$);
     },
     79 => { #3
         Name => 'ColorFilter',
-        Condition => '$$self{Make} =~ /^SONY/ and $$self{Model} =~ /^DSLR-A(200|700)$/',
+        Condition => '$$self{Model} =~ /^DSLR-A(200|700)$/',
         Notes => 'A200 and A700',
+    },
+    80 => { #3
+        Name => 'RawDataLength',
+        Condition => '$$self{Model} eq "DSLR-A100"',
+        Format => 'int32u',
+        Notes => 'A100',
+        Writable => 0,
     },
 );
 

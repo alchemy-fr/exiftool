@@ -3221,7 +3221,6 @@ $VERSION = '1.19';
         'n/a' => '未設定',
       },
     },
-   'LongFocal' => '最長焦点',
    'LookupTable' => 'ルックアップテーブル',
    'LoopStyle' => {
       PrintConv => {
@@ -4911,7 +4910,6 @@ $VERSION = '1.19';
       },
     },
    'ShortDocumentID' => '短文書ID',
-   'ShortFocal' => '最短焦点',
    'ShortOwnerName' => '短いオーナー名',
    'ShortReleaseTimeLag' => {
       Description => 'レリーズタイムラグ最速化',

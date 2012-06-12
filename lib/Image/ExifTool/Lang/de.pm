@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::de;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.23';
+$VERSION = '1.24';
 
 %Image::ExifTool::Lang::de::Translate = (
    'AEAperture' => 'AE-Blende',
@@ -3146,7 +3146,6 @@ $VERSION = '1.23';
         'n/a' => 'Nicht gesetzt',
       },
     },
-   'LongFocal' => 'Größte Brennweite',
    'Luminance' => 'Luminanz',
    'LuminanceNoiseReduction' => {
       PrintConv => {
@@ -3939,7 +3938,6 @@ $VERSION = '1.23';
         'Unknown' => 'Unbekannt',
       },
     },
-   'PreviewHeight' => 'Vorschaubild-Höhe',
    'PreviewIFD' => 'Preview-IFD-Zeiger',
    'PreviewImage' => 'Vorschaubild',
    'PreviewImageBorders' => 'Vorschaubild-Ränder',
@@ -3965,7 +3963,6 @@ $VERSION = '1.23';
         'Superfine' => 'Superfein',
       },
     },
-   'PreviewWidth' => 'Vorschaubild-Breite',
    'PrimaryAFPoint' => {
       Description => 'Primärer AF-Punkt',
       PrintConv => {
@@ -4660,7 +4657,6 @@ $VERSION = '1.23';
       },
     },
    'ShortDocumentID' => 'Kurze Bild-ID',
-   'ShortFocal' => 'Kleinste Brennweite',
    'ShortReleaseTimeLag' => {
       Description => 'Verkürzte Auslöseverzögerung',
       PrintConv => {

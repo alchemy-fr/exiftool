@@ -50,7 +50,7 @@ use vars qw($VERSION $AUTOLOAD @formatSize @formatName %formatNumber %intFormat
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::MakerNotes;
 
-$VERSION = '3.41';
+$VERSION = '3.43';
 
 sub ProcessExif($$$);
 sub WriteExif($$$);
@@ -1186,7 +1186,7 @@ my %sampleFormat = (
     0x835e => 'UIC3Tag', #23
     0x835f => 'UIC4Tag', #23
     0x83bb => { #12
-        Name => 'IPTC-NAA', # (writable directory!)
+        Name => 'IPTC-NAA', # (writable directory! -- but see note below)
         # this should actually be written as 'undef' (see
         # http://www.awaresystems.be/imaging/tiff/tifftags/iptc.html),
         # but Photoshop writes it as int32u and Nikon Capture won't read
@@ -1199,6 +1199,9 @@ my %sampleFormat = (
             DirName => 'IPTC',
             TagTable => 'Image::ExifTool::IPTC::Main',
         },
+        # Note: This directory may be written as a block via the IPTC-NAA tag,
+        # but this technique is not recommended.  Instead, it is better to
+        # write the Extra IPTC tag and let ExifTool decide where it should go.
     },
     0x847e => 'IntergraphPacketData', #3
     0x847f => 'IntergraphFlagRegisters', #3
@@ -2605,7 +2608,9 @@ my %sampleFormat = (
             $val =~ tr/,/./;    # in case locale is whacky
             my @v = split ' ', $val;
             $v[1] or return sprintf("inf (%.2f m - inf)", $v[0]);
-            return sprintf("%.2f m (%.2f - %.2f)",$v[1]-$v[0],$v[0],$v[1]);
+            my $dof = $v[1] - $v[0];
+            my $fmt = ($dof>0 and $dof<0.02) ? "%.3f" : "%.2f";
+            return sprintf("$fmt m ($fmt - $fmt)",$dof,$v[0],$v[1]);
         },
     },
     FOV => {
@@ -2847,8 +2852,8 @@ my %sampleFormat = (
             1 => 'FocalLength',
             2 => 'MaxAperture',
             3 => 'MaxApertureValue',
-            4 => 'ShortFocal',
-            5 => 'LongFocal',
+            4 => 'MinFocalLength',
+            5 => 'MaxFocalLength',
             6 => 'LensModel',
             7 => 'LensFocalRange',
             8 => 'LensSpec',
@@ -3283,7 +3288,7 @@ sub GetLensInfo($;$)
 # Attempt to identify the specific lens if multiple lenses have the same LensType
 # Inputs: 0) ExifTool object ref, 1) LensType print value, 2) LensSpec print value
 #         3) LensType numerical value, 4) FocalLength, 5) MaxAperture,
-#         6) MaxApertureValue, 7) ShortFocal, 8) LongFocal, 9) LensModel,
+#         6) MaxApertureValue, 7) MinFocalLength, 8) MaxFocalLength, 9) LensModel,
 #         10) LensFocalRange, 11) LensSpec, 12) optional PrintConv hash ref
 sub PrintLensID($$@)
 {
@@ -3313,7 +3318,8 @@ sub PrintLensID($$@)
         ($shortFocal, $longFocal) = ($1, $2 || $1);
     }
     if ($shortFocal and $longFocal) {
-        # Canon includes makernote information which allows better lens identification
+        # Canon (and some other makes) include makernote information
+        # which allows better lens identification
         require Image::ExifTool::Canon;
         return Image::ExifTool::Canon::PrintLensID($printConv, $lensType,
                     $shortFocal, $longFocal, $maxAperture, $lensModel);
@@ -4136,6 +4142,9 @@ sub ProcessExif($$$)
                     $exifTool->Warn("Invalid $tagStr data");
                     $invalid = 1;
                 } else {
+                    if (not $subdirInfo{DirName} and $inMakerNotes) {
+                        $subdirInfo{DirName} = $$tagInfo{Name};
+                    }
                     # process the subdirectory
                     $ok = $exifTool->ProcessDirectory(\%subdirInfo, $newTagTable, $$subdir{ProcessProc});
                 }

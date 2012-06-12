@@ -24,6 +24,7 @@
 #              16) Godfrey DiGiorgi private communcation (E-P1) + http://forums.dpreview.com/forums/read.asp?message=33187567
 #              17) Martin Hibers private communication
 #              18) Tomasz Kawecki private communication
+#              19) Brad Grier private communication
 #------------------------------------------------------------------------------
 
 package Image::ExifTool::Olympus;
@@ -33,7 +34,7 @@ use vars qw($VERSION);
 use Image::ExifTool::Exif;
 use Image::ExifTool::APP12;
 
-$VERSION = '1.88';
+$VERSION = '1.90';
 
 sub PrintLensInfo($$$);
 
@@ -66,7 +67,9 @@ my %olympusLensTypes = (
     '0 16 16'=> 'Olympus M.Zuiko Digital ED 12-50mm F3.5-6.3 EZ', #PH
     '0 17 16'=> 'Olympus M.Zuiko Digital 45mm F1.8', #17
     '0 19 16'=> 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6 II R', #PH
-    '0 20 16'=> 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6 II', #11
+    '0 20 16'=> 'Olympus M.Zuiko Digital ED 15-150mm II or 40-150mm R',
+    '0 20 16.1' => 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6 II', #11
+    '0 20 16.2' => 'Olympus M.Zuiko Digital ED 40-150mm F4.0-5.6 R', #19
     '0 21 0' => 'Olympus Zuiko Digital ED 7-14mm F4.0',
     '0 23 0' => 'Olympus Zuiko Digital Pro ED 35-100mm F2.0', #7
     '0 24 0' => 'Olympus Zuiko Digital 14-45mm F3.5-5.6',
@@ -112,6 +115,7 @@ my %olympusLensTypes = (
     '2 8 16' => 'Lumix G Fisheye 8mm F3.5', #PH
     '2 9 16' => 'Lumix G Vario 100-300mm F4.0-5.6 OIS', #11
     '2 16 16'=> 'Lumix G 14mm F2.5 Asph.', #17
+    '2 21 16'=> 'Lumix G X Vario 12-35mm F2.8 ASPH Power OIS', #PH
     '3 1 0'  => 'Leica D Vario Elmarit 14-50mm F2.8-3.5 Asph.',
     '3 2 0'  => 'Leica D Summilux 25mm F1.4 Asph.',
 );
@@ -271,8 +275,10 @@ my %olympusCameraTypes = (
     D4504 => 'TG-615',
     D4508 => 'TG-620',
     D4510 => 'TG-820',
+    D4512 => 'TG-1',
     D4516 => 'SH-21',
     D4519 => 'SZ-14',
+    D4520 => 'SZ-31MR',
     D4521 => 'SH-25MR',
     D4529 => 'VG170',
     D4535 => 'SP-620UZ',
@@ -400,14 +406,14 @@ my %olympusCameraTypes = (
 #    V8300s => 'Vivitar V8300s',
 );
 
-# ArtFilter and MagicFilter values (ref PH)
+# ArtFilter, ArtFilterEffect and MagicFilter values (ref PH)
 my %filters = (
     0 => 'Off',
     1 => 'Soft Focus', # (XZ-1)
-    2 => 'Pop Art', # (SZ-10 magic filter 1)
+    2 => 'Pop Art', # (SZ-10 magic filter 1,SZ-31MR,E-M5,E-PL3)
     3 => 'Pale & Light Color',
     4 => 'Light Tone',
-    5 => 'Pin Hole', # (SZ-10 magic filter 2)
+    5 => 'Pin Hole', # (SZ-10 magic filter 2,SZ-31MR,E-PL3)
     6 => 'Grainy Film',
     9 => 'Diorama',
     10 => 'Cross Process',
@@ -415,17 +421,20 @@ my %filters = (
     13 => 'Drawing', # (SZ-10 magic filter 4)
     14 => 'Gentle Sepia', # (E-5)
     15 => 'Tender Light', #11
-    16 => 'Pop Art II', #11
-    17 => 'Pin Hole II', #11
-    18 => 'Pin Hole III', #11
+    16 => 'Pop Art II', #11 (E-PL3 "(dark)" - PH)
+    17 => 'Pin Hole II', #11 (E-PL3 "(color 2)" - PH)
+    18 => 'Pin Hole III', #11 (E-M5, E-PL3 "(color 3)" - PH)
     19 => 'Grainy Film II', #11
-    20 => 'Dramatic Tone', # (XZ-1)
+    20 => 'Dramatic Tone', # (XZ-1,SZ-31MR)
     21 => 'Punk', # (SZ-10 magic filter 6)
     22 => 'Soft Focus 2', # (SZ-10 magic filter 5)
     23 => 'Sparkle', # (SZ-10 magic filter 7)
     24 => 'Watercolor', # (SZ-10 magic filter 8)
-    28 => 'Reflection', # (TG-820)
-    29 => 'Fragmented', # (TG-820)
+    25 => 'Key Line', # (E-M5)
+    27 => 'Miniature', # (SZ-31MR)
+    28 => 'Reflection', # (TG-820,SZ-31MR)
+    29 => 'Fragmented', # (TG-820,SZ-31MR)
+    32 => 'Dramatic Tone B&W', # (E-M5)
 );
 
 # tag information for WAV "Index" tags
@@ -2118,6 +2127,7 @@ my %indexInfo = (
         Count => -1,
         Relist => [ [0..2], 3 ], # join values 0-2 for PrintConv
         PrintConv => [{
+           '0 0 0' => 'n/a', #PH (?)
            '-1 -1 1' => 'Low Key',
             '0 -1 1' => 'Normal',
             '1 -1 1' => 'High Key',
@@ -2202,6 +2212,7 @@ my %indexInfo = (
         Writable => 'int16s',
         Count => 3,
         PrintConv => {
+           '0 0 0' => 'n/a', #PH (?)
            '-2 -2 1' => 'Off',
            '-1 -2 1' => 'Low',
            '0 -2 1' => 'Standard',
@@ -2228,6 +2239,7 @@ my %indexInfo = (
         Writable => 'int16s',
         Count => 3,
         PrintConv => {
+           '0 0 0' => 'n/a', #PH (?)
            '-1 -1 1' => 'Low',
            '0 -1 1' => 'Standard',
            '1 -1 1' => 'High',
@@ -3543,6 +3555,100 @@ my %indexInfo = (
     },
 );
 
+# yet a different QuickTime TAGS format (PH, E-M5)
+%Image::ExifTool::Olympus::MOV3 = (
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    NOTES => 'QuickTime information found in the TAGS atom of MOV videos from the E-M5.',
+    OLYM => {
+        Name => 'OlympusAtom',
+        SubDirectory => { TagTable => 'Image::ExifTool::Olympus::OLYM2' },
+    },
+);
+
+# yet a different QuickTime OLYM atom format (PH, E-M5)
+%Image::ExifTool::Olympus::OLYM2 = (
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    prms => {
+        Name => 'MakerNotes',
+        SubDirectory => { TagTable => 'Image::ExifTool::Olympus::prms' },
+    },
+    thmb =>{
+        Name => 'ThumbInfo',
+        SubDirectory => { TagTable => 'Image::ExifTool::Olympus::thmb2' },
+    },
+    scrn =>{
+        Name => 'PreviewInfo',
+        SubDirectory => { TagTable => 'Image::ExifTool::Olympus::scrn2' },
+    },
+);
+
+# the "prms" atom in E-M5 MOV videos (PH, E-M5)
+%Image::ExifTool::Olympus::prms = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    FIRST_ENTRY => 0,
+    NOTES => q{
+        Information extracted from the "prms" atom in MOV videos from Olympus models
+        such as the OM E-M5.
+    },
+    0x12 => {
+        Name => 'Make',
+        Format => 'string[24]',
+    },
+    0x2c => {
+        Name => 'Model',
+        Description => 'Camera Model Name',
+        Format => 'string[24]',
+        SeparateTable => 'CameraType',
+        PrintConv => \%olympusCameraTypes,
+    },
+    0x83 => {
+        Name => 'DateTime1',
+        Format => 'string[24]',
+        Groups => { 2 => 'Time' },
+    },
+    0x9d => {
+        Name => 'DateTime2',
+        Format => 'string[24]',
+        Groups => { 2 => 'Time' },
+    },
+);
+
+# yet a different "thmb" atom format (PH, E-M5)
+%Image::ExifTool::Olympus::thmb2 = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    0 => {
+        Name => 'ThumbnailWidth',
+        Format => 'int16u',
+    },
+    2 => {
+        Name => 'ThumbnailHeight',
+        Format => 'int16u',
+    },
+    4 => {
+        Name => 'ThumbnailLength',
+        Format => 'int32u',
+    },
+    8 => {
+        Name => 'ThumbnailImage',
+        Format => 'undef[$val{4}]',
+        Notes => '160x120 JPEG thumbnail image',
+        RawConv => '$self->ValidateImage(\$val,$tag)',
+    },
+);
+
+# yet a different "scrn" atom format (PH, E-M5)
+%Image::ExifTool::Olympus::scrn2 = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    # 0 => int16u: 1 - number of preview images?
+    2 => {
+        Name => 'OlympusPreview',
+        SubDirectory => { TagTable => 'Image::ExifTool::Olympus::scrn' },
+    },
+);
+
 # movable information found in MP4 videos
 %Image::ExifTool::Olympus::MovableInfo = (
     PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
@@ -3691,22 +3797,8 @@ my %indexInfo = (
         Groups => { 2 => 'Time' },
     },
     0x129 => {
-        Name => 'ThumbnailWidth',
-        Format => 'int16u',
-    },
-    0x12b => {
-        Name => 'ThumbnailHeight',
-        Format => 'int16u',
-    },
-    0x12d => {
-        Name => 'ThumbnailLength',
-        Format => 'int32u',
-    },
-    0x131 => {
-        Name => 'ThumbnailImage',
-        Format => 'undef[$val{0x12d}]',
-        Notes => '160x120 JPEG thumbnail image',
-        RawConv => '$self->ValidateImage(\$val,$tag)',
+        Name => 'ThumbInfo',
+        SubDirectory => { TagTable => 'Image::ExifTool::Olympus::thmb2' },
     },
 );
 

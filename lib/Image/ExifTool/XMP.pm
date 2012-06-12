@@ -46,7 +46,7 @@ use Image::ExifTool qw(:Utils);
 use Image::ExifTool::Exif;
 require Exporter;
 
-$VERSION = '2.50';
+$VERSION = '2.52';
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(EscapeXML UnescapeXML);
 
@@ -152,6 +152,7 @@ my %xmpNS = (
     stArea    => 'http://ns.adobe.com/xmp/sType/Area#',
     extensis  => 'http://ns.extensis.com/extensis/1.0/',
     ics       => 'http://ns.idimager.com/ics/1.0/',
+    fpv       => 'http://ns.fastpictureviewer.com/fpv/1.0/',
 );
 
 # build reverse namespace lookup
@@ -592,6 +593,10 @@ my %sLocationDetails = (
     ics => {
         Name => 'ics',
         SubDirectory => { TagTable => 'Image::ExifTool::XMP::ics' },
+    },
+    fpv => {
+        Name => 'fpv',
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::fpv' },
     },
 );
 
@@ -2382,7 +2387,7 @@ sub GetXMPTagID($;$$)
 
 #------------------------------------------------------------------------------
 # Register namespace for specified user-defined table
-# Inputs: 0) tag or structure table ref
+# Inputs: 0) tag/structure table ref
 # Returns: namespace prefix
 sub RegisterNamespace($)
 {
@@ -3230,7 +3235,7 @@ sub ProcessXMP($$;$)
 {
     my ($exifTool, $dirInfo, $tagTablePtr) = @_;
     my $dataPt = $$dirInfo{DataPt};
-    my ($dirStart, $dirLen, $dataLen);
+    my ($dirStart, $dirLen, $dataLen, $double);
     my ($buff, $fmt, $hasXMP, $isXML, $isRDF, $isSVG);
     my $rtnVal = 0;
     my $bom = 0;
@@ -3250,12 +3255,14 @@ sub ProcessXMP($$;$)
         $dirStart = $$dirInfo{DirStart} || 0;
         $dirLen = $$dirInfo{DirLen} || (length($$dataPt) - $dirStart);
         $dataLen = $$dirInfo{DataLen} || length($$dataPt);
+        # check leading BOM (may indicate double-encoded UTF)
+        pos($$dataPt) = $dirStart;
+        $double = $1 if $$dataPt =~ /\G((\0\0)?\xfe\xff|\xff\xfe(\0\0)?|\xef\xbb\xbf)\0*<\0*\?\0*x\0*p\0*a\0*c\0*k\0*e\0*t/g;
     } else {
-        my $type;
+        my ($type, $buf2, $buf3);
         # read information from XMP file
         my $raf = $$dirInfo{RAF} or return 0;
         $raf->Read($buff, 256) or return 0;
-        my ($buf2, $buf3, $double);
         ($buf2 = $buff) =~ tr/\0//d;    # cheap conversion to UTF-8
         # remove leading comments if they exist (ie. ImageIngester)
         while ($buf2 =~ /^\s*<!--/) {
@@ -3367,38 +3374,46 @@ sub ProcessXMP($$;$)
             $size = pos($buff) - 3;     # (discard ']]>' and after)
             $buff = substr($buff, 0, $size);
         } else {
+            # read the entire file
             $raf->Seek(0, 2) or return 0;
             $size = $raf->Tell() or return 0;
             $raf->Seek(0, 0) or return 0;
             $raf->Read($buff, $size) == $size or return 0;
-            # decode the first layer of double-encoded UTF text
-            if ($double) {
-                $buff = substr($buff, length $double);  # remove leading BOM
-                Image::ExifTool::SetWarning(undef);     # clear old warning
-                local $SIG{'__WARN__'} = \&Image::ExifTool::SetWarning;
-                my $tmp;
-                # assume that character data has been re-encoded in UTF, so re-pack
-                # as characters and look for warnings indicating a false assumption
-                if ($double eq "\xef\xbb\xbf") {
-                    require Image::ExifTool::Charset;
-                    my $uni = Image::ExifTool::Charset::Decompose(undef,$buff,'UTF8');
-                    $tmp = pack('C*', @$uni);
-                } else {
-                    my $fmt = ($double eq "\xfe\xff") ? 'n' : 'v';
-                    $tmp = pack('C*', unpack("$fmt*",$buff));
-                }
-                if (Image::ExifTool::GetWarning()) {
-                    $exifTool->Warn('Superfluous BOM at start of XMP');
-                } else {
-                    $exifTool->Warn('XMP is double UTF-encoded');
-                    $buff = $tmp;   # use the decoded XMP
-                }
-                $size = length $buff;
-            }
         }
         $dataPt = \$buff;
         $dirStart = 0;
         $dirLen = $dataLen = $size;
+    }
+
+    # decode the first layer of double-encoded UTF text (if necessary)
+    if ($double) {
+        my ($buf2, $fmt);
+        $buff = substr($$dataPt, $dirStart + length $double); # remove leading BOM
+        Image::ExifTool::SetWarning(undef); # clear old warning
+        local $SIG{'__WARN__'} = \&Image::ExifTool::SetWarning;
+        # assume that character data has been re-encoded in UTF, so re-pack
+        # as characters and look for warnings indicating a false assumption
+        if ($double eq "\xef\xbb\xbf") {
+            require Image::ExifTool::Charset;
+            my $uni = Image::ExifTool::Charset::Decompose(undef,$buff,'UTF8');
+            $buf2 = pack('C*', @$uni);
+        } else {
+            if (length($double) == 2) {
+                $fmt = ($double eq "\xfe\xff") ? 'n' : 'v';
+            } else {
+                $fmt = ($double eq "\0\0\xfe\xff") ? 'N' : 'V';
+            }
+            $buf2 = pack('C*', unpack("$fmt*",$buff));
+        }
+        if (Image::ExifTool::GetWarning()) {
+            $exifTool->Warn('Superfluous BOM at start of XMP');
+            $dataPt = \$buff;   # use XMP with the BOM removed
+        } else {
+            $exifTool->Warn('XMP is double UTF-encoded');
+            $dataPt = \$buf2;   # use the decoded XMP
+        }
+        $dirStart = 0;
+        $dirLen = $dataLen = length $$dataPt;
     }
 
     # extract XMP as a block if specified
@@ -3499,7 +3514,12 @@ sub ProcessXMP($$;$)
 
     # parse the XMP
     $tagTablePtr or $tagTablePtr = GetTagTable('Image::ExifTool::XMP::Main');
-    $rtnVal = 1 if ParseXMPElement($exifTool, $tagTablePtr, $dataPt, $dirStart, $dirEnd);
+    if (ParseXMPElement($exifTool, $tagTablePtr, $dataPt, $dirStart, $dirEnd)) {
+        $rtnVal = 1;
+    } elsif ($$dirInfo{DirName} and $$dirInfo{DirName} eq 'XMP') {
+        # if DirName was 'XMP' we expect well-formed XMP, so set Warning since it wasn't
+        $exifTool->Warn('Invalid XMP');
+    }
 
     # return DataPt if successful in case we want it for writing
     $$dirInfo{DataPt} = $dataPt if $rtnVal and $$dirInfo{RAF};

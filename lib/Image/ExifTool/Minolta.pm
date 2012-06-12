@@ -50,7 +50,9 @@ use vars qw($VERSION %minoltaLensTypes %minoltaTeleconverters %minoltaColorMode
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.89';
+sub PrintAFStatus($);
+
+$VERSION = '1.92';
 
 # Full list of product codes for Sony-compatible Minolta lenses
 # (ref http://www.kb.sony.com/selfservice/documentLink.do?externalId=C1000570)
@@ -265,6 +267,7 @@ $VERSION = '1.89';
     61 => 'Sony 85mm F2.8 SAM (SAL85F28)', #17/25
     62 => 'Sony DT 35mm F1.8 SAM (SAL35F18)', #PH/25
     63 => 'Sony DT 16-50mm F2.8 SSM (SAL1650)', #17/25
+    64 => 'Sony 500mm F4.0 G SSM (SAL500F40G)', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4086.0.html
     128 => 'Tamron or Sigma Lens (128)',
     128.1 => 'Tamron 18-200mm F3.5-6.3',
     128.2 => 'Tamron 28-300mm F3.5-6.3',
@@ -472,6 +475,11 @@ $VERSION = '1.89';
     6 => 'B&W',
     7 => 'Adobe RGB',
     12 => 'Neutral', # Sony
+    13 => 'Clear', #25 (NC)
+    14 => 'Deep', #25
+    15 => 'Light', #25 (NC)
+    16 => 'Autumn', #25 (NC)
+    17 => 'Sepia', #25
     100 => 'Neutral', #JD
     101 => 'Clear', #JD
     102 => 'Deep', #JD
@@ -531,6 +539,21 @@ my %exposureIndicator = (
 my %onOff = ( 0 => 'On', 1 => 'Off' );
 my %offOn = ( 0 => 'Off', 1 => 'On' );
 
+# tag information for AFStatus tags
+my %afStatusInfo = (
+    Format => 'int8s[2]',
+    PrintConv => sub {
+        my $val = shift;
+        my @v = split ' ', $val;
+        # first number may be related somehow to the focus quality (larger for bad focus)
+        # second number gives degree of front or back focus (-128 = totally out-of-focus)
+        my $str = $v[1] ? ($v[1] > 0 ? 'Back' : 'Front') : 'In';
+        $v[1] = "+$v[1]" if $v[1] > 0;
+        return "$str Focus ($v[1]); Rank $v[0]";
+    },
+    PrintConvInv => '$val=~/\(([-+]?\d+)\).*;.*([-+]?\d+)/ ? "$2 $1" : undef',
+);
+
 # Minolta tag table
 %Image::ExifTool::Minolta::Main = (
     WRITE_PROC => \&Image::ExifTool::Exif::WriteExif,
@@ -565,17 +588,31 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
             ByteOrder => 'BigEndian',
         },
     },
+    0x0010 => { #20 (count: 256)
+        Name => 'CameraInfoA100',
+        Condition => '$$self{Model} eq "DSLR-A100"',
+        SubDirectory => { TagTable => 'Image::ExifTool::Minolta::CameraInfoA100' },
+    },
     # it appears that image stabilization is on if this tag exists (ref 2),
     # but it is an 8kB binary data block!
-    0x0018 => {
-        Name => 'ImageStabilization',
-        Condition => '$self->{Model} =~ /^DiMAGE (A1|A2|X1)$/',
-        Notes => q{
-            a block of binary data which exists in DiMAGE A2 (and A1/X1?) images only if
-            image stabilization is enabled
+    0x0018 => [
+        {
+            Name => 'ISInfoA100',
+            Condition => '$self->{Model} eq "DSLR-A100"',
+            SubDirectory => {
+                TagTable => 'Image::ExifTool::Minolta::ISInfoA100',
+                ByteOrder => 'BigEndian',
+            },
+        },{
+            Name => 'ImageStabilization',
+            Condition => '$self->{Model} =~ /^DiMAGE (A1|A2|X1)$/',
+            Notes => q{
+                a block of binary data which exists in DiMAGE A2 (and A1/X1?) images only if
+                image stabilization is enabled
+            },
+            ValueConv => '"On"',
         },
-        ValueConv => '"On"',
-    },
+    ],
     0x0020 => {
         Name => 'WBInfoA100',
         Condition => '$$self{Model} eq "DSLR-A100"',
@@ -1568,6 +1605,114 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
     },
 );
 
+# Camera settings used by the Sony DSLR-A100 (ref 20)
+%Image::ExifTool::Minolta::CameraInfoA100 = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    WRITE_PROC => \&Image::ExifTool::WriteBinaryData,
+    CHECK_PROC => \&Image::ExifTool::CheckBinaryData,
+    NOTES => 'Camera information for the Sony DSLR-A100.',
+    WRITABLE => 1,
+    PRIORITY => 0, # may not be as reliable as other information
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    FIRST_ENTRY => 0,
+    0x01 => { #PH
+        Name => 'ActiveAFSensor',
+        PrintConv => {
+            0 => 'Top-Right',
+            1 => 'Bottom-Right',
+            2 => 'Bottom',
+            3 => 'Middle Horizontal',
+            4 => 'Center Vertical',
+            5 => 'Top',
+            6 => 'Top-Left',
+            7 => 'Bottom-Left',
+        },
+    },
+    0x02 => {
+        Name => 'ActiveAFSensorStatus',
+        %afStatusInfo,
+        Notes => q{
+            the focus status at shutter release.  May not reflect the status after
+            focusing if the image is focused then recomposed
+        },
+    },
+    0x04 => { Name => 'Top-RightAFStatus',      %afStatusInfo },
+    0x06 => { Name => 'Bottom-RightAFStatus',   %afStatusInfo },
+    0x08 => { Name => 'BottomAFStatus',         %afStatusInfo },
+    0x0a => {
+        Name => 'MiddleHorizontalAFStatus',
+        %afStatusInfo,
+        Notes => q{
+            any of the three horizontal sensors at the middle of the focus frame: Left,
+            Center or Right
+        },
+    },
+    0x0c => { Name => 'CenterVerticalAFStatus', %afStatusInfo },
+    0x0e => { Name => 'TopAFStatus',            %afStatusInfo },
+    0x10 => { Name => 'Top-LeftAFStatus',       %afStatusInfo },
+    0x12 => { Name => 'Bottom-LeftAFStatus',    %afStatusInfo },
+    0x14 => {
+        Name => 'FocusLocked',
+        # (Focus can be locked in all modes other than Manual and Continuous,
+        # and the latter can be overridden by pushing the Spot AF button)
+        PrintConv => {
+            0 => 'Manual Focus',
+            4 => 'No',
+            16 => 'Continuous Focus',
+            64 => 'Yes',
+        },
+    },
+    0x15 => {
+        Name => 'AFPoint',
+        PrintConvColumns => 2,
+        PrintConv => {
+            0 => 'Auto',
+            1 => 'Center',
+            2 => 'Top',
+            3 => 'Top-Right',
+            4 => 'Right',
+            5 => 'Bottom-Right',
+            6 => 'Bottom',
+            7 => 'Bottom-Left',
+            8 => 'Left',
+            9 => 'Top-Left',
+        },
+    },
+    0x16 => {
+        Name => 'AFMode',
+        PrintConv => {
+            0 => 'DMF',
+            1 => 'AF-S',
+            2 => 'AF-C',
+            3 => 'AF-A',
+        },
+    },
+    0x2d => { Name => 'LeftAFStatus',            %afStatusInfo },
+    0x2f => { Name => 'CenterHorizontalAFStatus',%afStatusInfo },
+    0x31 => { Name => 'RightAFStatus',           %afStatusInfo },
+);
+
+# Image stabilization inforamtion used by the Sony DSLR-A100 (ref 20)
+%Image::ExifTool::Minolta::ISInfoA100 = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    WRITE_PROC => \&Image::ExifTool::WriteBinaryData,
+    CHECK_PROC => \&Image::ExifTool::CheckBinaryData,
+    NOTES => 'Image stabilization information for the Sony DSLR-A100.',
+    WRITABLE => 1,
+    PRIORITY => 0, # may not be as reliable as other information
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    FIRST_ENTRY => 0,
+    0 => {
+        Name => 'ImageStabilization',
+        Format => 'int16u',
+        PrintHex => 1,
+        PrintConv => {
+            0x0000 => 'Off',
+            0x2784 => 'On',
+        },
+    },
+);
+
 # Camera settings used by the Sony DSLR-A100 (ref PH)
 %Image::ExifTool::Minolta::CameraSettingsA100 = (
     PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
@@ -1611,7 +1756,7 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
     0x06 => { #20
         Name => 'ShutterSpeedSetting',
         Notes => 'used only in M and S exposure modes',
-        ValueConv => '$val ? 2 ** (6 - Image::ExifTool::Minolta::MinoltaEv($val)) : 0',
+        ValueConv => '$val ? 2 ** (6 - $val/8) : 0',
         ValueConvInv => '$val ? int((6 - log($val) / log(2)) * 8 + 0.5) : 0',
         PrintConv => '$val ? Image::ExifTool::Exif::PrintExposureTime($val) : "Bulb"',
         PrintConvInv => 'lc($val) eq "bulb" ? 0 : Image::ExifTool::Exif::ConvertFraction($val)',
@@ -1619,38 +1764,39 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
     0x07 => { #20
         Name => 'ApertureSetting',
         Notes => 'used only in M and A exposure modes',
-        ValueConv => '2 ** ((Image::ExifTool::Minolta::MinoltaEv($val) - 1) / 2)',
+        ValueConv => '2 ** (($val/8 - 1) / 2)',
         ValueConvInv => 'int((log($val) * 2 / log(2) + 1) * 8 + 0.5)',
         PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
         PrintConvInv => '$val',
     },
     0x08 => { #20
         Name => 'ExposureTime',
-        ValueConv => '$val ? 2 ** (6 - Image::ExifTool::Minolta::MinoltaEv($val)) : 0',
+        ValueConv => '$val ? 2 ** (6 - $val/8) : 0',
         ValueConvInv => '$val ? int((6 - log($val) / log(2)) * 8 + 0.5) : 0',
         PrintConv => '$val ? Image::ExifTool::Exif::PrintExposureTime($val) : "Bulb"',
         PrintConvInv => 'lc($val) eq "bulb" ? 0 : Image::ExifTool::Exif::ConvertFraction($val)',
     },
     0x09 => { #15/20
         Name => 'FNumber',
-        ValueConv => '2 ** ((Image::ExifTool::Minolta::MinoltaEv($val) - 1) / 2)',
+        ValueConv => '2 ** (($val/8 - 1) / 2)',
         ValueConvInv => 'int((log($val) * 2 / log(2) + 1) * 8 + 0.5)',
         PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
         PrintConvInv => '$val',
     },
     0x0a => { #20
         Name => 'DriveMode2', # (one of these is probably DriveModeSetting like Sony - PH)
+        PrintHex => 1,
         PrintConv => {
-            0 => 'Self-timer 10 sec',
-            1 => 'Continuous',
-            4 => 'Self-timer 2 sec',
-            5 => 'Single Frame',
-            8 => 'White Balance Bracketing Low',
-            9 => 'White Balance Bracketing High',
-            770 => 'Single-frame Bracketing Low',
-            771 => 'Continous Bracketing Low',
-            1794 => 'Single-frame Bracketing High',
-            1795 => 'Continuous Bracketing High',
+            0x000 => 'Self-timer 10 sec',
+            0x001 => 'Continuous',
+            0x302 => 'Single-frame Bracketing Low',
+            0x702 => 'Single-frame Bracketing High',
+            0x303 => 'Continous Bracketing Low',
+            0x703 => 'Continuous Bracketing High',
+            0x004 => 'Self-timer 2 sec',
+            0x005 => 'Single Frame',
+            0x008 => 'White Balance Bracketing Low',
+            0x009 => 'White Balance Bracketing High',
         },
     },
     0x0b => { #15
@@ -1776,6 +1922,7 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
         Name => 'ColorSpace',
         PrintConv => {
             0 => 'sRGB',
+            2 => 'B&W', #PH (A100)
             5 => 'Adobe RGB',
         },
     },
@@ -2158,31 +2305,214 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
     WRITABLE => 1,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
     FIRST_ENTRY => 0,
+    PRIORITY => 0,
+    0x0e => {
+        Name => 'DriveMode',
+        PrintConv => {
+            0 => 'Self-timer 10 sec',
+            1 => 'Continuous',
+            2 => 'Single-frame Exposure Bracketing',
+            3 => 'Continuous Exposure Bracketing',
+            4 => 'Self-Timer 2 sec',
+            5 => 'Single Frame',
+            8 => 'White Balance Bracketing Low',
+            9 => 'White Balance Bracketing High',
+        },
+    },
+    0x10 => {
+        Name => 'Rotation',
+        PrintConv => {
+            0 => 'Horizontal (normal)',
+            1 => 'Rotate 270 CW',
+            2 => 'Rotate 90 CW',
+        },
+    },
+    0x14 => {
+        Name => 'ImageStabilizationSetting',
+        PrintConv => { 0 => 'Off', 1 => 'On' },
+    },
+    0x15 => {
+        Name => 'DynamicRangeOptimizerMode',
+        PrintConv => {
+            0 => 'Off',
+            1 => 'Standard',
+            2 => 'Advanced',
+        },
+    },
+    0x2a => {
+        Name => 'ExposureCompensationMode',
+        PrintConv => {
+            0 => 'Ambient and Flash',
+            1 => 'Ambient Only',
+        },
+    },
+    0x2b => 'WBBracketShotNumber',
+    0x2c => {
+        Name => 'WhiteBalanceBracketing',
+        PrintConv => {
+            0 => 'Off',
+            1 => 'Low',
+            2 => 'High',
+        },
+    },
+    0x2d => 'ExposureBracketShotNumber',
+    0x31 => {
+        Name => 'FlashFunction',
+        Format => 'int16u',
+        PrintHex => 1,
+        PrintConv => {
+            0x0000 => 'No flash',
+            0x0300 => 'Built-in flash',
+            # (the following refers to an external flash)
+            0x1205 => 'Manual',
+            0x120e => 'Strobe',
+            #0x122e => ?
+            0x128e => 'Fill flash, Pre-flash TTL',
+            0x12ae => 'Bounce flash',
+            0x140e => 'Rear sync, ADI',
+            0x148e => 'Fill flash, ADI',
+            0x1580 => 'Wireless',
+            # 0x17ae => ?
+            0x178e => 'HSS',
+        },
+    },
+    0x34 => {
+        Name => 'ExposureMode',
+        Format => 'int16u',
+        PrintHex => 1,
+        PrintConvColumns => 2,
+        PrintConv => {
+            0x0000 => 'Program',
+            0x0001 => 'Aperture Priority',
+            0x0002 => 'Shutter Priority',
+            0x0003 => 'Manual',
+            0x0004 => 'Auto',
+            0x0005 => 'Program Shift A',
+            0x0006 => 'Program Shift S',
+            0x1013 => 'Portrait',
+            0x1023 => 'Sports',
+            0x1033 => 'Sunset',
+            0x1043 => 'Night View/Portrait',
+            0x1053 => 'Landscape',
+            0x1083 => 'Macro',
+        },
+    },
+    0x36 => {
+        Name => 'ColorMode',
+        Format => 'int16u',
+        PrintConv => {
+            0x00 => 'Standard',
+            0x01 => 'Vivid',
+            0x02 => 'Portrait',
+            0x03 => 'Landscape',
+            0x04 => 'Sunset',
+            0x05 => 'Night View',
+            0x07 => 'B&W',
+            0x08 => 'Adobe RGB',
+        },
+    },
+    0x38 => {
+        Name => 'AverageLV',
+        Format => 'int16u',
+        Notes => 'arithmetic mean of the readings from the 40 honeycomb segments',
+        ValueConv => '($val-106)/8',
+        ValueConvInv => '$val * 8 + 106',
+    },
     # 0x3a - int16u: FocusDistance = int16u[0x3a] * 2^((70 - int8u[0x49c6])/16)
-    0x96  => { Name => 'WB_RGBLevels',          Format => 'int16u[3]' },
-    0xae  => { Name => 'WB_GBRGLevels',         Format => 'int16u[4]' },
-    0x304 => { Name => 'WB_RBPresetFlash',      Format => 'int16u[2]' },
-    0x308 => { Name => 'WB_RBPresetCoolWhiteF', Format => 'int16u[2]' },
-    0x3e8 => { Name => 'WB_RBPresetTungsten',   Format => 'int16u[2]' },
-    0x3ec => { Name => 'WB_RBPresetDaylight',   Format => 'int16u[2]' },
-    0x3f0 => { Name => 'WB_RBPresetCloudy',     Format => 'int16u[2]' },
-    0x3f4 => { Name => 'WB_RBPresetFlash',      Format => 'int16u[2]' },
-    0x3fc => {
-        Name => 'WB_RedPresetsFluorescent',
+    0x3c => {
+        Name => 'FrameNumber',
+        # Numbers > 1 appear in continuous and continuous bracketing drive modes,
+        # as well as WB bracketing.
+    },
+    0x96  => { Name => 'WB_RGBLevels',              Format => 'int16u[3]' },
+    0xae  => { Name => 'WB_GBRGLevels',             Format => 'int16u[4]' },
+    0xc0  => {
+        Name => 'WB_RedLevelsTungsten',
+        Notes => '7 values for adjustments of -3 through +3',
+        Format => 'int16u[7]',
+    },
+    0xce  => { Name => 'WB_BlueLevelsTungsten',     Format => 'int16u[7]' },
+    0xdc  => { Name => 'WB_RedLevelsDaylight',      Format => 'int16u[7]' },
+    0xea  => { Name => 'WB_BlueLevelsDaylight',     Format => 'int16u[7]' },
+    0xf8  => { Name => 'WB_RedLevelsCloudy',        Format => 'int16u[7]' },
+    0x106 => { Name => 'WB_BlueLevelsCloudy',       Format => 'int16u[7]' },
+    0x114 => { Name => 'WB_RedLevelsFlash',         Format => 'int16u[7]' },
+    0x122 => { Name => 'WB_BlueLevelsFlash',        Format => 'int16u[7]' },
+    0x14c => {
+        Name => 'WB_RedLevelsFluorescent',
         Format => 'int16u[7]',
         Notes => q{
-            white balance red presets for fluorescent -2 through +4.  -2=Fluorescent,
+            white balance red presets for fluorescent -2 through +4:  -2=Fluorescent,
             -1=WhiteFluorescent, 0=CoolWhiteFluorescent, +1=DayWhiteFluorescent and
             +3=DaylightFluorescent
         },
     },
-    0x40a => {
-        Name => 'WB_BluePresetsFluorescent',
-        Format => 'int16u[7]',
-        Notes => 'white balance blue presets for fluorescent -2 through +4',
+    0x15a => { Name => 'WB_BlueLevelsFluorescent',  Format => 'int16u[7]' },
+    0x168 => { Name => 'WB_RedLevelsShade',         Format => 'int16u[7]' },
+    0x176 => { Name => 'WB_BlueLevelsShade',        Format => 'int16u[7]' },
+    0x188 => { Name => 'WB_RedLevel6500K',          Format => 'int16u' },
+    0x18a => { Name => 'WB_BlueLevel6500K',         Format => 'int16u' },
+    0x18c => { Name => 'WB_RedLevelCustom',         Format => 'int16u' },
+    0x18e => { Name => 'WB_BlueLevelCustom',        Format => 'int16u' },
+    0x198 => { Name => 'WB_RedLevel3500K',          Format => 'int16u' },
+    0x19a => { Name => 'WB_BlueLevel3500K',         Format => 'int16u' },
+    0x1be => {
+        Name => 'WB_RedLevelsKelvin',
+        Format => 'int16u[75]',
+        Notes => 'values for 2500-9900 K, in increments of 100 K',
     },
-    0x418 => { Name => 'WB_RBPresetShade',                 Format => 'int16u[2]' },
-    0x424 => { Name => 'WB_RBPresetCustom',                Format => 'int16u[2]' },
+    0x254 => { Name => 'WB_BlueLevelsKelvin',       Format => 'int16u[75]' },
+    0x304 => { Name => 'WB_RBLevelsFlash',          Format => 'int16u[2]' },
+    0x308 => { Name => 'WB_RBLevelsCoolWhiteF',     Format => 'int16u[2]' },
+    0x3e8 => { Name => 'WB_RBLevelsTungsten',       Format => 'int16u[2]' },
+    0x3ec => { Name => 'WB_RBLevelsDaylight',       Format => 'int16u[2]' },
+    0x3f0 => { Name => 'WB_RBLevelsCloudy',         Format => 'int16u[2]' },
+    0x3f4 => { Name => 'WB_RBLevelsFlash',          Format => 'int16u[2]' },
+    0x3fc => { Name => 'WB_RedLevelsFluorescent',   Format => 'int16u[7]' },
+    0x40a => { Name => 'WB_BlueLevelsFluorescent',  Format => 'int16u[7]' },
+    0x418 => { Name => 'WB_RBLevelsShade',          Format => 'int16u[2]' },
+    0x420 => { Name => 'WB_RBLevels6500K',          Format => 'int16u[2]' },
+    0x424 => { Name => 'WB_RBLevelsCustom',         Format => 'int16u[2]' },
+    0x430 => { Name => 'WB_RBLevels3500K',          Format => 'int16u[2]' },
+    0x528 => { Name => 'WB_RBLevelsDaylight',       Format => 'int16u[2]' },
+    0x546 => { Name => 'WB_RGBLevels',              Format => 'int16u[3]' },
+    0x628 => {
+        Name => 'AEMeteringSegments',
+        Format => 'int8u[40]',
+        Notes => q{
+            metering values from the 40 honeycomb segments, converted to LV.  The first
+            value is for the outer cell, then the values are given row by row, from top
+            to bottom, with each row scanned left-to-right.  The 21st value is the
+            middle cell, which gives the spot metering
+        },        
+        ValueConv    => sub { join ' ', map( { ($_ - 106) / 8 } split(' ',$_[0]) ) },
+        ValueConvInv => sub { join ' ', map( { int($_ * 8 + 106.5) } split(' ',$_[0]) ) },
+    },
+    0x690 => {
+        Name => 'MeasuredLV',
+        Notes => 'measured light value based on MeteringMode',
+        ValueConv => '($val-106)/8',
+        ValueConvInv => '$val * 8 + 106',
+    },
+    0x691 => {
+        Name => 'BrightnessValue',
+        ValueConv => '($val-106)/8',
+        ValueConvInv => '$val * 8 + 106',
+    },
+    0x49b8 => {
+        Name => 'ExposureTime',
+        ValueConv => '$val ? 2 ** (6 - $val/8) : 0',
+        ValueConvInv => '$val ? int((6 - log($val) / log(2)) * 8 + 0.5) : 0',
+        PrintConv => '$val ? Image::ExifTool::Exif::PrintExposureTime($val) : "Bulb"',
+        PrintConvInv => 'lc($val) eq "bulb" ? 0 : Image::ExifTool::Exif::ConvertFraction($val)',
+    },
+    0x49ba => {
+        Name => 'ISO',
+        ValueConv => '2 ** (($val-48)/8) * 100',
+        ValueConvInv => '48 + 8*log($val/100)/log(2)',
+        PrintConv => 'int($val + 0.5)',
+        PrintConvInv => '$val',
+    },
     0x49bb => { # (http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3688.0.html)
         Name => 'FocusDistance',
         ValueConv => '2**(($val-126)/16)',
@@ -2190,7 +2520,54 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
         PrintConv => '$val > 266 ? "inf" : sprintf("%.2f m", $val)',
         PrintConvInv => '$val=~s/ ?m//; $val=~/inf/i ? 267 : $val',
     },
+    0x49bd => {
+        Name => 'LensType',
+        Format => 'int16uRev',
+        SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
+        PrintConv => \%minoltaLensTypes,
+    },
+    0x49c0 => {
+        Name => 'ExposureCompensation', # (in exposure bracketing, this is the actual value used)
+        Format => 'int8s',
+        ValueConv => '$val / 8',
+        ValueConvInv => '$val * 8',
+        PrintConv => '$val ? sprintf("%+.1f",$val) : $val',
+        PrintConvInv => 'Image::ExifTool::Exif::ConvertFraction($val)',
+    },
+    0x49c1 => {
+        Name => 'FlashExposureComp',
+        Description => 'Flash Exposure Compensation',
+        Format => 'int8s',
+        ValueConv => '$val / 8',
+        ValueConvInv => '$val * 8',
+        PrintConv => '$val ? sprintf("%+.1f",$val) : $val',
+        PrintConvInv => 'Image::ExifTool::Exif::ConvertFraction($val)',
+    },
+    0x49c2 => {
+        Name => 'ImageStabilization',
+        PrintConv => \%offOn,
+    },
+    0x49c3 => {
+        Name => 'BrightnessValue',
+        ValueConv => '($val-106)/8',
+        ValueConvInv => '$val * 8 + 106',
+    },
+    0x49c5 => {
+        Name => 'MaxAperture',
+        ValueConv => '2 ** (($val-8)/16)',
+        ValueConvInv => '8 + 16*log($val)/log(2)',
+        PrintConv => 'sprintf("%.1f",$val)',
+        PrintConvInv => '$val',
+    },
     # 0x49c6 - gives focal length using same formula as 0x49bb
+    0x49c7 => {
+        Name => 'FNumber',
+        ValueConv => '2 ** (($val-8)/16)',
+        ValueConvInv => '8 + 16*log($val)/log(2)',
+        PrintConv => 'sprintf("%.1f",$val)',
+        PrintConvInv => '$val',
+    },
     0x49dc => {
         Name => 'InternalSerialNumber',
         Format => 'string[12]',
@@ -2326,6 +2703,22 @@ my %minoltaWhiteBalance = (
 );
 
 #------------------------------------------------------------------------------
+# Print A100 AF status information (ref 20)
+sub PrintAFStatus($)
+{
+    my $val = shift;
+    my @v = split ' ', $val;
+    $v[1] = $v[1] - 256 if $v[1] >= 128;    # make 2nd number signed
+    # first number is greater than 128 if focus is good
+    return "Bad ($v[0]); Unknown ($v[1])" if $v[0] <= 128;
+    my $stat = "Good ($v[0]); ";
+    # second number gives degree of front or back focus
+    return $stat . 'In Focus (0)' if $v[1] == 0;
+    return $stat . "Back Focus (+$v[1])" if $v[1] > 0;
+    return $stat . "Front Focus ($v[1])";
+}
+
+#------------------------------------------------------------------------------
 # PrintConv for Minolta white balance
 sub ConvertWhiteBalance($)
 {
@@ -2347,18 +2740,6 @@ sub ConvertWhiteBalance($)
         }
     }
     return $printConv;
-}
-
-#------------------------------------------------------------------------------
-# Convert from integer EV*8 value to nearest 1/2 or 1/3 EV
-# Inputs: 0) integer EV*8 value (must be positive)
-# Returns: EV rounded to nearest 1/2 or 1/3 step
-sub MinoltaEv($)
-{
-    my $ev = shift() / 8;
-    my $ev2 = int($ev * 2 + 0.5) / 2;   # round to nearest 1/2 EV
-    my $ev3 = int($ev * 3 + 0.5) / 3;   # round to nearest 1/3 EV
-    return(abs($ev-$ev2) < abs($ev-$ev3) ? $ev2 : $ev3);
 }
 
 1;  # end

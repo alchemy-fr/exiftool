@@ -4,8 +4,63 @@ ExifTool Version History
 
 RSS feed: http://owl.phy.queensu.ca/~phil/exiftool/rss.xml
 
-Note: The most recent production release is Version 8.85. (Other versions are
+Note: The most recent production release is Version 8.90. (Other versions are
 considered development releases, and are not uploaded to CPAN.)
+
+June 9, 2012 - Version 8.94
+
+  - Added ability to read/write IPTC as a block
+  - Added a few Nikon LensID's (thanks Mike Pollock and Robert Rottmerhusen)
+  - Added a new Olympus LensType (thanks Brad Grier)
+  - Added new values for a few Olympus tags
+  - Decode more Sony tags (thanks Jos Roost and Igal Milchtaich)
+  - Decode Canon IntelligentContrast and add a new CanonModelID
+  - Changed names of Canon Sort/LongFocal tags to Min/MaxFocalLength
+
+May 26, 2012 - Version 8.93
+
+  - Added some new Nikon RetouchHistory values
+  - Added a couple of new Pentax LensType values
+  - Added some new Olympus MagicFilter and LensType values
+  - Added a new CanonModelID
+  - Decode more Sony tags (thanks Jos Roost)
+  - Decode some MakerNote information in Olympus E-M5 MOV videos
+  - Decode a couple more Canon tags
+  - Patched to overcome formatting problems in Samsung NX200 JPEG maker notes
+
+May 12, 2012 - Version 8.92
+
+  - Added read support for PCD (Kodak Photo CD Image Pac) files
+  - Added Geotag support for Winplus Beacon text-format GPS log files
+  - Added support for Leica X2 MakeNotes
+  - Added NewGUID tag
+  - Decode Panasonic ManometerPressure tag (thanks Christoph Mitterer)
+  - Decode more Sony tags (thanks Jos Roost)
+  - Changed a few Canon-mount Tokina lens model names for consistency
+
+May 5, 2012 - Version 8.91
+
+  - Added -progress option
+  - Added support for XMP fpv namespace
+  - Added a new Canon EasyMode value and fixed an incorrect one
+  - Added a couple of new Canon LensTypes
+  - Decode a number of new tags for the Canon 1DX and 5DmkIII
+  - Improved the names of a few Sony tags (thanks Jos Roost)
+  - Fixed -sep option to apply to interpolated tag values in a string when
+    copying
+
+Apr. 28, 2012 - Version 8.90 (production release)
+
+  - Added ability to fix double-UTF-encoded embedded XMP
+  - Added a warning for invalid XMP
+  - Added a new Minolta/Sony LensType (thanks Matthias)
+  - Added a new values for some Canon tags
+  - Decode ColorBalance information for a few more Nikon models
+  - Ignore trailing whitespace when writing converted values
+  - Enhanced the -z option to avoid writing the 2424 bytes of padding in XMP
+  - Improved decoding of some Sony MakerNotes tags (thanks Jos Roost)
+  - Improved "best guess" for fixing corrupted makernote offsets of some Sony
+    models
 
 Apr. 21, 2012 - Version 8.89
 
