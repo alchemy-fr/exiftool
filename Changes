@@ -4,8 +4,96 @@ ExifTool Version History
 
 RSS feed: http://owl.phy.queensu.ca/~phil/exiftool/rss.xml
 
-Note: The most recent production release is Version 8.90. (Other versions are
+Note: The most recent production release is Version 9.01. (Other versions are
 considered development releases, and are not uploaded to CPAN.)
+
+Aug. 25, 2012 - Version 9.01 (production release)
+
+  - Added a couple of new CanonModelID values
+  - Added a couple of new Canon LensType values (thanks Pascal de Bruijn)
+  - Added a new PentaxModelID and a few new Pentax PictureMode values
+  - Decode a new Pentax ISO tag
+  - Improved -listx output for XMP structure tags
+  - Fixed "unexpected end of file" problems with some compressed MIE files
+
+Aug. 18, 2012 - Version 9.00
+
+  - Added support for PDF encryption V5.6 (new in Adobe Reader X)
+  - Added a few new XMP-cc tags and changed a few others to rdf:resource type
+  - Added a new Sony LensType and values for other Sony tags (thanks Jos Roost)
+  - Added a new Nikon LensID
+  - Added a new Panasonic LensType (thanks Olaf Ulrich)
+  - Added patch to fix simple XMP tags written incorrectly as lang-alt type
+  - Decode some Panasonic RW2 lens distortion correction tags
+  - Decode some WEBP image characteristics from the VP8 bitstream
+  - Decode more Leica MakerNote information
+  - Calculate CurrentIPTCDigest for IPTC in PostScript files
+  - Changed the names of a couple of WBShift tags
+  - Improved parsing of -if expressions to interpret a dash after a tag name as
+    a minus sign instead of part of the tag name
+  - Patched problem with conditional deletion of an incorrectly null-terminated
+    JPEG Comment
+  - Fixed hang bug when reading unsupported Microsoft Xtra information in MOV
+    videos
+
+Aug. 3, 2012 - Version 8.99
+
+  - Added patch to avoid "Error renaming temporary file" errors in Windows
+  - Decode some new Sony tags and values (thanks Mike Reit and Jos Roost)
+  - Improved Italian translation (thanks Michele Locati)
+  - Improved decoding of H264 ImageStabilization
+  - Changed names of PanasonicRaw ImageWidth/Height tags, and added new
+    Composite tags to calculate actual size of RW2 images
+  - Fixed "Corrupted Ricoh RMETA data" warning for images from some Ricoh models
+  - Fixed problem writing information to some EPS images
+
+July 28, 2012 - Version 8.98
+
+  - Added a new Pentax LensType and two new PentaxModelID's
+  - Added a new CanonModelID and a new Olympus CameraType
+  - Added a new Composite Duration tag for Vorbis audio files
+  - Added more elements to Microsoft Regions XMP structure and fixed tag name
+    documentation for this
+  - Decode a number of new Sony tags (thanks Jos Roost)
+  - Changed name of Minolta BatteryLevel tag to BatteryState
+  - Patched problem with conditional deletion of IPTC string-type tags which are
+    incorrectly null terminated (ie. written by Picasa 2.0)
+  - Fixed problem copying Canon 5DmkIII MakerNotes from CR2 to JPEG images
+  - Fixed runtime error when writing some images with corrupted EXIF
+
+July 6, 2012 - Version 8.97
+
+  - Added a new Canon LensType
+  - Added support for GPX attitude information as written by Arduino
+  - Added write support for XMP-expressionmedia:CatalogSets
+  - Made CFARepeatPatternDim and CFAPattern2 writable but protected
+  - Minor improvement to decoding of Sony FaceInfo
+  - Fixed problem reading some GPX track logs
+
+June 30, 2012 - Version 8.96
+
+  - Added -globalTimeShift option
+  - Added new values for a couple of Nikon tags (thanks Michael Relt)
+  - Added a few new Sony PictureEffect values
+  - Added a new Olympus LensType
+  - Decode a new Sony A100 tag and improved/renamed some others (thanks Igal
+    Milchtaich)
+  - Changed -restore_original and -delete_original options to scan directories
+    only for writable file types
+  - Enhanced -srcfile option to allow multiple source files to be specified
+  - Patched possible round-off problem when extracting rational values
+  - Fixed bug which could cause runtime error when reading some HTML files and
+    improved reliability when extracting HTML "meta" tags
+  - API Changes:
+      - Added GlobalTimeShift option
+
+June 16, 2012 - Version 8.95
+
+  - Added a few new Sony PictureEffect values
+  - Added a new Olympus lens type (thanks Niels Kristian Bech Jensen)
+  - Improved decoding of Canon IntelligentContrast
+  - Improved user-defined lens logic to attempt to choose the best matching
+    user-defined lens if more than one is possible
 
 June 9, 2012 - Version 8.94
 

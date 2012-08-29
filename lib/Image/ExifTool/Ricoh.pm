@@ -16,7 +16,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.22';
+$VERSION = '1.23';
 
 sub ProcessRicohText($$$);
 sub ProcessRicohRMETA($$$);
@@ -595,6 +595,7 @@ sub ProcessRicohRMETA($$$)
     my $dataLen = length($$dataPt);
     my $verbose = $exifTool->Options('Verbose');
 
+    $exifTool->VerboseDir('Ricoh RMETA') if $verbose;
     $dataLen > 6 or $exifTool->Warn('Truncated Ricoh RMETA data'), return 0;
     my $byteOrder = substr($$dataPt, $dirStart, 2);
     SetByteOrder($byteOrder) or $exifTool->Warn('Bad Ricoh RMETA data'), return 0;
@@ -603,6 +604,7 @@ sub ProcessRicohRMETA($$$)
     while ($pos <= $dataLen - 4) {
         my $type = Get16u($dataPt, $pos);
         my $size = Get16u($dataPt, $pos + 2);
+        last unless $size;
         $pos += 4;
         $size -= 2;
         if ($size < 0 or $pos + $size > $dataLen) {

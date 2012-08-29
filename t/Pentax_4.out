@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.85
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.00
 [File, System, Image] FileName - File Name: Pentax.avi
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 1672 bytes
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2009:10:30 08:06:13-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2009:10:30 08:10:17-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: AVI
 [File, File, Image] MIMEType - MIME Type: video/x-msvideo
@@ -110,7 +110,7 @@
 [MakerNotes, Pentax, Camera] 2 - Production Code: 2.3
 [MakerNotes, Pentax, Camera] 4 - Internal Serial Number: 8007725
 [MakerNotes, Pentax, Image] 16 - WB Shift AB: 0
-[MakerNotes, Pentax, Image] 17 - WB Shift MG: 0
+[MakerNotes, Pentax, Image] 17 - WB Shift GM: 0
 [MakerNotes, Pentax, Camera] 553 - Serial Number: 3430417
 [MakerNotes, Pentax, Author] 558 - Artist: 
 [MakerNotes, Pentax, Author] 559 - Copyright: 

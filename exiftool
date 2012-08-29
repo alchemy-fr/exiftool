@@ -12,7 +12,7 @@
 use strict;
 require 5.004;
 
-my $version = '8.94';
+my $version = '9.01';
 
 # add our 'lib' directory to the include list BEFORE 'use Image::ExifTool'
 my $exeDir;
@@ -34,7 +34,7 @@ sub SigInt();
 sub SigCont();
 sub Cleanup();
 sub GetImageInfo($$);
-sub SetImageInfo($$);
+sub SetImageInfo($$$);
 sub CleanXML($);
 sub EncodeXML($);
 sub FormatXML($$$);
@@ -52,10 +52,10 @@ sub LoadPrintFormat($);
 sub FilenameSPrintf($;$);
 sub NextUnusedFilename($;$);
 sub CreateDirectory($);
-sub SourceFile($);
 sub OpenOutputFile($);
 sub AcceptFile($);
 sub SlurpFile($$);
+sub Rename($$);
 sub ReadStayOpen($);
 sub PrintTagList($@);
 sub PrintErrors($$$);
@@ -76,6 +76,7 @@ my @exclude;        # list of excluded tags
 my @files;          # list of files and directories to scan
 my @moreArgs;       # more arguments to process after -stay_open -@
 my @newValues;      # list of new tag values to set
+my @srcFmt;         # source file name format strings
 my @tags;           # list of tags to extract
 my %csvTags;        # lookup for all found tags with CSV option (lower case keys)
 my %database;       # lookup for database information based on file name
@@ -147,7 +148,6 @@ my $scanWritable;   # flag to process only writable file types
 my $seqFileNum;     # sequential file number used for %C
 my $showGroup;      # number of group to show (may be zero or '')
 my $showTagID;      # non-zero to show tag ID's
-my $srcFmt;         # source file name format string
 my $stayOpenBuff='';# buffer for -stay_open file
 my $stayOpenFile;   # name of the current -stay_open argfile
 my $structOpt;      # output structured XMP information (JSON and XML output only)
@@ -300,6 +300,7 @@ undef @dynamicFiles;
 undef @exclude;
 undef @files;
 undef @newValues;
+undef @srcFmt;
 undef @tags;
 undef %csvTags;
 undef %database;
@@ -340,7 +341,6 @@ undef $recurse;
 undef $scanWritable;
 undef $showGroup;
 undef $showTagID;
-undef $srcFmt;
 undef $structOpt;
 undef $textOut;
 undef $textOverwrite;
@@ -682,6 +682,7 @@ for (;;) {
         push @fileOrder, shift if @ARGV;
         next;
     }
+    $a eq 'globaltimeshift' and $mainTool->Options(GlobalTimeShift => shift), next;
     if (/^(g)(roupHeadings|roupNames)?([\d:]*)$/i) {
         $showGroup = $3 || 0;
         $allGroup = ($2 ? lc($2) eq 'roupnames' : $1 eq 'G');
@@ -839,7 +840,11 @@ for (;;) {
         next;
     }
     /^sort$/i and $sortOpt = 1, next;
-    /^srcfile$/i and $srcFmt = shift || Warn("Expecting FMT for -srcfile option\n"), next;
+    if ($a eq 'srcfile') {
+        @ARGV or Warn("Expecting FMT for -srcfile option\n"), next;
+        push @srcFmt, shift;
+        next;
+    }
     if ($a eq 'stay_open') {
         my $arg = shift;
         defined $arg or Warn("Expecting argument for -stay_open option\n"), next;
@@ -1307,7 +1312,7 @@ if ($outOpt) {
         $scanWritable = 1;
     }
     $isWriting = 1;     # set writing flag
-} elsif ($isWriting) {
+} elsif ($isWriting or defined $deleteOrig) {
     $scanWritable = 1;
 }
 
@@ -1465,11 +1470,24 @@ Exit $rtnVal;   # all done
 sub GetImageInfo($$)
 {
     my ($exifTool, $orig) = @_;
-    my (@foundTags, $info);
-    my $file = SourceFile($orig);
-    my $pipe = $file;
-    my $ind;
+    my (@foundTags, $info, $file, $ind);
 
+    # determine the name of the source file based on the original input file name
+    if (@srcFmt) {
+        my ($fmt, $first);
+        foreach $fmt (@srcFmt) {
+            $file = $fmt eq '@' ? $orig : FilenameSPrintf($fmt, $orig);
+            # use this file if it exists
+            -e $file and undef($first), last;
+            $verbose and print "Source file $file does not exist\n";
+            $first = $file unless defined $first;
+        }
+        $file = $first if defined $first;
+    } else {
+        $file = $orig;
+    }
+
+    my $pipe = $file;
     if ($doUnzip) {
         # pipe through gzip or bzip2 if necessary
         if ($file =~ /\.gz$/i) {
@@ -1549,7 +1567,7 @@ sub GetImageInfo($$)
 
     if ($isWriting) {
         print "======== $file$progStr\n" if defined $verbose;
-        SetImageInfo($exifTool, $orig);
+        SetImageInfo($exifTool, $file, $orig);
         $info = $exifTool->GetInfo('Warning', 'Error');
         PrintErrors($exifTool, $info, $file);
         # close output text file if necessary
@@ -1564,64 +1582,65 @@ sub GetImageInfo($$)
             }
         }
         return;
+    }
+
+    # extract information from this file
+    unless ($file eq '-' or -e $file) {
+        Warn "File not found: $file\n";
+        $outfile and close($fp), undef($tmpText), unlink($outfile);
+        ++$countBad;
+        return;
+    }
+    # print file/progress message
+    my $o;
+    unless ($binaryOutput or $textOut or %printFmt or $html > 1 or $csv) {
+        if ($html) {
+            require Image::ExifTool::HTML;
+            my $f = Image::ExifTool::HTML::EscapeHTML($file);
+            print "<!-- $f -->\n";
+        } elsif (not ($json or $xml)) {
+            $o = \*STDOUT if ($multiFile and not $quiet) or $progress;
+        }
+    }
+    $o = \*STDERR if $progress and not $o;
+    $o and print $o "======== $file$progStr\n";
+    if ($info) {
+        # get the information we wanted
+        if (@tags and not %printFmt) {
+            @foundTags = @tags;
+            $info = $exifTool->GetInfo(\@foundTags);
+        }
     } else {
-        my ($tag, $o);
-        # extract EXIF information from this file
-        unless ($file eq '-' or -e $file) {
-            Warn "File not found: $file\n";
-            $outfile and close($fp), undef($tmpText), unlink($outfile);
+        # request specified tags unless using print format option
+        my $oldDups = $exifTool->Options('Duplicates');
+        if (%printFmt) {
+            $exifTool->Options(Duplicates => 1);
+        } else {
+            @foundTags = @tags;
+        }
+        # extract the information
+        $info = $exifTool->ImageInfo($pipe, \@foundTags);
+        $exifTool->Options(Duplicates => $oldDups);
+    }
+    # all done now if we already wrote output text file (ie. verbose option)
+    if ($fp) {
+        if ($outfile) {
+            $exifTool->Options(TextOut => \*STDOUT);
+            undef $tmpText;
+            if ($info->{Error}) {
+                close($fp);
+                unlink $outfile;    # erase bad file
+            } else {
+                ++$lineCount;       # output text file (likely) is not empty
+            }
+        }
+        if ($info->{Error}) {
+            Warn "Error: $info->{Error} - $file\n";
             ++$countBad;
             return;
         }
-        # print file/progress message
-        unless ($binaryOutput or $textOut or %printFmt or $html > 1 or $csv) {
-            if ($html) {
-                require Image::ExifTool::HTML;
-                my $f = Image::ExifTool::HTML::EscapeHTML($file);
-                print "<!-- $f -->\n";
-            } elsif (not ($json or $xml)) {
-                $o = \*STDOUT if ($multiFile and not $quiet) or $progress;
-            }
-        }
-        $o = \*STDERR if $progress and not $o;
-        $o and print $o "======== $file$progStr\n";
-        if ($info) {
-            # get the information we wanted
-            if (@tags and not %printFmt) {
-                @foundTags = @tags;
-                $info = $exifTool->GetInfo(\@foundTags);
-            }
-        } else {
-            # request specified tags unless using print format option
-            my $oldDups = $exifTool->Options('Duplicates');
-            if (%printFmt) {
-                $exifTool->Options(Duplicates => 1);
-            } else {
-                @foundTags = @tags;
-            }
-            # extract the information
-            $info = $exifTool->ImageInfo($pipe, \@foundTags);
-            $exifTool->Options(Duplicates => $oldDups);
-        }
-        # all done now if we already wrote output text file (ie. verbose option)
-        if ($fp) {
-            if ($outfile) {
-                $exifTool->Options(TextOut => \*STDOUT);
-                undef $tmpText;
-                if ($info->{Error}) {
-                    close($fp);
-                    unlink $outfile;    # erase bad file
-                } else {
-                    ++$lineCount;       # output text file (likely) is not empty
-                }
-            }
-            if ($info->{Error}) {
-                Warn "Error: $info->{Error} - $file\n";
-                ++$countBad;
-                return;
-            }
-        }
     }
+
     # print warnings to stderr if using binary output
     # (because we are likely ignoring them and piping stdout to file)
     # or if there is none of the requested information available
@@ -2027,14 +2046,13 @@ sub GetImageInfo($$)
 
 #------------------------------------------------------------------------------
 # Set information in file
-# Inputs: 0) ExifTool object reference
-#         1) original source file name ('' to create from scratch)
+# Inputs: 0) ExifTool object reference, 1) source file name
+#         2) original source file name ('' to create from scratch)
 # Returns: true on success
-sub SetImageInfo($$)
+sub SetImageInfo($$$)
 {
-    my ($exifTool, $orig) = @_;
+    my ($exifTool, $file, $orig) = @_;
     my ($outfile, $restored, $isTemporary, $isStdout);
-    my $file = SourceFile($orig);
     my $infile = $file;    # save infile in case we change it again
     my $tagsFromSrc;
 
@@ -2305,7 +2323,7 @@ sub SetImageInfo($$)
                     if (not $overwriteOrig and not -e $original) {
                         # rename the file and check again to be sure the file doesn't exist
                         # (in case, say, the filesystem truncated the file extension)
-                        if (not rename($file, $original) or -e $file) {
+                        if (not Rename($file, $original) or -e $file) {
                             Error "Error renaming $file\n";
                             return 0;
                         }
@@ -2331,7 +2349,7 @@ sub SetImageInfo($$)
                             if ($err) {
                                 Warn "Couldn't overwrite in place - $file\n";
                                 unless (rename($newFile, $file) or
-                                    (unlink $file and rename($newFile, $file)))
+                                    (unlink $file and Rename($newFile, $file)))
                                 {
                                     Error("Error renaming $newFile to $file\n"), return 0;
                                 }
@@ -2358,7 +2376,7 @@ sub SetImageInfo($$)
 
                     # simply rename temporary file to replace original
                     # (if we didn't already rename it to add "_original")
-                    } elsif (rename($tmpFile, $file)) {
+                    } elsif (Rename($tmpFile, $file)) {
                         ++$countGoodWr;
                     } else {
                         my $newFile = $tmpFile;
@@ -2369,7 +2387,7 @@ sub SetImageInfo($$)
                             unlink $newFile;
                             ++$countBadWr;
                         # try renaming again now that the target has been deleted
-                        } elsif (not rename($newFile, $file)) {
+                        } elsif (not Rename($newFile, $file)) {
                             Warn "Error renaming temporary file to $file\n";
                             # (don't delete tmp file now because it is all we have left)
                             ++$countBadWr;
@@ -2949,16 +2967,6 @@ sub CreateDirectory($)
 }
 
 #------------------------------------------------------------------------------
-# Get source file name for specified file
-# Inputs: 0) file name
-sub SourceFile($)
-{
-    my $file = shift;
-    return $file unless $srcFmt;
-    return FilenameSPrintf($srcFmt, $file);
-}
-
-#------------------------------------------------------------------------------
 # Open output text file
 # Inputs: 0) file name format string
 # Returns: 0) file reference (or undef on error), 1) file name if opened
@@ -3005,6 +3013,27 @@ sub AcceptFile($)
     return $filterExt{'*'} if defined $filterExt{'*'};
     return 0 if $filterFlag & 0x02; # reject if accepting specific extensions
     return 2;   # accept by default
+}
+
+#------------------------------------------------------------------------------
+# Rename a file (patch for Windows denial-of-service susceptibility)
+# Inputs: 0) old name, 1) new name
+# Returns: true on success
+sub Rename($$)
+{
+    my ($old, $new) = @_;
+    my $result = rename($old, $new);
+    
+    if (not $result and $^O eq 'MSWin32') {
+        my $try = 2;
+        for (;;) {
+            select(undef,undef,undef,0.01); # sleep for 0.01 sec
+            $result = rename($old, $new);
+            last if $result or ++$try > 50; # retry for 0.5 seconds
+        }
+        Warn("It took $try tries to rename $new\n") if $result;
+    }
+    return $result;
 }
 
 #------------------------------------------------------------------------------
@@ -3330,6 +3359,7 @@ L<Processing control|/Processing control>
 L<Special features|/Special features>
 
   -geotag TRKFILE                  Geotag images from specified GPS log
+  -globalTimeShift SHIFT           Shift all formatted date/time values
   -use MODULE                      Add features from plug-in module
 
 L<Utilities|/Utilities>
@@ -3785,11 +3815,10 @@ group names to each tag.  List-type tags with multiple items are output as
 JSON arrays unless B<-sep> is used.  By default XMP structures are flattened
 into individual tags in the JSON output, but the original structure may be
 preserved with the B<-struct> option (this also causes all list-type XMP
-tags to be output as JSON arrays, otherwise single-item lists would be
-output as simple strings).  The B<-a> option is implied if the B<-g> or
-B<-G> options are used, otherwise it is ignored and duplicate tags are
-suppressed.  The B<-b>, B<-L> and B<-charset> options have no effect on the
-JSON output.
+tags to be output as JSON arrays, otherwise single-item lists are output as
+simple strings).  The B<-a> option is implied if the B<-g> or B<-G> options
+are used, otherwise it is ignored and duplicate tags are suppressed.  The
+B<-b>, B<-L> and B<-charset> options have no effect on the JSON output.
 
 If I<JSONFILE> is specified, the file is imported and the tag definitions
 from the file are used to set tag values on a per-file basis.  The special
@@ -3888,7 +3917,7 @@ with this command:
 
 produces output like this:
 
-    -- Generated by ExifTool 8.94 --
+    -- Generated by ExifTool 9.01 --
     File: a.jpg - 2003:10:31 15:44:19
     (f/5.6, 1/60s, ISO 100)
     File: b.jpg - 2006:05:23 11:57:38
@@ -4397,6 +4426,23 @@ text files.  See L</GEOTAGGING EXAMPLES> for examples.  Also see
 L<Image::ExifTool Options|Image::ExifTool/Options> for more details and for
 information about geotag configuration options.
 
+=item B<-globalTimeShift> I<SHIFT>
+
+Shift all formatted date/time values by the specified amount when reading. 
+Does not apply to unformatted (B<-n>) output.  I<SHIFT> takes the same form
+as the date/time shift when writing (see
+L<Image::ExifTool::Shift.pl|Image::ExifTool::Shift.pl> for details), with a
+negative shift being indicated with a minus sign (C<->) at the start of the
+I<SHIFT> string.  For example:
+
+    # return all date/times, shifted back by 1 hour
+    exiftool -globalTimeShift -1 -time:all a.jpg
+
+    # set the file name from the shifted CreateDate (-1 day) for
+    # all images in a directory
+    exiftool "-filename<createdate" -globaltimeshift "-0:0:1 0:0:0" \
+        -d %Y%m%d-%H%M%S.%%e dir
+
 =item B<-use> I<MODULE>
 
 Add features from specified plug-in I<MODULE>.  Currently, the MWG module is
@@ -4500,9 +4546,10 @@ When combined with B<-listx>, the B<-s> option shortens the output by
 omitting the descriptions and values (as in the last example above), and
 B<-f> adds a 'flags' attribute if applicable.  The flags are formatted as a
 comma-separated list of the following possible values:  Avoid, Binary, List,
-Mandatory, Permanent, Protected, Unknown and Unsafe (see  the
-L<Tag Name documentation|Image::ExifTool::TagNames>).  For XMP List tags,
-the list type (Alt, Bag or Seq) is also output as a flag.
+Mandatory, Permanent, Protected, Unknown and Unsafe (see the L<Tag Name
+documentation|Image::ExifTool::TagNames>).  For XMP List tags, the list type
+(Alt, Bag or Seq) is added to the flags, and flattened structure tags are
+indicated by a Flattened flag.
 
 Note that none of the B<-list> options require an input I<FILE>.
 
@@ -4560,7 +4607,13 @@ original I<FILE>.  This may be useful in some special situations for
 processing related preview images or sidecar files.  See the B<-w> option
 for a description of the I<FMT> syntax.  Note that file name I<FMT> strings
 for all options are based on the original I<FILE> specified from the command
-line, not the name of the source file specified by B<-srcfile>.
+line, not the name of the source file specified by B<-srcfile>.  A I<FMT> of
+C<@> may be used to represent the original I<FILE>, and may be useful when
+specifying multiple B<-srcfile> options.
+
+If than one B<-srcfile> option is specified, the files are tested in order
+and the first existing source file is processed.  If none of the source
+files already exist, then exiftool uses the first B<-srcfile> specified.
 
 =item B<-stay_open> I<FLAG>
 

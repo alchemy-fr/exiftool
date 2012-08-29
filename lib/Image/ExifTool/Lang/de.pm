@@ -5205,7 +5205,6 @@ $VERSION = '1.24';
    'WBRedLevel' => 'Farbabgleich Rot',
    'WBShiftAB' => 'Weißabgleich AB-Korrektur',
    'WBShiftGM' => 'Weißabgleich GM-Korrektur',
-   'WBShiftMG' => 'Weißabgleich GM-Korrektur',
    'WB_GBRGLevels' => 'Weißabgleich GBRG-Farbverteilung',
    'WB_GLevel' => 'Weißabgleich G-Farbverteilung',
    'WB_GLevel3000K' => 'Weißabgleich G-Farbverteilung 3000K',

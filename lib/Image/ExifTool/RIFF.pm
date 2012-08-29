@@ -26,7 +26,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.33';
+$VERSION = '1.34';
 
 sub ConvertTimecode($);
 
@@ -406,6 +406,11 @@ my %riffMimeType = (
     olym => {
         Name => 'Olym',
         SubDirectory => { TagTable => 'Image::ExifTool::Olympus::WAV' },
+    },
+    'VP8 ' => { # (WEBP images)
+        Name => 'VP8Bitstream',
+        Condition => '$$valPt =~ /^...\x9d\x01\x2a/s',
+        SubDirectory => { TagTable => 'Image::ExifTool::RIFF::VP8' },
     },
 );
 
@@ -882,6 +887,45 @@ my %riffMimeType = (
         Name => 'UnknownData',
         # try to interpret unknown stream data as a string
         RawConv => '$_=$val; /^[^\0-\x1f\x7f-\xff]+$/ ? $_ : undef',
+    },
+);
+
+# VP8 bitstream (ref http://www.rfc-editor.org/rfc/pdfrfc/rfc6386.txt.pdf)
+%Image::ExifTool::RIFF::VP8 = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 2 => 'Image' },
+    0 => {
+        Name => 'VP8Version',
+        Mask => 0x0e,
+        ValueConv => '$val >> 1',
+        PrintConv => {
+            0 => '0 (bicubic reconstruction, normal loop)',
+            1 => '1 (bilinear reconstruction, simple loop)',
+            2 => '2 (bilinear reconstruction, no loop)',
+            3 => '3 (no reconstruction, no loop)',
+        },
+    },
+    6 => {
+        Name => 'ImageWidth',
+        Format => 'int16u',
+        Mask => 0x3fff,
+    },
+    6.1 => {
+        Name => 'HorizontalScale',
+        Format => 'int16u',
+        Mask => 0xc000,
+        ValueConv => '$val >> 14',
+    },
+    8 => {
+        Name => 'ImageHeight',
+        Format => 'int16u',
+        Mask => 0x3fff,
+    },
+    8.1 => {
+        Name => 'VerticalScale',
+        Format => 'int16u',
+        Mask => 0xc000,
+        ValueConv => '$val >> 14',
     },
 );
 

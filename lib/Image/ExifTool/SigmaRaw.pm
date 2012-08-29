@@ -222,9 +222,9 @@ sub ProcessX3FProperties($$$);
     LENSMODEL   => {
         Name => 'LensType',
         Notes => q{
-            decimal values differentiate lenses which would otherwise have the same
-            LensType, and are used by the Composite LensID tag when attempting to
-            identify the specific lens model
+            decimal values have been added to differentiate lenses which would otherwise
+            have the same LensType, and are used by the Composite LensID tag when
+            attempting to identify the specific lens model
         },
         ValueConvInv => '$val=~s/\.\d+$//; $val', # (truncate decimal part)
         PrintConv => \%sigmaLensTypes,

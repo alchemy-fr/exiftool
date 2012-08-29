@@ -22,7 +22,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:Public);
 
-$VERSION = '1.32';
+$VERSION = '1.33';
 
 sub JITTER() { return 2 }       # maximum time jitter
 
@@ -50,6 +50,9 @@ my %xmlTag = (
     sat         => 'nsats',     # GPX
     when        => 'time',      # KML
     coordinates => 'coords',    # KML
+    course      => 'dir',       # (written by Arduino)
+    pitch       => 'pitch',     # (written by Arduino)
+    roll        => 'roll',      # (written by Arduino)
     # XML containers (fix is reset at the opening tag of these properties)
     wpt         => '',          # GPX
     trkpt       => '',          # GPX
@@ -68,6 +71,8 @@ my %fixInfoKeys = (
     alt    => [ 'alt' ],
     orient => [ 'dir', 'pitch', 'roll' ],
 );
+
+my %isOrient = ( dir => 1, pitch => 1, roll => 1 ); # test for orientation key
 
 my $secPerDay = 24 * 3600;      # a useful constant
 
@@ -167,7 +172,7 @@ sub LoadTrackLog($$;$)
         $raf->ReadLine($_) or last;
         # determine file format
         if (not $format) {
-            if (/^<(\?xml|gpx)\s/) { # look for XML or GPX header
+            if (/^<(\?xml|gpx)[\s>]/) { # look for XML or GPX header
                 $format = 'XML';
             # check for NMEA sentence
             # (must ONLY start with ones that have timestamps! ie. not GSA or PTNTHPR!)
@@ -206,7 +211,10 @@ sub LoadTrackLog($$;$)
                 # (note: ignore namespace prefixes if they exist)
                 if ($arg =~ /^(\w+:)?(\w+)=(['"])(.*?)\3/g) {
                     my $tag = $xmlTag{lc $2};
-                    $$fix{$tag} = $4 if $tag;
+                    if ($tag) {
+                        $$fix{$tag} = $4;
+                        $$has{orient} = 1 if $isOrient{$tag};
+                    }
                 }
                 # loop through XML elements
                 while ($arg =~ m{([^<>]*)<(/)?(\w+:)?(\w+)(>|$)}g) {
@@ -233,6 +241,7 @@ sub LoadTrackLog($$;$)
                                 @$fix{'lon','lat','alt'} = split ',', $1;
                             } else {
                                 $$fix{$tag} = $1;
+                                $$has{orient} = 1 if $isOrient{$tag};
                             }
                         }
                         next;

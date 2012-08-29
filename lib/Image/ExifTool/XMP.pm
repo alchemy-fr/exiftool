@@ -46,7 +46,7 @@ use Image::ExifTool qw(:Utils);
 use Image::ExifTool::Exif;
 require Exporter;
 
-$VERSION = '2.52';
+$VERSION = '2.54';
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(EscapeXML UnescapeXML);
 
@@ -59,7 +59,7 @@ sub SaveBlankInfo($$$;$);
 sub ProcessBlankInfo($$$;$);
 sub ValidateXMP($;$);
 sub UnescapeChar($$);
-sub AddFlattenedTags($$;$);
+sub AddFlattenedTags($;$$);
 sub FormatXMPDate($);
 sub ConvertRational($);
 
@@ -126,6 +126,7 @@ my %xmpNS = (
     xmpPLUS   => 'http://ns.adobe.com/xap/1.0/PLUS/',
     dex       => 'http://ns.optimasc.com/dex/1.0/',
     mediapro  => 'http://ns.iview-multimedia.com/mediapro/1.0/',
+    expressionmedia => 'http://ns.microsoft.com/expressionmedia/1.0/',
     Iptc4xmpCore => 'http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/',
     Iptc4xmpExt => 'http://iptc.org/std/Iptc4xmpExt/2008-02-29/',
     MicrosoftPhoto => 'http://ns.microsoft.com/photo/1.0',
@@ -513,6 +514,10 @@ my %sLocationDetails = (
     mediapro => {
         Name => 'mediapro',
         SubDirectory => { TagTable => 'Image::ExifTool::XMP::MediaPro' },
+    },
+    expressionmedia => {
+        Name => 'expressionmedia',
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::ExpressionMedia' },
     },
     microsoft => {
         Name => 'microsoft',
@@ -2414,94 +2419,110 @@ sub RegisterNamespace($)
 
 #------------------------------------------------------------------------------
 # Generate flattened tags and add to table
-# Inputs: 0) tag table ref, 1) tag ID for Struct tag in table,
+# Inputs: 0) tag table ref, 1) tag ID for Struct tag (if not defined, whole table is done),
 #         2) flag to not expand sub-structures
 # Returns: number of tags added (not counting those just initialized)
 # Notes: Must have verified that $$tagTablePtr{$tagID}{Struct} exists before calling this routine
 # - makes sure that the tagInfo Struct is a HASH reference
-sub AddFlattenedTags($$;$)
+sub AddFlattenedTags($;$$)
 {
     local $_;
     my ($tagTablePtr, $tagID, $noSubStruct) = @_;
-    my $tagInfo = $$tagTablePtr{$tagID};
-
-    $$tagInfo{Flattened} and return 0;  # only generate flattened tags once
-    $$tagInfo{Flattened} = 1;
-
-    my $strTable = $$tagInfo{Struct};
-    unless (ref $strTable) { # (allow a structure name for backward compatibility only)
-        my $strName = $strTable;
-        $strTable = $Image::ExifTool::UserDefined::xmpStruct{$strTable} or return 0;
-        $$strTable{STRUCT_NAME} or $$strTable{STRUCT_NAME} = $strName;
-        $$tagInfo{Struct} = $strTable;  # replace old-style name with HASH ref
-        delete $$tagInfo{SubDirectory}; # deprecated use of SubDirectory in Struct tags
-    }
-    # do not add flattened tags to variable-namespace structures
-    return 0 if exists $$strTable{NAMESPACE} and not defined $$strTable{NAMESPACE};
-
-    # get family 2 group name for this structure tag
-    my ($tagG2, $field);
-    $tagG2 = $$tagInfo{Groups}{2} if $$tagInfo{Groups};
-    $tagG2 or $tagG2 = $$tagTablePtr{GROUPS}{2};
-
     my $count = 0;
-    foreach $field (keys %$strTable) {
-        next if $specialStruct{$field};
-        my $fieldInfo = $$strTable{$field};
-        next if $$fieldInfo{LangCode};  # don't flatten lang-alt tags
-        next if $$fieldInfo{Struct} and $noSubStruct;   # don't expand sub-structures if specified
-        # build a tag ID for the corresponding flattened tag
-        my $fieldName = ucfirst($field);
-        my $flatID = $tagID . $fieldName;
-        my $flatInfo = $$tagTablePtr{$flatID};
-        if ($flatInfo) {
-            ref $flatInfo eq 'HASH' or warn("$flatInfo is not a HASH!\n"), next; # (to be safe)
-            # pre-defined flattened tags should have Flat flag set
-            if (not defined $$flatInfo{Flat} and $Image::ExifTool::debug) {
-                warn "Missing Flat flag for $$flatInfo{Name}\n";
+    my @tagIDs;
+
+    if (defined $tagID) {
+        push @tagIDs, $tagID;
+    } else {
+        foreach $tagID (TagTableKeys($tagTablePtr)) {
+            my $tagInfo = $$tagTablePtr{$tagID};
+            next unless ref $tagInfo eq 'HASH' and $$tagInfo{Struct};
+            push @tagIDs, $tagID;
+        }
+    }
+
+    # loop through specified tags
+    foreach $tagID (@tagIDs) {
+
+        my $tagInfo = $$tagTablePtr{$tagID};
+
+        $$tagInfo{Flattened} and next;  # only generate flattened tags once
+        $$tagInfo{Flattened} = 1;
+
+        my $strTable = $$tagInfo{Struct};
+        unless (ref $strTable) { # (allow a structure name for backward compatibility only)
+            my $strName = $strTable;
+            $strTable = $Image::ExifTool::UserDefined::xmpStruct{$strTable} or next;
+            $$strTable{STRUCT_NAME} or $$strTable{STRUCT_NAME} = "XMP $strName";
+            $$tagInfo{Struct} = $strTable;  # replace old-style name with HASH ref
+            delete $$tagInfo{SubDirectory}; # deprecated use of SubDirectory in Struct tags
+        }
+        # do not add flattened tags to variable-namespace structures
+        next if exists $$strTable{NAMESPACE} and not defined $$strTable{NAMESPACE};
+
+        # get family 2 group name for this structure tag
+        my ($tagG2, $field);
+        $tagG2 = $$tagInfo{Groups}{2} if $$tagInfo{Groups};
+        $tagG2 or $tagG2 = $$tagTablePtr{GROUPS}{2};
+
+        foreach $field (keys %$strTable) {
+            next if $specialStruct{$field};
+            my $fieldInfo = $$strTable{$field};
+            next if $$fieldInfo{LangCode};  # don't flatten lang-alt tags
+            next if $$fieldInfo{Struct} and $noSubStruct;   # don't expand sub-structures if specified
+            # build a tag ID for the corresponding flattened tag
+            my $fieldName = ucfirst($field);
+            my $flatID = $tagID . $fieldName;
+            my $flatInfo = $$tagTablePtr{$flatID};
+            if ($flatInfo) {
+                ref $flatInfo eq 'HASH' or warn("$flatInfo is not a HASH!\n"), next; # (to be safe)
+                # pre-defined flattened tags should have Flat flag set
+                if (not defined $$flatInfo{Flat} and $Image::ExifTool::debug) {
+                    warn "Missing Flat flag for $$flatInfo{Name}\n";
+                }
+                $$flatInfo{Flat} = 0;
+                # copy all missing entries from field information
+                foreach (keys %$fieldInfo) {
+                    # must not copy PropertyPath (but can't delete it afterwards
+                    # because the flat tag may already have this set)
+                    next if $_ eq 'PropertyPath';
+                    $$flatInfo{$_} = $$fieldInfo{$_} unless defined $$flatInfo{$_};
+                }
+                # NOTE: Do NOT delete Groups because we need them if GotGroups was done
+                # --> just override group 2 later according to field group
+                # re-generate List flag unless it is set to 0
+                delete $$flatInfo{List} if $$flatInfo{List};
+            } else {
+                # generate new flattened tag information based on structure field
+                $flatInfo = { %$fieldInfo, Name => $$tagInfo{Name} . $fieldName, Flat => 0 };
+                # add new flattened tag to table
+                AddTagToTable($tagTablePtr, $flatID, $flatInfo);
+                ++$count;
             }
-            $$flatInfo{Flat} = 0;
-            # copy all missing entries from field information
-            foreach (keys %$fieldInfo) {
-                # must not copy PropertyPath (but can't delete it afterwards
-                # because the flat tag may already have this set)
-                next if $_ eq 'PropertyPath';
-                $$flatInfo{$_} = $$fieldInfo{$_} unless defined $$flatInfo{$_};
+            # propagate List flag (unless set to 0 in pre-defined flattened tag)
+            unless (defined $$flatInfo{List}) {
+                $$flatInfo{List} = $$fieldInfo{List} || 1 if $$fieldInfo{List} or $$tagInfo{List};
             }
-            # NOTE: Do NOT delete Groups because we need them if GotGroups was done
-            # --> just override group 2 later according to field group
-            # re-generate List flag unless it is set to 0
-            delete $$flatInfo{List} if $$flatInfo{List};
-        } else {
-            # generate new flattened tag information based on structure field
-            $flatInfo = { %$fieldInfo, Name => $$tagInfo{Name} . $fieldName, Flat => 0 };
-            # add new flattened tag to table
-            AddTagToTable($tagTablePtr, $flatID, $flatInfo);
-            ++$count;
+            # set group 2 name from the first existing family 2 group in the:
+            # 1) structure field Groups, 2) structure table GROUPS, 3) structure tag Groups
+            if ($$fieldInfo{Groups} and $$fieldInfo{Groups}{2}) {
+                $$flatInfo{Groups}{2} = $$fieldInfo{Groups}{2};
+            } elsif ($$strTable{GROUPS} and $$strTable{GROUPS}{2}) {
+                $$flatInfo{Groups}{2} = $$strTable{GROUPS}{2};
+            } else {
+                $$flatInfo{Groups}{2} = $tagG2;
+            }
+            # save reference to top-level structure
+            $$flatInfo{RootTagInfo} = $$tagInfo{RootTagInfo} || $tagInfo;
+            # recursively generate flattened tags for sub-structures
+            next unless $$flatInfo{Struct};
+            length($flatID) > 250 and warn("Possible deep recursion for tag $flatID\n"), last;
+            # reset flattened tag just in case we flattened hierarchy in the wrong order
+            # because we must start from the outtermost structure to get the List flags right
+            # (this should only happen when building tag tables)
+            delete $$flatInfo{Flattened};
+            $count += AddFlattenedTags($tagTablePtr, $flatID, $$flatInfo{NoSubStruct});
         }
-        # propagate List flag (unless set to 0 in pre-defined flattened tag)
-        unless (defined $$flatInfo{List}) {
-            $$flatInfo{List} = $$fieldInfo{List} || 1 if $$fieldInfo{List} or $$tagInfo{List};
-        }
-        # set group 2 name from the first existing family 2 group in the:
-        # 1) structure field Groups, 2) structure table GROUPS, 3) structure tag Groups
-        if ($$fieldInfo{Groups} and $$fieldInfo{Groups}{2}) {
-            $$flatInfo{Groups}{2} = $$fieldInfo{Groups}{2};
-        } elsif ($$strTable{GROUPS} and $$strTable{GROUPS}{2}) {
-            $$flatInfo{Groups}{2} = $$strTable{GROUPS}{2};
-        } else {
-            $$flatInfo{Groups}{2} = $tagG2;
-        }
-        # save reference to top-level structure
-        $$flatInfo{RootTagInfo} = $$tagInfo{RootTagInfo} || $tagInfo;
-        # recursively generate flattened tags for sub-structures
-        next unless $$flatInfo{Struct};
-        length($flatID) > 250 and warn("Possible deep recursion for tag $flatID\n"), last;
-        # reset flattened tag just in case we flattened hierarchy in the wrong order
-        # because we must start from the outtermost structure to get the List flags right
-        # (this should only happen when building tag tables)
-        delete $$flatInfo{Flattened};
-        $count += AddFlattenedTags($tagTablePtr, $flatID, $$flatInfo{NoSubStruct});
     }
     return $count;
 }

@@ -564,8 +564,9 @@ numerical.
                   when PrintConv is specified (unless WriteAlso is used).  See
                   ValueConvInv above for more details.
 
-  PrintConvColumns : Number of columns for PrintConv lookup in HTML docs.
-                  Default is 1 if not specified.
+  PrintConvColumns : Number of columns for PrintConv lookup in HTML docs. If not
+                  set, the number of columns is determined automatically
+                  according to the maximum width of the entries.
 
   DelValue      : Raw value to be used when deleting a permanent tag.  (Note all
                   MakerNotes tags are permanent.)  If not specified, an attempt
@@ -803,11 +804,11 @@ numerical.
                   file, or $val for the value itself.  If not specified, a Start
                   of '$valuePtr' is assumed.
 
-     OffsetPt   : If specified, this is a Perl expression that gives the
-                  position of a 32-bit word in the current directory that is
-                  added to the Start position to get the position of the new
-                  subdirectory.  The expression should use the position of the
-                  current tag ($valuePtr).
+     OffsetPt   : [EXIF directories only] If specified, this is a Perl
+                  expression that gives the position of a 32-bit word in the
+                  current directory that is added to the Start position to get
+                  the position of the new subdirectory.  The expression
+                  should use the position of the current tag ($valuePtr).
 
      Base       : This specifies the base offset for all pointers in the
                   subdirectory.  This need not be specified if the offset is the
@@ -819,9 +820,9 @@ numerical.
                   IFD is flagged as using relative offsets when writing if
                   '$start' is used in this expression.
 
-     EntryBased : Flag indicating that the offsets are based on the individual
-                  directory entry position, so offsets are incremented by 12
-                  times the corresponding entry index.
+     EntryBased : [EXIF directories only] Flag indicating that the offsets are
+                  based on the individual directory entry position, so offsets
+                  are incremented by 12 times the corresponding entry index.
 
      MaxSubdirs : Maximum number of subdirectories specified by the current tag
                   (if the tag specifies multiple values).  If not specified, the
@@ -846,7 +847,7 @@ numerical.
                   subdirectory data.  This overrides the default procedure
                   specified by PROCESS_PROC in the tag table.
 
-     WriteProc:  If given, specifies processing procedure used to write this
+     WriteProc  : If given, specifies processing procedure used to write this
                   subdirectory data.  This overrides the default procedure
                   specified by WRITE_PROC in the tag table.
 
@@ -891,7 +892,10 @@ keys in structure hashes are:
                 is mandatory for built-in tags, but optional for user-defined
                 tags (where it defaults to the NAMESPACE of the tag table).
 
-  STRUCT_NAME : Name of structure (used in warning messages).
+  STRUCT_NAME : Name of structure (used in warning messages and documentation).
+                May contain leading module name separated by a space to avoid
+                name conflicts with same-named structures in other modules.
+                Default module is "XMP" unless otherwise specified.
 
   TYPE        : rdf:type resource for structure.
 
@@ -915,7 +919,7 @@ generated (using an on-demand approach to reduce startup overhead).  Pre-defined
 flattened tags are allowed, and are used when it is necessary to change the Name
 or Description of a flattened tag.  The flattened tag information hash entries
 are copied from the corresponding structure field definitions, even for
-pre-defined flattened tags.  The exception that the List tag is generated
+pre-defined flattened tags.  The exception that the List property is generated
 automatically unless explicity set to 0 in a pre-defined flattened tag.
 
 --------------------------------------------------------------------------------

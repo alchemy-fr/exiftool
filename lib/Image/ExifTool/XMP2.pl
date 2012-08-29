@@ -947,13 +947,56 @@ my %sSubVersion = (
     GROUPS => { 1 => 'XMP-cc', 2 => 'Author' },
     NAMESPACE => 'cc',
     NOTES => q{
-        Creative Commons namespace tags.  (see
-        L<http://creativecommons.org/technology/xmp>)
+        Creative Commons namespace tags.  Note that the CC specification for XMP is
+        non-existent, so ExifTool must make some assumptions about the format of the
+        specific properties in XMP (see L<http://creativecommons.org/ns>).
     },
-    license => { },
-    morePermissions => { },
+    # Work properties
+    license         => { Resource => 1 },
     attributionName => { },
-    attributionURL  => { },
+    attributionURL  => { Resource => 1 },
+    morePermissions => { Resource => 1 },
+    useGuidelines   => { Resource => 1 },
+    # License properties
+    permits => {
+        List => 'Bag',
+        Resource => 1,
+        PrintConv => {
+            'cc:Sharing' => 'Sharing',
+            'cc:DerivativeWorks' => 'Derivative Works',
+            'cc:Reproduction' => 'Reproduction',
+            'cc:Distribution' => 'Distribution',
+        },
+    },
+    requires => {
+        List => 'Bag',
+        Resource => 1,
+        PrintConv => {
+            'cc:Copyleft' => 'Copyleft',
+            'cc:LesserCopyleft' => 'Lesser Copyleft',
+            'cc:SourceCode' => 'Source Code',
+            'cc:ShareAlike' => 'Share Alike',
+            'cc:Notice' => 'Notice',
+            'cc:Attribution' => 'Attribution',
+        },
+    },
+    prohibits => {
+        List => 'Bag',
+        Resource => 1,
+        PrintConv => {
+            'cc:HighIncomeNationUse' => 'High Income Nation Use',
+            'cc:CommercialUse' => 'Commercial Use',
+        },
+    },
+    jurisdiction    => { Resource => 1 },
+    legalcode       => { Name => 'LegalCode', Resource => 1 },
+    deprecatedOn    => {
+        Writable => 'date',
+        Shift => 'Time',
+        Groups => { 2 => 'Time' },
+        PrintConv => '$self->ConvertDateTime($val)',
+        PrintConvInv => '$self->InverseDateTime($val,undef,1)',
+    },
 );
 
 # Description Explorer namespace properties (dex) (ref 6)
@@ -1007,6 +1050,20 @@ my %sSubVersion = (
     People      => { List => 'Bag' },
     UserFields  => { List => 'Bag' },
     CatalogSets => { List => 'Bag' },
+);
+
+# Microsoft ExpressionMedia namespace properties (expressionmedia)
+# (ref http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4235.0.html)
+%Image::ExifTool::XMP::ExpressionMedia = (
+    %xmpTableDefaults,
+    GROUPS => { 1 => 'XMP-expressionmedia', 2 => 'Image' },
+    NAMESPACE => 'expressionmedia',
+    NOTES => 'Microsoft Expression Media namespace tags.',
+    CatalogSets => {
+        List => 'Bag',
+        Avoid => 1,
+        Notes => 'avoided due to conflict with XMP-mediapro:CatalogSets',
+    },
 );
 
 # DigiKam namespace tags (ref PH)

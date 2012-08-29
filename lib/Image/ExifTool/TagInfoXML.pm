@@ -15,7 +15,7 @@ use vars qw($VERSION @ISA);
 use Image::ExifTool qw(:Utils :Vars);
 use Image::ExifTool::XMP;
 
-$VERSION = '1.17';
+$VERSION = '1.19';
 @ISA = qw(Exporter);
 
 # set this to a language code to generate Lang module with 'MISSING' entries
@@ -35,7 +35,7 @@ my %credits = (
     es   => 'Jens Duttke and Santiago del BrE<iacute>o GonzE<aacute>lez',
     fi   => 'Jens Duttke and Jarkko ME<auml>kineva',
     fr   => 'Jens Duttke, Bernard Guillotin, Jean Glasser, Jean Piquemal and Harry Nizard',
-    it   => 'Jens Duttke, Ferdinando Agovino and Emilio Dati',
+    it   => 'Jens Duttke, Ferdinando Agovino, Emilio Dati and Michele Locati',
     ja   => 'Jens Duttke and Kazunari Nishina',
     ko   => 'Jens Duttke and Jeong Beom Kim',
     nl   => 'Jens Duttke, Peter Moonen and Herman Beld',
@@ -95,10 +95,14 @@ sub Write(;$$%)
         my ($tagID, $didTag);
         # sort in same order as tag name documentation
         $caseInsensitive = ($tableName =~ /::XMP::/);
-        my @keys = sort NumbersFirst TagTableKeys($table);
         # get list of languages defining elements in this table
         my $isBinary = ($$table{PROCESS_PROC} and
                         $$table{PROCESS_PROC} eq \&Image::ExifTool::ProcessBinaryData);
+        # generate flattened tag names for structure fields if this is an XMP table
+        if ($$table{GROUPS} and $$table{GROUPS}{0} eq 'XMP') {
+            Image::ExifTool::XMP::AddFlattenedTags($table);
+        }
+        my @keys = sort NumbersFirst TagTableKeys($table);
         # loop throug all tag ID's in this table
         foreach $tagID (@keys) {
             my @infoArray = GetTagInfoList($table, $tagID);
@@ -151,6 +155,7 @@ PTILoop:    for ($index=0; $index<@infoArray; ++$index) {
                     }
                 }
                 $format = $$tagInfo{Format} || $$table{FORMAT} if not defined $format or $format eq '1';
+                $format = 'struct' if $$tagInfo{Struct};
                 if (defined $format) {
                     $format =~ s/\[.*\$.*\]//;   # remove expressions from format
                 } elsif ($isBinary) {
@@ -179,6 +184,7 @@ PTILoop:    for ($index=0; $index<@infoArray; ++$index) {
                         push @flags, $_ if $$tagInfo{$_};
                     }
                     push @flags, $$tagInfo{List} if $$tagInfo{List} and $$tagInfo{List} =~ /^(Alt|Bag|Seq)$/;
+                    push @flags, 'Flattened' if defined $$tagInfo{Flat};
                     push @flags, 'Unsafe' if $$tagInfo{Protected} and $$tagInfo{Protected} & 0x01;
                     push @flags, 'Protected' if $$tagInfo{Protected} and $$tagInfo{Protected} & 0x02;
                     push @flags, 'Permanent' if $$tagInfo{Permanent} or
@@ -293,7 +299,7 @@ sub BuildLangModules($;$)
 {
     local ($_, *XFILE);
     my ($file, $forceUpdate) = @_;
-    my ($table, $tableName, $id, $index, $valIndex, $name, $key, $lang);
+    my ($table, $tableName, $id, $index, $valIndex, $name, $key, $lang, $defDesc);
     my (%langInfo, %different, %changed);
 
     Image::ExifTool::LoadAllTables();   # first load all our tables
@@ -311,6 +317,7 @@ sub BuildLangModules($;$)
                     undef $id;
                     undef $index;
                     undef $name;
+                    undef $defDesc;
                 } elsif ($tok eq 'values') {
                     undef $key;
                     undef $valIndex;
@@ -393,6 +400,7 @@ sub BuildLangModules($;$)
                     unless ($$tagInfo{Description}) {
                         $$tagInfo{Description} = Image::ExifTool::MakeDescription($tagName);
                     }
+                    $defDesc = $$tagInfo{Description};
                     $langInfo = $tagInfo;
                 } else {
                     $langInfo = $langInfo{$lang}{$tagName};
@@ -419,7 +427,11 @@ sub BuildLangModules($;$)
                         next unless $overrideDifferent;
                     }
                     next if $isDefault;
-                    $$langInfo{Description} = $val;
+                    if (defined $defDesc and $defDesc eq $val) {
+                        delete $$langInfo{Description}; # delete if same as default language
+                    } else {
+                        $$langInfo{Description} = $val;
+                    }
                 } else {
                     defined $key or warn("No key for $$tagInfo{Name}"), next;
                     my $printConv = $$tagInfo{PrintConv};
@@ -438,6 +450,10 @@ sub BuildLangModules($;$)
                             }
                         }
                         warn("Missing PrintConv entry for $key") and next unless defined $convVal;
+                    }
+                    if ($cap and $convVal =~ /^[a-z]/) {
+                        $val = lcfirst $val;    # change back to lower case
+                        undef $cap;
                     }
                     my $lc = $$langInfo{PrintConv};
                     $lc or $lc = $$langInfo{PrintConv} = { };

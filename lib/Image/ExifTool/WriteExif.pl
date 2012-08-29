@@ -328,6 +328,18 @@ my %writeTable = (
         WriteGroup => 'IFD0',
         Avoid => 1,
     },
+    0x828d => {             # CFARepeatPatternDim
+        Protected => 1,
+        Writable => 'int16u',
+        WriteGroup => 'SubIFD',
+        Count => 2,
+    },
+    0x828e => {             # CFAPattern2
+        Protected => 1,
+        Writable => 'int8u',
+        WriteGroup => 'SubIFD',
+        Count => -1,
+    },
     0x8298 => {             # Copyright
         Writable => 'string',
         WriteGroup => 'IFD0',
@@ -1858,7 +1870,7 @@ Entry:  for (;;) {
                                     my $tagStr = $oldInfo ? $$oldInfo{Name} : sprintf("tag 0x%x",$oldID);
                                     return undef if $exifTool->Error("Bad $name offset for $tagStr", $inMakerNotes);
                                 }
-                                goto DropTag; # GOTO!
+                                ++$index;  $oldID = $newID;  next;  # drop this tag
                             }
                         }
                         # offset shouldn't point into TIFF or IFD header
@@ -1938,11 +1950,11 @@ Entry:  for (;;) {
                                 }
                                 unless ($success) {
                                     return undef if $exifTool->Error("Error reading value for $name entry $index", $inMakerNotes);
-                                    goto DropTag; # GOTO!
+                                    ++$index;  $oldID = $newID;  next;  # drop this tag
                                 }
                             } elsif (not $invalidPreview) {
                                 return undef if $exifTool->Error("Bad $name offset for $tagStr", $inMakerNotes);
-                                goto DropTag; # GOTO!
+                                ++$index;  $oldID = $newID;  next;  # drop this tag
                             }
                             if ($invalidPreview) {
                                 # set value for invalid preview
@@ -2013,13 +2025,10 @@ Entry:  for (;;) {
                             not $intFormat{$oldFormName})
                         {
                             $exifTool->Error("Invalid format ($oldFormName) for $name $$oldInfo{Name}", $inMakerNotes);
-                            goto DropTag; # GOTO!
+                            ++$index;  $oldID = $newID;  next;  # drop this tag
                         }
                         if ($$oldInfo{Drop} and $$exifTool{DROP_TAGS}) {
-                            # don't rewrite this tag
-DropTag:                    ++$index;
-                            $oldID = $newID;
-                            next;
+                            ++$index;  $oldID = $newID;  next;  # drop this tag
                         }
                         if ($$oldInfo{Format}) {
                             $readFormName = $$oldInfo{Format};
@@ -2119,7 +2128,11 @@ DropTag:                    ++$index;
                             $nvHash = $exifTool->GetNewValueHash($newInfo, $wrongDir);
                         }
                         # read value
-                        $val = ReadValue(\$oldValue, 0, $readFormName, $readCount, $oldSize);
+                        if (length $oldValue >= $oldSize) {
+                            $val = ReadValue(\$oldValue, 0, $readFormName, $readCount, $oldSize);
+                        } else {
+                            $val = '';
+                        }
                         # determine write format (by default, use 'Writable' format)
                         my $writable = $$newInfo{Writable};
                         # (or use existing format if 'Writable' not specified)
@@ -2519,8 +2532,8 @@ NoOverwrite:            next if $isNew > 0;
                         $newValue = '';    # reset value because we regenerate it below
                         for ($i=0; $i<$readCount; ++$i) {
                             my $off = $i * $formatSize[$readFormat];
-                            my $pt = Image::ExifTool::ReadValue($valueDataPt, $valuePtr + $off,
-                                            $readFormName, 1, $oldSize - $off);
+                            my $pt = ReadValue($valueDataPt, $valuePtr + $off,
+                                               $readFormName, 1, $oldSize - $off);
                             my $subdirStart = $pt - $dataPos;
                             my $subdirBase = $base;
                             if ($$subdir{Base}) {

@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION $AUTOLOAD);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.34';
+$VERSION = '1.35';
 
 sub WritePS($$);
 sub ProcessPS($$;$);
@@ -212,10 +212,12 @@ sub DecodeComment($$$;$)
             $raf->ReadLine($buff) or last;
             my $altnl = $/ eq "\x0d" ? "\x0a" : "\x0d";
             if ($buff =~ /$altnl/) {
+                chomp $buff if $/ eq "\x0d\x0a";        # remove DOS newline before splitting
                 # split into separate lines
                 @$lines = split /$altnl/, $buff, -1;
                 # handle case of DOS newline data inside file using Unix newlines
                 @$lines = ( $$lines[0] . $$lines[1] ) if @$lines == 2 and $$lines[1] eq $/;
+                @$lines[-1] .= $/ if $/ eq "\x0d\x0a";  # add back trailing newline
             } else {
                 push @$lines, $buff;
             }

@@ -14,7 +14,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::GPS;
 
-$VERSION = '1.36';
+$VERSION = '1.37';
 
 sub ProcessMIE($$);
 sub ProcessMIEGroup($$$);
@@ -1082,7 +1082,7 @@ sub WriteMIEGroup($$$)
                     $subdirInfo{DirName} = $newInfo->{SubDirectory}->{DirName} || $newTag;
                     $subdirInfo{Parent} = $dirName;
                     # don't compress elements of an already compressed group
-                    $subdirInfo{IsCompressed} = 1;
+                    $subdirInfo{IsCompressed} = $$dirInfo{IsCompressed} || $compress;
                     $msg = WriteMIEGroup($exifTool, \%subdirInfo, $subTablePtr);
                     last MieElement if $msg;
                     # message is defined but empty if nothing was written
@@ -1093,6 +1093,10 @@ sub WriteMIEGroup($$$)
                         # group was written already
                         $toWrite = '';
                         next;
+                    } elsif (length($newVal) <= 4) {    # terminator only?
+                        $verbose and print $out "Deleted compressed $grp1 (empty)\n";
+                        next MieElement if $newTag eq $tag; # deleting the directory
+                        next;       # not creating the new directory
                     }
                     $writable = 'undef';
                     $newFormat = MIEGroupFormat();
@@ -1106,7 +1110,7 @@ sub WriteMIEGroup($$$)
                             DataPt  => \$oldVal,
                             DataLen => $valLen,
                             DirName => $$newInfo{Name},
-                            DataPos => $raf->Tell() - $valLen,
+                            DataPos => $$dirInfo{IsCompressed} ? undef : $raf->Tell() - $valLen,
                             DirStart=> 0,
                             DirLen  => $valLen,
                         );
@@ -1565,7 +1569,7 @@ sub ProcessMIEGroup($$$)
                 WasCompressed => $wasCompressed,
             );
             # read from uncompressed data instead if necessary
-            $subdirInfo{RAF} = new File::RandomAccess(\$value) if $format & 0x04;
+            $subdirInfo{RAF} = new File::RandomAccess(\$value) if $valLen;
 
             my $oldOrder = GetByteOrder();
             SetByteOrder($format & 0x08 ? 'II' : 'MM');

@@ -408,8 +408,8 @@ official EXIF 2.3 specification.
   0x80e5   ImageDepth                -          N
   0x80e6   TileDepth                 -          N
   0x827d   Model2                    -          N
-  0x828d   CFARepeatPatternDim       -          N
-  0x828e   CFAPattern2               -          N
+  0x828d   CFARepeatPatternDim       SubIFD     int16u[2]!
+  0x828e   CFAPattern2               SubIFD     int8u[n]!
   0x828f   BatteryLevel              -          N
   0x8290   KodakIFD                  -          Kodak IFD
   0x8298   Copyright                 IFD0       string
@@ -1044,8 +1044,9 @@ tables.  For example, the C<pdfx> namespace doesn't have a predefined set of
 tag names because it is used to store application-defined PDF information,
 but this information is extracted by ExifTool.
 
-The tables below list tags from the official XMP specification as well as
-extensions from various other sources.  See
+The tables below list tags from the official XMP specification (with an
+underlined B<Namespace> in the HTML version of this documentation), as well
+as extensions from various other sources. See
 L<http://www.adobe.com/devnet/xmp/> for the official XMP specification.
 
   Namespace                                     Writable
@@ -1061,6 +1062,7 @@ L<http://www.adobe.com/devnet/xmp/> for the official XMP specification.
   DICOM                                         XMP DICOM
   digiKam                                       XMP digiKam
   exif                                          XMP exif
+  expressionmedia                               XMP ExpressionMedia
   extensis                                      XMP extensis
   fpv                                           XMP fpv
   ics                                           XMP ics
@@ -1146,15 +1148,23 @@ Photoshop Auxiliary namespace tags.
 
 =head3 XMP cc Tags
 
-Creative Commons namespace tags.  (see
-L<http://creativecommons.org/technology/xmp>)
+Creative Commons namespace tags.  Note that the CC specification for XMP is
+non-existent, so ExifTool must make some assumptions about the format of the
+specific properties in XMP (see L<http://creativecommons.org/ns>).
 
   Tag Name                                      Writable
   --------                                      --------
   AttributionName                               string
   AttributionURL                                string
+  DeprecatedOn                                  date
+  Jurisdiction                                  string
+  LegalCode                                     string
   License                                       string
   MorePermissions                               string
+  Permits                                       string+
+  Prohibits                                     string+
+  Requires                                      string+
+  UseGuidelines                                 string
 
 =head3 XMP cell Tags
 
@@ -1613,6 +1623,14 @@ EXIF namespace for EXIF tags.
   Names                                         string+
   Rows                                          integer
   Values                                        rational+
+
+=head3 XMP ExpressionMedia Tags
+
+Microsoft Expression Media namespace tags.
+
+  Tag Name                                      Writable
+  --------                                      --------
+  CatalogSets                                   string/+
 
 =head3 XMP extensis Tags
 
@@ -3461,6 +3479,7 @@ This information is found in the PSD file header.
   0x0026   CanonAFInfo2                         Canon AFInfo2
   0x0027   ContrastInfo                         Canon ContrastInfo
   0x0028   ImageUniqueID                        int8u
+  0x002f   FaceDetect3                          Canon FaceDetect3
   0x0035   TimeInfo                             Canon TimeInfo
   0x0081   RawDataOffset                        N
   0x0083   OriginalDecisionDataOffset           int32u*
@@ -4435,7 +4454,13 @@ Newer version of the AFInfo record containing much of the same information
 
   Index2   Tag Name                             Writable
   ------   --------                             --------
-      4    IntelligentContrast                  int16s
+      4    IntelligentContrast                  int16u
+
+=head3 Canon FaceDetect3 Tags
+
+  Index2   Tag Name                             Writable
+  ------   --------                             --------
+      3    FacesDetected                        int16u
 
 =head3 Canon TimeInfo Tags
 
@@ -6898,22 +6923,23 @@ Camera information for the Sony DSLR-A100.
 
   Index1   Tag Name                             Writable
   ------   --------                             --------
-      1    ActiveAFSensor                       int8u
-      2    ActiveAFSensorStatus                 int8s[2]
-      4    Top-RightAFStatus                    int8s[2]
-      6    Bottom-RightAFStatus                 int8s[2]
-      8    BottomAFStatus                       int8s[2]
-     10    MiddleHorizontalAFStatus             int8s[2]
-     12    CenterVerticalAFStatus               int8s[2]
-     14    TopAFStatus                          int8s[2]
-     16    Top-LeftAFStatus                     int8s[2]
-     18    Bottom-LeftAFStatus                  int8s[2]
+      1    AFSensorActive                       int8u
+      2    AFStatusActiveSensor                 int16s
+      4    AFStatusTop-Right                    int16s
+      6    AFStatusBottom-Right                 int16s
+      8    AFStatusBottom                       int16s
+     10    AFStatusMiddleHorizontal             int16s
+     12    AFStatusCenterVertical               int16s
+     14    AFStatusTop                          int16s
+     16    AFStatusTop-Left                     int16s
+     18    AFStatusBottom-Left                  int16s
      20    FocusLocked                          int8u
      21    AFPoint                              int8u
      22    AFMode                               int8u
-     45    LeftAFStatus                         int8s[2]
-     47    CenterHorizontalAFStatus             int8s[2]
-     49    RightAFStatus                        int8s[2]
+     45    AFStatusLeft                         int16s
+     47    AFStatusCenterHorizontal             int16s
+     49    AFStatusRight                        int16s
+     51    AFAreaMode                           int8u
 
 =head3 Minolta ISInfoA100 Tags
 
@@ -7107,7 +7133,7 @@ Camera settings information for the Sony DSLR-A100.
      91    AELock                               int16u
      94    ColorTemperature                     int16u
      95    ColorCompensationFilter              int16s
-     96    BatteryLevel                         int16u
+     96    BatteryState                         int16u
 
 =head3 Minolta MMA Tags
 
@@ -9331,6 +9357,7 @@ These tags are used in Pentax/Asahi cameras.
   0x0080   AspectRatio                          Y
   0x0082   BlurControl                          int8u[4]
   0x0088   NeutralDensityFilter                 int8u
+  0x008b   ISO                                  int32u
   0x0200   BlackPoint                           int16u[4]
   0x0201   WhitePoint                           int16u[4]
   0x0203   ColorMatrixA                         int16s[9]
@@ -9646,7 +9673,7 @@ Flash information tags for the K10D, K20D and K200D.
   Index1   Tag Name                             Writable
   ------   --------                             --------
      16    WBShiftAB                            int8s
-     17    WBShiftMG                            int8s
+     17    WBShiftGM                            int8s
 
 =head3 Pentax EVStepInfo Tags
 
@@ -9980,8 +10007,8 @@ These tags are used in Panasonic/Leica cameras.
   0x0041   Sharpness                            int16u
   0x0042   FilmMode                             int16u
   0x0044   ColorTempKelvin                      int16u
-  0x0046   WBAdjustAB                           int16u
-  0x0047   WBAdjustGM                           int16u
+  0x0046   WBShiftAB                            int16u
+  0x0047   WBShiftGM                            int16u
   0x004b   PanasonicImageWidth                  int32u
   0x004c   PanasonicImageHeight                 int32u
   0x004d   AFPointPosition                      rational64u[2]
@@ -10140,8 +10167,15 @@ This information is written by the X1.
   0x0407   OriginalFileName                     string
   0x0408   OriginalDirectory                    string
   0x040d   ExposureMode                         int8u[4]
+  0x0410   ShotInfo                             Panasonic ShotInfo
   0x0412   FilmMode                             string
   0x0413   WB_RGBLevels                         rational64u[3]
+
+=head3 Panasonic ShotInfo Tags
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      0    FileIndex                            int16u
 
 =head3 Panasonic Leica6 Tags
 
@@ -10598,6 +10632,9 @@ MakerNotes.
            CameraSettings3                      Sony CameraSettings3
            CameraSettingsUnknown                Sony CameraSettingsUnknown
   0x0115   WhiteBalance                         int32u
+  0x0116   ExtraInfo                            Sony ExtraInfo
+           ExtraInfo2                           Sony ExtraInfo2
+           ExtraInfo3                           Sony ExtraInfo3
   0x0e00   PrintIM                              PrintIM
   0x1000   MultiBurstMode                       undef
   0x1001   MultiBurstImageWidth                 int16u
@@ -10614,9 +10651,11 @@ MakerNotes.
   0x200a   HDR                                  int32u
   0x200b   MultiFrameNoiseReduction             int32u
   0x200e   PictureEffect                        int16u
+  0x200f   SoftSkinEffect                       int32u
   0x2011   VignettingCorrection                 int32u
   0x2012   LateralChromaticAberration           int32u
   0x2013   DistortionCorrection                 int32u
+  0x2014   WBShiftAB_GM                         int32s[2]
   0x3000   ShotInfo                             Sony ShotInfo
   0xb000   FileFormat                           int8u[4]
   0xb001   SonyModelID                          int16u
@@ -10643,7 +10682,8 @@ MakerNotes.
   0xb049   ReleaseMode                          int16u
   0xb04a   SequenceNumber                       int16u
   0xb04b   Anti-Blur                            int16u
-  0xb04e   LongExposureNoiseReduction           int16u
+  0xb04e   FocusMode                            int16u
+           LongExposureNoiseReduction           int16u
   0xb04f   DynamicRangeOptimizer                int16u
   0xb052   IntelligentAuto                      int16u
   0xb054   WhiteBalance                         int16u
@@ -10659,6 +10699,7 @@ models.
       0    LensSpec                             undef[8]
      14    FocalLength                          int16u
      16    FocalLengthTeleZoom                  int16u
+     25    FocusStatus                          int8u
      28    AFPointSelected                      int8u
      29    FocusMode                            int8u
      32    AFPoint                              int8u
@@ -10670,6 +10711,8 @@ Camera information for other DSLR and NEX models.
   Index1   Tag Name                             Writable
   ------   --------                             --------
       0    LensSpec                             undef[8]
+    304    AFMicroAdjValue                      int8u
+    305    AFMicroAdjMode                       int8u
 
 =head3 Sony FocusInfo Tags
 
@@ -10728,6 +10771,7 @@ A580, A33, A35, A55, NEX-3/5/C3 and VG10E.
      23    HDRLevel                             int8u
      24    ViewingMode                          int8u
      25    FaceDetection                        int8u
+     26    CustomWB_RBLevels                    int16uRev[2]
      30    ExposureCompensationSet              int8u
      31    FlashExposureCompSet                 int8u
      32    LiveViewAFMethod                     int8u
@@ -10738,7 +10782,7 @@ A580, A33, A35, A55, NEX-3/5/C3 and VG10E.
 
   Index2   Tag Name                             Writable
   ------   --------                             --------
-      0    FacesDetected                        int16u
+      0    FacesDetected                        int16s
       1    Face1Position                        int16u[4]
       6    Face2Position                        int16u[4]
      11    Face3Position                        int16u[4]
@@ -10788,6 +10832,7 @@ Camera settings for the A200, A300, A350, A700, A850 and A900.
      61    ImageStabilizationSetting            int16u
      63    Rotation                             int16u
      77    FocusMode                            int16u
+     81    BatteryLevel                         int16u
      83    FocusStatus                          int16u
      84    SonyImageSize                        int16u
      85    AspectRatio                          int16u
@@ -10862,6 +10907,7 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.
      22    WhiteBalanceSetting                  int8u
      23    ColorTemperatureSetting              int8u
      24    ColorCompensationFilterSet           int8s
+     25    CustomWB_RGBLevels                   int16uRev[3]
      32    FlashMode                            int8u
      33    FlashControl                         int8u
      35    FlashExposureCompSet                 int8u
@@ -10881,18 +10927,65 @@ A560, A580, NEX-3, NEX-5, NEX-C3 and NEX-VG10E.
      53    MultiFrameNoiseReduction             int8u
      54    LiveViewAFSetting                    int8u
      56    3DPanoramaSize                       int8u
+    131    AFButtonPressed                      int8u
     132    LiveViewMetering                     int8u
     133    ViewingMode2                         int8u
+    134    AELock                               int8u
     135    FlashAction                          int8u
     139    LiveViewFocusMode                    int8u
     268    SequenceNumber                       int8u
     276    ImageNumber                          int16u & 0x3fff
+    647    FlashAction                          int8u
+    780    SequenceNumber                       int8u
+    788    ImageNumber                          int16u & 0x3fff
+   1024    ImageNumber                          int16u & 0x3fff
 
 =head3 Sony CameraSettingsUnknown Tags
 
   Index2   Tag Name                             Writable
   ------   --------                             --------
   [no tags known]
+
+=head3 Sony ExtraInfo Tags
+
+Extra hardware information for the A850 and A900.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      1    BatteryTemperature                   int8u
+      2    BatteryUnknown?                      N
+      8    BatteryVoltage?                      N
+     10    ImageStabilization2?                 int8u
+     12    BatteryLevel                         int8u
+     26    ExtraInfoVersion                     int8u[4]
+
+=head3 Sony ExtraInfo2 Tags
+
+Extra hardware information for the A230/290/330/380/390.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      4    BatteryLevel                         int8u
+     18    ImageStabilization                   int8u
+
+=head3 Sony ExtraInfo3 Tags
+
+Extra hardware information for the A33, A35, A55, A450, A500, A550, A560,
+A580 and NEX-3/5/C3/VG10.
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      0    BatteryUnknown?                      int16u
+      2    BatteryTemperature                   int8u
+      4    BatteryLevel                         int8u
+      6    BatteryVoltage1                      int16u
+      8    BatteryVoltage2                      int16u
+     17    ImageStabilization                   int8u
+     20    BatteryState                         int8u
+           ExposureProgram                      int8u
+           ModeDialPosition                     int8u
+     22    MemoryCardConfiguration              int8u
+     24    CameraOrientation                    int8u & 0x30
 
 =head3 Sony Panorama Tags
 
@@ -11470,8 +11563,8 @@ These tags are found in IFD0 of Panasonic/Leica RAW, RW2 and RWL images.
   0x0003   SensorHeight                         N
   0x0004   SensorTopBorder                      N
   0x0005   SensorLeftBorder                     N
-  0x0006   ImageHeight                          N
-  0x0007   ImageWidth                           N
+  0x0006   SensorBottomBorder                   N
+  0x0007   SensorRightBorder                    N
   0x0011   RedBalance                           int16u
   0x0012   BlueBalance                          int16u
   0x0017   ISO                                  int16u
@@ -11486,10 +11579,24 @@ These tags are found in IFD0 of Panasonic/Leica RAW, RW2 and RWL images.
   0x0116   RowsPerStrip                         N
   0x0117   StripByteCounts                      N
   0x0118   RawDataOffset                        N
+  0x0119   DistortionInfo                       PanasonicRaw DistortionInfo
   0x02bc   ApplicationNotes                     XMP
   0x83bb   IPTC-NAA                             IPTC
   0x8769   ExifOffset                           EXIF
   0x8825   GPSInfo                              GPS
+
+=head3 PanasonicRaw DistortionInfo Tags
+
+Lens distortion correction information.
+
+  Tag ID   Tag Name                             Writable
+  ------   --------                             --------
+  0x0004   DistortionParamB                     int16s
+  0x0005   DistortionScale                      int16s
+    7.1    DistortionCorrection                 int16s & 0x0f
+  0x0008   DistortionParamA                     int16s
+  0x000b   DistortionParamC                     int16s
+  0x000c   DistortionN?                         int16s
 
 =head2 SigmaRaw Tags
 
@@ -13373,10 +13480,31 @@ Microsoft Photo 1.2 schema XMP tags which have been observed.
 
   Tag Name                                      Writable
   --------                                      --------
-  RegionInfoMP                                  RegionInfoMP Struct
-  RegionInfoMPRegions                           Regions Struct_+
+  RegionInfoMP                                  Microsoft RegionInfo Struct
+  RegionInfoDateRegionsValid                    date_
+  RegionInfoRegions                             Microsoft Regions Struct_+
   RegionPersonDisplayName                       string_+
+  RegionPersonEmailDigest                       string_+
+  RegionPersonLiveIdCID                         string_+
+  RegionPersonSourceID                          string_+
   RegionRectangle                               string_+
+
+=head3 Microsoft RegionInfo Struct
+
+  Field Name                                    Writable
+  ----------                                    --------
+  DateRegionsValid                              date
+  Regions                                       Microsoft Regions Struct+
+
+=head3 Microsoft Regions Struct
+
+  Field Name                                    Writable
+  ----------                                    --------
+  PersonDisplayName                             string
+  PersonEmailDigest                             string
+  PersonLiveIdCID                               string
+  PersonSourceID                                string
+  Rectangle                                     string
 
 =head3 Microsoft Stitch Tags
 
@@ -13400,7 +13528,7 @@ are not shown because some are unruly GUID's.
 
   Tag Name                                      Writable
   --------                                      --------
-  Absract                                       N
+  Abstract                                      N
   AcquisitionTime                               N
   AcquisitionTimeDay                            N
   AcquisitionTimeMonth                          N
@@ -19088,6 +19216,7 @@ video.
   'LIST_hdrl'          Hdrl                     RIFF Hdrl
   'LIST_hydt'          PentaxData               Pentax AVI
   'LIST_ncdt'          NikonData                Nikon AVI
+  'VP8 '               VP8Bitstream             RIFF VP8
   '_PMX'               XMP                      XMP
   'bext'               BroadcastExtension       RIFF BroadcastExt
   'fmt '               AudioFormat              RIFF AudioFormat
@@ -19288,6 +19417,16 @@ cameras.  The first 4 characters of the data are used as the Tag ID below.
       6    StreamCount                          N
       8    ImageWidth                           N
       9    ImageHeight                          N
+
+=head3 RIFF VP8 Tags
+
+  Index1   Tag Name                             Writable
+  ------   --------                             --------
+      0    VP8Version                           N
+      6    ImageWidth                           N
+    6.1    HorizontalScale                      N
+      8    ImageHeight                          N
+    8.1    VerticalScale                        N
 
 =head3 RIFF BroadcastExt Tags
 
@@ -22808,6 +22947,7 @@ C<TITLE> element.
   'abstract'                  Abstract          N
   'author'                    Author            N
   'classification'            Classification    N
+  'content-language'          ContentLanguage   N
   'copyright'                 Copyright         N
   'dc'                        DC                HTML dc
   'description'               Description       N
@@ -22817,6 +22957,7 @@ C<TITLE> element.
   'doc-type'                  DocType           N
   'formatter'                 Formatter         N
   'generator'                 Generator         N
+  'generatorversion'          GeneratorVersion  N
   'googlebot'                 GoogleBot         N
   'http-equiv'                HTTP-equiv        HTML equiv
   'keywords'                  Keywords          N+
@@ -23383,8 +23524,8 @@ These tags are extracted from RAR archive files.
 This table lists standard tags of the RTF information group, but ExifTool
 will also extract any non-standard tags found in this group.  As well,
 ExifTool will extract any custom properties that are found.  See
-L<http://download.microsoft.com/download/2/f/5/2f599e18-07ee-4ec5-a1e7-f4e6a9423592/Word2007RTFSpec9.doc>
-for the specification.
+L<http://www.microsoft.com/en-ca/download/details.aspx?id=10725> for the
+specification.
 
   Tag ID               Tag Name                 Writable
   ------               --------                 --------
@@ -23621,6 +23762,8 @@ information is extracted.
                        Canon:DigitalZoom
   DriveMode            ContinuousDrive          N
                        SelfTimer
+  Duration             Vorbis:NominalBitrate    N
+                       FileSize
   Duration             FLAC:SampleRate          N
                        FLAC:TotalSamples
   Duration             FileSize                 N
@@ -23685,12 +23828,16 @@ information is extracted.
                        Canon:AutoISO
   ImageHeight          Main:PostScript:ImageData N
                        PostScript:BoundingBox
+  ImageHeight          IFD0:SensorTopBorder     N
+                       IFD0:SensorBottomBorder
   ImageSize            ImageWidth               N
                        ImageHeight
                        ExifImageWidth
                        ExifImageHeight
   ImageWidth           Main:PostScript:ImageData N
                        PostScript:BoundingBox
+  ImageWidth           IFD0:SensorLeftBorder    N
+                       IFD0:SensorRightBorder
   JpgFromRaw           JpgFromRawStart          Y
                        JpgFromRawLength
   Lens                 Canon:MinFocalLength     N

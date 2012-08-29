@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.94
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.98
 [File, System, Image] FileName - File Name: CanonRaw_4_failed.crw
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 12 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:06:04 09:17:08-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:07:28 14:11:50-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: CRW
 [File, File, Image] MIMEType - MIME Type: image/x-canon-crw
@@ -138,7 +138,7 @@
 [MakerNotes, CanonRaw, Image] 3 - Raw Jpg Width: 2048
 [MakerNotes, CanonRaw, Image] 4 - Raw Jpg Height: 1360
 [MakerNotes, CanonRaw, Camera] 6203 - Serial Number Format: Format 1
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.94
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 8.98
 [XMP, XMP-aux, Camera] Lens - Lens: 18.0 - 55.0 mm
 [XMP, XMP-aux, Camera] OwnerName - Owner Name: Phil Harvey
 [XMP, XMP-aux, Camera] SerialNumber - Serial Number: 1234
@@ -196,17 +196,17 @@
 [Composite, Composite, Other] Flash - Flash: No Flash
 [Composite, Composite, Camera] ISO - ISO: 100
 [Composite, Composite, Camera] Lens - Lens: 18.0 - 55.0 mm
-[Composite, Composite, Camera] ScaleFactor35efl - Scale Factor To 35 mm Equivalent: 1.0
 [Composite, Composite, Camera] ShootingMode - Shooting Mode: Bulb
 [Composite, Composite, Image] ShutterSpeed - Shutter Speed: 4
 [Composite, Composite, Camera] WB_RGGBLevels - WB RGGB Levels: 1719 832 831 990
 [Composite, Composite, Camera] BlueBalance - Blue Balance: 1.190619
+[Composite, Composite, Image] ImageSize - Image Size: 3072x2048
+[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
+[Composite, Composite, Image] LightValue - Light Value: 5.7
+[Composite, Composite, Camera] RedBalance - Red Balance: 2.067348
+[Composite, Composite, Camera] ScaleFactor35efl - Scale Factor To 35 mm Equivalent: 1.0
 [Composite, Composite, Camera] CircleOfConfusion - Circle Of Confusion: 0.029 mm
 [Composite, Composite, Image] FOV - Field Of View: 54.9 deg
 [Composite, Composite, Camera] FocalLength35efl - Focal Length: 34.0 mm (35 mm equivalent: 34.7 mm)
 [Composite, Composite, Camera] HyperfocalDistance - Hyperfocal Distance: 2.75 m
-[Composite, Composite, Image] ImageSize - Image Size: 3072x2048
 [Composite, Composite, Camera] Lens35efl - Lens: 18.0 - 55.0 mm (35 mm equivalent: 18.4 - 56.1 mm)
-[Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
-[Composite, Composite, Image] LightValue - Light Value: 5.7
-[Composite, Composite, Camera] RedBalance - Red Balance: 2.067348

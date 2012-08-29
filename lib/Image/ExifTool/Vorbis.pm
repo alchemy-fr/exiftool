@@ -17,7 +17,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 sub ProcessComments($$$);
 
@@ -116,6 +116,22 @@ sub ProcessComments($$$);
     COMPOSER    => { Name => 'Composer' },
     ACTOR       => { Name => 'Actor' },
 );
+
+# Vorbis composite tags
+%Image::ExifTool::Vorbis::Composite = (
+    Duration => {
+        Require => {
+            0 => 'Vorbis:NominalBitrate',
+            1 => 'FileSize',
+        },
+        RawConv => '$val[0] ? $val[1] * 8 / $val[0] : undef',
+        PrintConv => 'ConvertDuration($val) . " (approx)"', # (only approximate)
+    },
+);
+
+# add our composite tags
+Image::ExifTool::AddCompositeTags('Image::ExifTool::Vorbis');
+
 
 #------------------------------------------------------------------------------
 # Process Vorbis Comments

@@ -1109,6 +1109,82 @@ sub RC4Crypt($$)
 }
 
 #------------------------------------------------------------------------------
+# Update AES cipher with a bit of data
+# Inputs: 0) data
+# Returns: encrypted data
+my $cipherMore;
+sub CipherUpdate($)
+{
+    my $dat = shift;
+    my $pos = 0;
+    $dat = $cipherMore . $dat if length $dat;
+    while ($pos + 16 <= length($dat)) {
+        substr($dat,$pos,16) = Image::ExifTool::AES::Cipher(substr($dat,$pos,16));
+        $pos += 16;
+    }
+    if ($pos < length $dat) {
+        $cipherMore = substr($dat,$pos);
+        $dat = substr($dat,0,$pos);
+    } else {
+        $cipherMore = '';
+    }
+    return $dat;
+}
+
+#------------------------------------------------------------------------------
+# Get encrypted hash
+# Inputs: 0) Password, 1) salt, 2) vector, 3) encryption revision
+# Returns: hash
+sub GetHash($$$$)
+{
+    my ($password, $salt, $vector, $rev) = @_;
+
+    # return Rev 5 hash
+    return Digest::SHA::sha256($password, $salt, $vector) if $rev == 5;
+
+    # compute Rev 6 hardened hash
+    # (ref http://code.google.com/p/origami-pdf/source/browse/lib/origami/encryption.rb)
+    my $blockSize = 32;
+    my $input = Digest::SHA::sha256($password, $salt, $vector) . ("\0" x 32);
+    my $key = substr($input, 0, 16);
+    my $iv = substr($input, 16, 16);
+    my $h;
+    my $x = '';
+    my $i = 0;
+    while ($i < 64 or $i < ord(substr($x,-1,1))+32) {
+
+        my $block = substr($input, 0, $blockSize);
+        $x = '';
+        Image::ExifTool::AES::Crypt(\$x, $key, $iv, 1);
+        $cipherMore = '';
+
+        my ($j, $digest);    
+        for ($j=0; $j<64; ++$j)  {
+            $x = '';
+            $x .= CipherUpdate($password) if length $password;
+            $x .= CipherUpdate($block);
+            $x .= CipherUpdate($vector) if length $vector;
+            if ($j == 0) {
+                my @a = unpack('C16', $x);
+                my $sum = 0;
+                $sum += $_ foreach @a;
+                # set SHA block size (32, 48 or 64 bytes = SHA-256, 384 or 512)
+                $blockSize = 32 + ($sum % 3) * 16;
+                $digest = Digest::SHA->new($blockSize * 8);
+            }
+            $digest->add($x);
+        }
+    
+        $h = $digest->digest();
+        $key = substr($h, 0, 16);
+        substr($input,0,16) = $h;
+        $iv = substr($h, 16, 16);
+        ++$i;
+    }
+    return substr($h, 0, 32);
+}
+
+#------------------------------------------------------------------------------
 # Initialize decryption
 # Inputs: 0) ExifTool object reference, 1) Encrypt dictionary reference,
 #         2) ID from file trailer dictionary
@@ -1142,6 +1218,10 @@ sub DecryptInit($$$)
     }
     unless ($$encrypt{O} and $$encrypt{P} and $$encrypt{U}) {
         return 'Incomplete Encrypt specification';
+    }
+    if ("$ver.$rev" >= 5.6) {
+        # apologize for poor performance (AES is a pure Perl implementation)
+        $exifTool->Warn('Decryption is very slow for encryption V5.6 or higher', 1);
     }
     $exifTool->HandleTag($tagTablePtr, 'P', $$encrypt{P});
 
@@ -1276,9 +1356,9 @@ sub DecryptInit($$$)
                 $password = substr($password, 0, 127) if length($password) > 127;
             }
             # test for the owner password
-            my $sha = Digest::SHA::sha256($password, substr($o,32,8), substr($u,0,48));
+            my $sha = GetHash($password, substr($o,32,8), substr($u,0,48), $rev);
             if ($sha eq substr($o, 0, 32)) {
-                $key = Digest::SHA::sha256($password, substr($o,40,8), substr($u,0,48));
+                $key = GetHash($password, substr($o,40,8), substr($u,0,48), $rev);
                 my $dat = ("\0" x 16) . $parm{OE};
                 # decrypt with no padding
                 my $err = Image::ExifTool::AES::Crypt(\$dat, $key, 0, 1);
@@ -1287,9 +1367,9 @@ sub DecryptInit($$$)
                 last;
             }
             # test for the user password
-            $sha = Digest::SHA::sha256($password, substr($u,32,8));
+            $sha = GetHash($password, substr($u,32,8), '', $rev);
             if ($sha eq substr($u, 0, 32)) {
-                $key = Digest::SHA::sha256($password, substr($u,40,8));
+                $key = GetHash($password, substr($u,40,8), '', $rev);
                 my $dat = ("\0" x 16) . $parm{UE};
                 my $err = Image::ExifTool::AES::Crypt(\$dat, $key, 0, 1);
                 return $err if $err;

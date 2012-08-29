@@ -25,6 +25,7 @@
 #              17) Martin Hibers private communication
 #              18) Tomasz Kawecki private communication
 #              19) Brad Grier private communication
+#              20) Niels Kristian Bech Jensen private communication
 #------------------------------------------------------------------------------
 
 package Image::ExifTool::Olympus;
@@ -34,7 +35,7 @@ use vars qw($VERSION);
 use Image::ExifTool::Exif;
 use Image::ExifTool::APP12;
 
-$VERSION = '1.90';
+$VERSION = '1.92';
 
 sub PrintLensInfo($$$);
 
@@ -71,6 +72,7 @@ my %olympusLensTypes = (
     '0 20 16.1' => 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6 II', #11
     '0 20 16.2' => 'Olympus M.Zuiko Digital ED 40-150mm F4.0-5.6 R', #19
     '0 21 0' => 'Olympus Zuiko Digital ED 7-14mm F4.0',
+    '0 21 16'=> 'Olympus M.Zuiko Digital ED 75mm F1.8', #PH
     '0 23 0' => 'Olympus Zuiko Digital Pro ED 35-100mm F2.0', #7
     '0 24 0' => 'Olympus Zuiko Digital 14-45mm F3.5-5.6',
     '0 32 0' => 'Olympus Zuiko Digital 35mm F3.5 Macro', #9
@@ -85,6 +87,7 @@ my %olympusLensTypes = (
     '0 53 0' => 'Olympus Zuiko Digital 14-54mm F2.8-3.5 II', #PH
     # Sigma lenses
     '1 1 0'  => 'Sigma 18-50mm F3.5-5.6', #8
+    '1 1 16' => 'Sigma 30mm F2.8 EX DN', #20
     '1 2 0'  => 'Sigma 55-200mm F4.0-5.6 DC',
     '1 3 0'  => 'Sigma 18-125mm F3.5-5.6 DC',
     '1 4 0'  => 'Sigma 18-125mm F3.5-5.6', #7
@@ -284,6 +287,7 @@ my %olympusCameraTypes = (
     D4535 => 'SP-620UZ',
     D4536 => 'TG-320',
     D4537 => 'VR340,D750',
+    D4541 => 'SZ-12',
     D4809 => 'C2500L',
     D4842 => 'E-10',
     D4856 => 'C-1',

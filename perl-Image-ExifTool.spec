@@ -1,6 +1,6 @@
 Summary: perl module for image data extraction
 Name: perl-Image-ExifTool
-Version: 8.94
+Version: 9.01
 Release: 1
 License: Artistic/GPL
 Group: Development/Libraries/Perl

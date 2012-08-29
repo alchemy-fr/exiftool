@@ -1,8 +1,8 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.85
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.00
 [File, System, Image] FileName - File Name: Pentax_3_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 2.5 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:03:23 12:02:31-04:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:08:14 08:35:52-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -212,7 +212,7 @@
 [MakerNotes, Pentax, Camera] 7 - AF Integration Time: 0 ms
 [MakerNotes, Pentax, Camera] 11 - AF Points In Focus: Center (horizontal)
 [MakerNotes, Pentax, Image] 16 - WB Shift AB: 0
-[MakerNotes, Pentax, Image] 17 - WB Shift MG: 0
+[MakerNotes, Pentax, Image] 17 - WB Shift GM: 0
 [PrintIM, PrintIM, Printing] PrintIMVersion - PrintIM Version: 0300
 [PrintIM, PrintIM, Printing] 1 - Print IM 0x0001: 0x00160016
 [PrintIM, PrintIM, Printing] 2 - Print IM 0x0002: 0x01000000

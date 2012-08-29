@@ -1,11 +1,12 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 8.05
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.00
 [File, System, Image] FileName - File Name: PostScript.eps
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 11 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2008:11:03 19:04:15-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2008:11:03 09:41:43-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: EPS
 [File, File, Image] MIMEType - MIME Type: application/postscript
+[File, File, Image] CurrentIPTCDigest - Current IPTC Digest: 9e02efbd9bdc1dc192279e30a0e27323
 [PostScript, PostScript, Image] Creator - Creator: Adobe Photoshop Version 7.0.1
 [PostScript, PostScript, Image] Title - Title: c.eps
 [PostScript, PostScript, Time] CreationDate - Create Date: 7/18/05 2:33 PM

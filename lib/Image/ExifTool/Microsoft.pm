@@ -16,7 +16,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::XMP;
 
-$VERSION = '1.04';
+$VERSION = '1.06';
 
 sub ProcessXtra($$$);
 
@@ -128,11 +128,15 @@ sub ProcessXtra($$$);
 );
 
 # Microsoft Photo 1.2 schema properties (MP) (ref PH)
+# (also ref http://msdn.microsoft.com/en-us/library/windows/desktop/ee719905(v=vs.85).aspx)
 my %sRegions = (
-    STRUCT_NAME => 'Regions',
+    STRUCT_NAME => 'Microsoft Regions',
     NAMESPACE   => 'MPReg',
-    Rectangle => { },
+    Rectangle         => { },
     PersonDisplayName => { },
+    PersonEmailDigest => { },
+    PersonLiveIdCID   => { },
+    PersonSourceID    => { },
 );
 %Image::ExifTool::Microsoft::MP = (
     %Image::ExifTool::XMP::xmpTableDefaults,
@@ -146,19 +150,27 @@ my %sRegions = (
     RegionInfo => {
         Name => 'RegionInfoMP',
         Struct => {
-            STRUCT_NAME => 'RegionInfoMP',
+            STRUCT_NAME => 'Microsoft RegionInfo',
             NAMESPACE   => 'MPRI',
             Regions   => { Struct => \%sRegions, List => 'Bag' },
+            DateRegionsValid => {
+                Writable => 'date',
+                Shift => 'Time',
+                Groups => { 2 => 'Time'},
+                PrintConv => '$self->ConvertDateTime($val)',
+                PrintConvInv => '$self->InverseDateTime($val,undef,1)',
+            },
         },
     },
-    RegionInfoRegionsRectangle => {
-        Name => 'RegionRectangle',
-        Flat => 1,
-    },
-    RegionInfoRegionsPersonDisplayName => {
-        Name => 'RegionPersonDisplayName',
-        Flat => 1,
-    },
+    # remove "MP" from tag name (was added only to avoid conflict with XMP-mwg-rs:RegionInfo)
+    RegionInfoRegions                  => { Flat => 1, Name => 'RegionInfoRegions' },
+    RegionInfoDateRegionsValid         => { Flat => 1, Name => 'RegionInfoDateRegionsValid' },
+    # shorten flattened Regions tag names to make them easier to use
+    RegionInfoRegionsRectangle         => { Flat => 1, Name => 'RegionRectangle' },
+    RegionInfoRegionsPersonDisplayName => { Flat => 1, Name => 'RegionPersonDisplayName' },
+    RegionInfoRegionsPersonEmailDigest => { Flat => 1, Name => 'RegionPersonEmailDigest' },
+    RegionInfoRegionsPersonLiveIdCID   => { Flat => 1, Name => 'RegionPersonLiveIdCID' },
+    RegionInfoRegionsPersonSourceID    => { Flat => 1, Name => 'RegionPersonSourceID' },
 );
 
 # Xtra tags written in MP4 files written by Microsoft Windows Media Player
@@ -172,7 +184,7 @@ my %sRegions = (
         Tags extracted from the Microsoft "Xtra" atom of QuickTime videos.  Tag ID's
         are not shown because some are unruly GUID's.
     },
-    Absract                     => { },
+    Abstract                    => { },
     AcquisitionTime             => { Groups => { 2 => 'Time' } },
     AcquisitionTimeDay          => { Groups => { 2 => 'Time' } },
     AcquisitionTimeMonth        => { Groups => { 2 => 'Time' } },
@@ -754,7 +766,12 @@ sub ProcessXtra($$$)
         last if $tagLen + 18 > $size;
         my $tag = substr($$dataPt, $pos + 8, $tagLen);
         my $version = Get32u($dataPt, $pos + $tagLen + 8);
-        $version == 1 or $exifTool->WarnOnce('Unsupported Xtra version'), next;
+        # (have seen a vers=2 type=8 tag that seems to work just like vers=1 - PH)
+        if ($version > 2) {
+            $exifTool->WarnOnce("Unsupported Xtra version ($version)");
+            $pos += $size;
+            next;
+        }
         # (stored value includes size of $valLen and $valType, so subtract 6)
         my $valLen  = Get32u($dataPt, $pos + $tagLen + 12) - 6;
         last if $tagLen + $valLen + 18 > $size;
@@ -813,6 +830,7 @@ sub ProcessXtra($$$)
                 Start   => $valPos,
                 Size    => $valLen,
                 Format  => $format,
+                Extra   => " vers=$version type=$valType",
             );
         }
         $pos += $size;  # step to next entry

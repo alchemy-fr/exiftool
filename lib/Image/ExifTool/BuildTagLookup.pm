@@ -32,7 +32,7 @@ use Image::ExifTool::XMP;
 use Image::ExifTool::Canon;
 use Image::ExifTool::Nikon;
 
-$VERSION = '2.47';
+$VERSION = '2.50';
 @ISA = qw(Exporter);
 
 sub NumbersFirst;
@@ -278,8 +278,9 @@ tables.  For example, the C<pdfx> namespace doesn't have a predefined set of
 tag names because it is used to store application-defined PDF information,
 but this information is extracted by ExifTool.
 
-The tables below list tags from the official XMP specification as well as
-extensions from various other sources.  See
+The tables below list tags from the official XMP specification (with an
+underlined B<Namespace> in the HTML version of this documentation), as well
+as extensions from various other sources. See
 L<http://www.adobe.com/devnet/xmp/> for the official XMP specification.
 },
     IPTC => q{
@@ -534,6 +535,17 @@ my %riffSpec = (
     ICMT => 1,  IDPI => 1,  IMED => 1,  ISFT => 1,
     ICOP => 1,  IENG => 1,  INAM => 1,  ISHP => 1,
 );
+# same thing for XMP namespaces
+my %xmpSpec = (
+    aux       => 1,   'x'        => 1,
+    crs       => 1,    xmp       => 1,
+    dc        => 1,    xmpBJ     => 1,
+    exif      => 1,    xmpDM     => 1,
+    pdf       => 1,    xmpMM     => 1,
+    pdfx      => 1,    xmpNote   => 1,
+    photoshop => 1,    xmpRights => 1,
+    tiff      => 1,    xmpTPg    => 1,
+);
 
 #------------------------------------------------------------------------------
 # New - create new BuildTagLookup object
@@ -639,12 +651,8 @@ sub new
         $isIPTC = 1 if $writeProc and $writeProc eq \&Image::ExifTool::IPTC::WriteIPTC;
         # generate flattened tag names for structure fields if this is an XMP table
         if ($$table{GROUPS} and $$table{GROUPS}{0} eq 'XMP') {
+            Image::ExifTool::XMP::AddFlattenedTags($table);
             $isXMP = 1;
-            foreach $tagID (TagTableKeys($table)) {
-                my $tagInfo = $$table{$tagID};
-                next unless ref $tagInfo eq 'HASH' and $$tagInfo{Struct};
-                Image::ExifTool::XMP::AddFlattenedTags($table, $tagID);
-            }
         }
         $noID = 1 if $isXMP or $short =~ /^(Shortcuts|ASF.*)$/ or $$vars{NO_ID};
         $hexID = $$vars{HEX_ID};
@@ -783,7 +791,8 @@ TagID:  foreach $tagID (@keys) {
                 } elsif ($struct) {
                     $strTable = $structLookup{$struct};
                     unless ($strTable) {
-                        warn "Missing XMP $struct structure!\n";
+                        $struct = "XMP $struct" unless $struct =~ / /;
+                        warn "Missing $struct structure!\n";
                         undef $struct;
                     }
                 }
@@ -1199,7 +1208,8 @@ TagID:  foreach $tagID (@keys) {
     my $strName;
     foreach $strName (keys %structs) {
         my $struct = $structLookup{$strName};
-        my $info = $tagNameInfo{"XMP $strName Struct"} = [ ];
+        my $fullName = ($strName =~ / / ? '' : 'XMP ') . "$strName Struct";
+        my $info = $tagNameInfo{$fullName} = [ ];
         my $tag;
         foreach $tag (sort keys %$struct) {
             my $tagInfo = $$struct{$tag};
@@ -1601,7 +1611,7 @@ sub OpenHtmlFile($;$$)
         $class = shift @names;
         $htmlFile = "$htmldir/TagNames/$class.html";
         $head = $category;
-        if ($head =~ /^XMP .+ Struct$/) {
+        if ($head =~ /^\S+ .+ Struct$/) {
             pop @names;
         } else {
             $head .= ($sepTable ? ' Values' : ' Tags');
@@ -1868,7 +1878,8 @@ sub WriteTagNames($$)
             $$structs{$tableName} = 2;
             $isStruct = $$structLookup{$tableName};
             $isStruct or warn("Missing structure $tableName\n"), next;
-            $short = $tableName = "XMP $tableName Struct";
+            $tableName = "XMP $tableName" unless $tableName =~ / /;
+            $short = $tableName = "$tableName Struct";
             my $maxLen = 0;
             $maxLen < length and $maxLen = length foreach keys %$isStruct;
             $$self{LONG_ID}{$tableName} = $maxLen;
@@ -1882,8 +1893,9 @@ sub WriteTagNames($$)
                 next;
             }
         }
-        my $isExif = $tableName eq 'Image::ExifTool::Exif::Main' ? 1 : undef;
-        my $isRiff = $tableName eq 'Image::ExifTool::RIFF::Info' ? 1 : undef;
+        my $isExif = ($tableName eq 'Image::ExifTool::Exif::Main');
+        my $isRiff = ($tableName eq 'Image::ExifTool::RIFF::Info');
+        my $isXmpMain = ($tableName eq 'Image::ExifTool::XMP::Main');
         my $info = $$tagNameInfo{$tableName};
         my $id = $$idLabel{$tableName};
         my ($hid, $showGrp);
@@ -2115,7 +2127,8 @@ sub WriteTagNames($$)
                 push @htmlTags, EscapeHTML($_);
             }
             if (($isExif and $exifSpec{hex $tagIDstr}) or
-                ($isRiff and $tagIDstr=~/(\w+)/ and $riffSpec{$1}))
+                ($isRiff and $tagIDstr=~/(\w+)/ and $riffSpec{$1}) or
+                ($isXmpMain and $tagIDstr=~/([-\w]+)/ and $xmpSpec{$1}))
             {
                 # underline "unknown" makernote tags only
                 my $n = $tagIDstr eq '0x927c' ? -1 : 0;
@@ -2195,9 +2208,10 @@ sub WriteTagNames($$)
                             push @sepTables, $_;
                             $suffix = ' Values';
                         }
-                        # currently all structures are in XMP documentation
-                        if ($$structs{$_} and $short =~ /^XMP/) {
-                            unshift @names, 'XMP';
+                        # handle structures specially
+                        if ($$structs{$_}) {
+                            # assume XMP module for this struct unless otherwise specified
+                            unshift @names, 'XMP' unless / /;
                             push @structs, $_;  # list this later
                             $suffix = ' Struct';
                         }

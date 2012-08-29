@@ -178,7 +178,7 @@ sub CheckStruct($$$)
 {
     my ($exifTool, $struct, $strTable) = @_;
 
-    my $strName = $$strTable{STRUCT_NAME} || RegisterNamespace($strTable);
+    my $strName = $$strTable{STRUCT_NAME} || ('XMP ' . RegisterNamespace($strTable));
     ref $struct eq 'HASH' or return wantarray ? (undef, "Expecting $strName structure") : undef;
 
     my ($key, $err, $warn, %copy, $rtnVal, $val);
@@ -636,7 +636,7 @@ sub RestoreStruct($;$)
             # add Struct entry if this is a structure
             if (@$structProps) {
                 # this is a structure
-                $$strInfo{Struct} = { STRUCT_NAME => 'Unknown' } if @$structProps;
+                $$strInfo{Struct} = { STRUCT_NAME => 'XMP Unknown' } if @$structProps;
             } elsif ($$tagInfo{LangCode}) {
                 # this is lang-alt list
                 $tag = $tag . '-' . $$tagInfo{LangCode};

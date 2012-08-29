@@ -299,7 +299,7 @@ sub SetNewValue($;$$%)
                     }
                     # allow MIE groups to be deleted by number,
                     # and allow any XMP family 1 group to be deleted
-                    push @del, uc($wantGroup) if $wantGroup =~ /^(MIE\d+|XM[LP]-[-\w]+)$/i;
+                    push @del, uc($wantGroup) if $wantGroup =~ /^(MIE\d+|XM[LP]-[-\w]*\w)$/i;
                 } else {
                     # push all groups plus '*', except the protected groups
                     push @del, (grep !/^$protectedGroups$/, @delGroups), '*';
@@ -2359,7 +2359,7 @@ sub InsertTagValues($$$;$)
 {
     my ($self, $foundTags, $line, $opt) = @_;
     my $rtnStr = '';
-    while ($line =~ /(.*?)\$(\{?)([-\w]+|\$|\/)(.*)/s) {
+    while ($line =~ /(.*?)\$(\{?)([-\w]*\w|\$|\/)(.*)/s) {
         my (@tags, $pre, $var, $bra, $val, $tg, @vals, $type);
         ($pre, $bra, $var, $line) = ($1, $2, $3, $4);
         # "$$" represents a "$" symbol, and "$/" is a newline
@@ -2370,7 +2370,7 @@ sub InsertTagValues($$$;$)
             next;
         }
         # allow multiple group names
-        while ($line =~ /^:([-\w]+)(.*)/s) {
+        while ($line =~ /^:([-\w]*\w)(.*)/s) {
             my $group = $var;
             ($var, $line) = ($1, $2);
             $var = "$group:$var";
@@ -5145,7 +5145,9 @@ sub WriteJPEG($$)
                     unless ($$delGroup{File} and $$delGroup{File} != 2) {
                         my $tagInfo = $Image::ExifTool::Extra{Comment};
                         my $nvHash = $self->GetNewValueHash($tagInfo);
-                        if ($self->IsOverwriting($nvHash, $segData) or $$delGroup{File}) {
+                        my $val = $segData;
+                        $val =~ s/\0+$//;   # allow for stupid software that adds NULL terminator
+                        if ($self->IsOverwriting($nvHash, $val) or $$delGroup{File}) {
                             $newComment = $self->GetNewValues($nvHash);
                         } else {
                             delete $$editDirs{COM}; # we aren't editing COM after all

@@ -26,7 +26,7 @@ $VERSION = '1.00';
         Name => 'Identification',
         SubDirectory => {
             TagTable => 'Image::ExifTool::Theora::Identification',
-            ByteOrder => 'Big-endian',
+            ByteOrder => 'BigEndian',
         },
     },
     0x81 => {

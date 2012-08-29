@@ -39,6 +39,7 @@
 #                   - A77 brochure, 2011-08
 #              26) http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3521.0.html
 #              27) http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3833.0.html
+#              28) Michael Reitinger private communication (RX100)
 #              JD) Jens Duttke private communication
 #------------------------------------------------------------------------------
 
@@ -50,9 +51,7 @@ use vars qw($VERSION %minoltaLensTypes %minoltaTeleconverters %minoltaColorMode
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-sub PrintAFStatus($);
-
-$VERSION = '1.92';
+$VERSION = '1.96';
 
 # Full list of product codes for Sony-compatible Minolta lenses
 # (ref http://www.kb.sony.com/selfservice/documentLink.do?externalId=C1000570)
@@ -165,10 +164,10 @@ $VERSION = '1.92';
 # ("New" and "II" appear in brackets if original version also has this LensType)
 %minoltaLensTypes = (
     Notes => q{
-        Decimal values differentiate lenses which would otherwise have the same
-        LensType, and are used by the Composite LensID tag when attempting to
-        identify the specific lens model.  "New" or "II" appear in brackets if the
-        original version of the lens has the same LensType.
+        Decimal values have been added to differentiate lenses which would otherwise
+        have the same LensType, and are used by the Composite LensID tag when
+        attempting to identify the specific lens model.  "New" or "II" appear in
+        brackets if the original version of the lens has the same LensType.
     },
     0 => 'Minolta AF 28-85mm F3.5-4.5 New', # New added (ref 13/18)
     1 => 'Minolta AF 80-200mm F2.8 HS-APO G',
@@ -268,6 +267,7 @@ $VERSION = '1.92';
     62 => 'Sony DT 35mm F1.8 SAM (SAL35F18)', #PH/25
     63 => 'Sony DT 16-50mm F2.8 SSM (SAL1650)', #17/25
     64 => 'Sony 500mm F4.0 G SSM (SAL500F40G)', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4086.0.html
+    65 => 'Sony DT 18-135mm F3.5-5.6 SAM (SAL-18135)', #25
     128 => 'Tamron or Sigma Lens (128)',
     128.1 => 'Tamron 18-200mm F3.5-6.3',
     128.2 => 'Tamron 28-300mm F3.5-6.3',
@@ -500,7 +500,7 @@ $VERSION = '1.92';
     7 => 'Night Portrait', #JD
     8 => 'Macro',
     9 => 'Super Macro',
-    16 => 'Auto',
+    16 => 'Auto', # (RX100 'Intelligent Auto' - PH)
     17 => 'Night View/Portrait',
     18 => 'Sweep Panorama', #PH (SLT-A55V)
     19 => 'Handheld Night Shot', #PH
@@ -508,6 +508,11 @@ $VERSION = '1.92';
     21 => 'Cont. Priority AE', #PH
     22 => 'Auto+',
     23 => '3D Sweep Panorama', #PH (SLT-A55V)
+    24 => 'Superior Auto', #28
+    25 => 'High Sensitivity', #28
+    26 => 'Fireworks', #28
+    27 => 'Food', #28
+    28 => 'Pet', #28
     0xffff => 'n/a', #PH
 );
 
@@ -539,19 +544,20 @@ my %exposureIndicator = (
 my %onOff = ( 0 => 'On', 1 => 'Off' );
 my %offOn = ( 0 => 'Off', 1 => 'On' );
 
-# tag information for AFStatus tags
+# tag information for AFStatus tags (ref 20)
 my %afStatusInfo = (
-    Format => 'int8s[2]',
-    PrintConv => sub {
-        my $val = shift;
-        my @v = split ' ', $val;
-        # first number may be related somehow to the focus quality (larger for bad focus)
-        # second number gives degree of front or back focus (-128 = totally out-of-focus)
-        my $str = $v[1] ? ($v[1] > 0 ? 'Back' : 'Front') : 'In';
-        $v[1] = "+$v[1]" if $v[1] > 0;
-        return "$str Focus ($v[1]); Rank $v[0]";
+    Format => 'int16s',
+    # 0=in focus, -32768=out of focus, -ve=front focus, +ve=back focus
+    PrintConvColumns => 2,
+    PrintConv => {
+        0 => 'In Focus',
+        -32768 => 'Out of Focus',
+        OTHER => sub {
+            my ($val, $inv) = @_;
+            $inv and $val =~ /([-+]?\d+)/, return $1;
+            return $val < 0 ? "Front Focus ($val)" : "Back Focus (+$val)";
+        },
     },
-    PrintConvInv => '$val=~/\(([-+]?\d+)\).*;.*([-+]?\d+)/ ? "$2 $1" : undef',
 );
 
 # Minolta tag table
@@ -591,7 +597,10 @@ my %afStatusInfo = (
     0x0010 => { #20 (count: 256)
         Name => 'CameraInfoA100',
         Condition => '$$self{Model} eq "DSLR-A100"',
-        SubDirectory => { TagTable => 'Image::ExifTool::Minolta::CameraInfoA100' },
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Minolta::CameraInfoA100',
+            ByteOrder => 'LittleEndian',
+        },
     },
     # it appears that image stabilization is on if this tag exists (ref 2),
     # but it is an 8kB binary data block!
@@ -1616,7 +1625,7 @@ my %afStatusInfo = (
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
     FIRST_ENTRY => 0,
     0x01 => { #PH
-        Name => 'ActiveAFSensor',
+        Name => 'AFSensorActive',
         PrintConv => {
             0 => 'Top-Right',
             1 => 'Bottom-Right',
@@ -1629,28 +1638,28 @@ my %afStatusInfo = (
         },
     },
     0x02 => {
-        Name => 'ActiveAFSensorStatus',
+        Name => 'AFStatusActiveSensor',
         %afStatusInfo,
         Notes => q{
             the focus status at shutter release.  May not reflect the status after
             focusing if the image is focused then recomposed
         },
     },
-    0x04 => { Name => 'Top-RightAFStatus',      %afStatusInfo },
-    0x06 => { Name => 'Bottom-RightAFStatus',   %afStatusInfo },
-    0x08 => { Name => 'BottomAFStatus',         %afStatusInfo },
+    0x04 => { Name => 'AFStatusTop-Right',      %afStatusInfo },
+    0x06 => { Name => 'AFStatusBottom-Right',   %afStatusInfo },
+    0x08 => { Name => 'AFStatusBottom',         %afStatusInfo },
     0x0a => {
-        Name => 'MiddleHorizontalAFStatus',
+        Name => 'AFStatusMiddleHorizontal',
         %afStatusInfo,
         Notes => q{
             any of the three horizontal sensors at the middle of the focus frame: Left,
             Center or Right
         },
     },
-    0x0c => { Name => 'CenterVerticalAFStatus', %afStatusInfo },
-    0x0e => { Name => 'TopAFStatus',            %afStatusInfo },
-    0x10 => { Name => 'Top-LeftAFStatus',       %afStatusInfo },
-    0x12 => { Name => 'Bottom-LeftAFStatus',    %afStatusInfo },
+    0x0c => { Name => 'AFStatusCenterVertical', %afStatusInfo },
+    0x0e => { Name => 'AFStatusTop',            %afStatusInfo },
+    0x10 => { Name => 'AFStatusTop-Left',       %afStatusInfo },
+    0x12 => { Name => 'AFStatusBottom-Left',    %afStatusInfo },
     0x14 => {
         Name => 'FocusLocked',
         # (Focus can be locked in all modes other than Manual and Continuous,
@@ -1687,9 +1696,17 @@ my %afStatusInfo = (
             3 => 'AF-A',
         },
     },
-    0x2d => { Name => 'LeftAFStatus',            %afStatusInfo },
-    0x2f => { Name => 'CenterHorizontalAFStatus',%afStatusInfo },
-    0x31 => { Name => 'RightAFStatus',           %afStatusInfo },
+    0x2d => { Name => 'AFStatusLeft',            %afStatusInfo },
+    0x2f => { Name => 'AFStatusCenterHorizontal',%afStatusInfo },
+    0x31 => { Name => 'AFStatusRight',           %afStatusInfo },
+    0x33 => {
+        Name => 'AFAreaMode',
+        PrintConv => {
+            0 => 'Wide',
+            1 => 'Local',
+            2 => 'Spot',
+        },
+    },
 );
 
 # Image stabilization inforamtion used by the Sony DSLR-A100 (ref 20)
@@ -2286,7 +2303,7 @@ my %afStatusInfo = (
         Notes => 'ranges from -2 for green to +2 for magenta',
     },
     0x60 => { #20
-        Name => 'BatteryLevel',
+        Name => 'BatteryState',
         PrintConv => {
             3 => 'Very Low',
             4 => 'Low',
@@ -2418,7 +2435,7 @@ my %afStatusInfo = (
         ValueConv => '($val-106)/8',
         ValueConvInv => '$val * 8 + 106',
     },
-    # 0x3a - int16u: FocusDistance = int16u[0x3a] * 2^((70 - int8u[0x49c6])/16)
+    # 0x3a - int16u: Approx FocusDistance in metres (0x0f50=inf)
     0x3c => {
         Name => 'FrameNumber',
         # Numbers > 1 appear in continuous and continuous bracketing drive modes,
@@ -2499,6 +2516,7 @@ my %afStatusInfo = (
         ValueConv => '($val-106)/8',
         ValueConvInv => '$val * 8 + 106',
     },
+    # 0x87f - int8u: 33mm Equivalent magnification (FocusDistance = (1.5 * $val + 1) * FocalLength) (255=inf)
     0x49b8 => {
         Name => 'ExposureTime',
         ValueConv => '$val ? 2 ** (6 - $val/8) : 0',
@@ -2514,6 +2532,9 @@ my %afStatusInfo = (
         PrintConvInv => '$val',
     },
     0x49bb => { # (http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3688.0.html)
+        # if this value is the 35mm equivalent magnification, then the formula could
+        # be (1.5 * 2**($val/16-5)+1) * FocalLength, but this tends to underestimate
+        # distance by about 18% (ref 20) (255=inf)
         Name => 'FocusDistance',
         ValueConv => '2**(($val-126)/16)',
         ValueConvInv => 'log($val)/log(2)*16+126',
@@ -2703,22 +2724,6 @@ my %minoltaWhiteBalance = (
 );
 
 #------------------------------------------------------------------------------
-# Print A100 AF status information (ref 20)
-sub PrintAFStatus($)
-{
-    my $val = shift;
-    my @v = split ' ', $val;
-    $v[1] = $v[1] - 256 if $v[1] >= 128;    # make 2nd number signed
-    # first number is greater than 128 if focus is good
-    return "Bad ($v[0]); Unknown ($v[1])" if $v[0] <= 128;
-    my $stat = "Good ($v[0]); ";
-    # second number gives degree of front or back focus
-    return $stat . 'In Focus (0)' if $v[1] == 0;
-    return $stat . "Back Focus (+$v[1])" if $v[1] > 0;
-    return $stat . "Front Focus ($v[1])";
-}
-
-#------------------------------------------------------------------------------
 # PrintConv for Minolta white balance
 sub ConvertWhiteBalance($)
 {
@@ -2781,8 +2786,9 @@ under the same terms as Perl itself.
 
 Thanks to Jay Al-Saadi, Niels Kristian Bech Jensen, Shingo Noguchi, Pedro
 Corte-Real, Jeffery Small, Jens Duttke,  Thomas Kassner, Mladen Sever, Olaf
-Ulrich, Lukasz Stelmach and Igal Milchtaich for the information they
-provided, and for everyone who helped with the LensType list.
+Ulrich, Lukasz Stelmach, Igal Milchtaich, Jos Roost and Michael Reitinger
+for the information they provided, and for everyone who helped with the
+LensType list.
 
 =head1 SEE ALSO
 

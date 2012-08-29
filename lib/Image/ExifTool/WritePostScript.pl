@@ -262,10 +262,11 @@ sub EncodeTag($$)
         $val = "($val)";
     }
     my $line = "%%$tag: $val";
-    # postscript line limit is 255 characters
+    # postscript line limit is 255 characters (but it seems that
+    # the limit may be 254 characters if the DOS CR/LF is used)
     # --> split if necessary using continuation comment "%%+"
     my $n;
-    for ($n=255; length($line)>$n; $n+=255+length($/)) {
+    for ($n=254; length($line)>$n; $n+=254+length($/)) {
         substr($line, $n, 0) = "$/%%+";
     }
     return $line . $/;

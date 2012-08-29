@@ -39,6 +39,7 @@
 #              24) Albert Bogner private communication
 #              25) Niels Kristian Bech Jensen private communication
 #              26) http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3444.0.html
+#              27) http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3833.0.html
 #              JD) Jens Duttke private communication
 #
 # Notes:        See POD documentation at the bottom of this file
@@ -51,7 +52,7 @@ use vars qw($VERSION %pentaxLensTypes);
 use Image::ExifTool::Exif;
 use Image::ExifTool::HP;
 
-$VERSION = '2.45';
+$VERSION = '2.47';
 
 sub CryptShutterCount($$);
 sub PrintFilter($$$);
@@ -64,10 +65,10 @@ sub PrintFilter($$$);
     Notes => q{
         The first number gives the series of the lens, and the second identifies the
         lens model.  Note that newer series numbers may not always be properly
-        identified by cameras running older firmware versions.  Decimal values
-        differentiate lenses which would otherwise have the same LensType, and are
-        used by the Composite LensID tag when attempting to identify the specific
-        lens model.
+        identified by cameras running older firmware versions.  Decimal values have
+        been added to differentiate lenses which would otherwise have the same
+        LensType, and are used by the Composite LensID tag when attempting to
+        identify the specific lens model.
     },
     '0 0' => 'M-42 or No Lens', #17
     '1 0' => 'K or M Lens',
@@ -255,6 +256,8 @@ sub PrintFilter($$$);
     '7 243' => 'smc PENTAX-DA 70mm F2.4 Limited', #PH
     '7 244' => 'smc PENTAX-DA 21mm F3.2 AL Limited', #16
     '8 4' => 'Sigma 50mm F1.4 EX DG HSM', #Artur private communication
+    '8 8' => 'Sigma 18-250mm F3.5-6.3 DC OS HSM', #27
+    '8 11' => 'Sigma 10-20mm F3.5 EX DC HSM', #27
     '8 12' => 'Sigma 70-300mm F4-5.6 DG OS', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3382.0.html
     '8 13' => 'Sigma 120-400mm F4.5-5.6 APO DG OS HSM', #26
     '8 14' => 'Sigma 17-70mm F2.8-4.0 DC Macro OS HSM', #(Hubert Meier)
@@ -264,6 +267,7 @@ sub PrintFilter($$$);
     '8 18' => 'Sigma 8-16mm F4.5-5.6 DC HSM', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,2998.0.html
     '8 21' => 'Sigma 17-50mm F2.8 EX DC OS HSM', #26
     '8 22' => 'Sigma 85mm F1.4 EX DG HSM', #26
+    '8 23' => 'Sigma 70-200mm F2.8 APO EX DG OS HSM', #27
     '8 215' => 'smc PENTAX-DA 18-135mm F3.5-5.6 ED AL [IF] DC WR', #PH
     '8 226' => 'smc PENTAX-DA* 55mm F1.4 SDM', #JD
     '8 227' => 'smc PENTAX-DA* 60-250mm F4 [IF] SDM', #JD
@@ -406,6 +410,9 @@ my %pentaxModelID = (
     0x12f0c => 'Optio RZ18',
     0x12f16 => 'Optio VS20',
     0x12f2a => 'Optio WG-2 GPS',
+    0x12f48 => 'Optio LS465',
+    0x12f52 => 'K-30',
+    0x12f5c => 'X-5',
 );
 
 # Pentax city codes - (PH, Optio WP)
@@ -817,7 +824,10 @@ my %binaryDataAttrs = (
             60 => 'Kids', #13
             61 => 'Blur Reduction', #13
             65 => 'Half-length Portrait', #JD
+            66 => 'Portrait 2', #PH (LS645)
+            75 => 'Blue Sky', #PH (LS465)
             80 => 'Miniature', #PH (VS20)
+            81 => 'HDR', #PH (LS465)
             83 => 'Fisheye', #PH (VS20)
             221 => 'P', #PH (Optio 555)
             255=> 'PICT', #PH (Optio 555)
@@ -1916,6 +1926,11 @@ my %binaryDataAttrs = (
         Name => 'NeutralDensityFilter',
         Writable => 'int8u',
         PrintConv => { 0 => 'Off', 1 => 'On' },
+    },
+    0x008b => { #PH (LS465)
+        Name => 'ISO',
+        Priority => 0,
+        Writable => 'int32u',
     },
     0x0200 => { #5
         Name => 'BlackPoint',
@@ -3809,7 +3824,7 @@ my %binaryDataAttrs = (
         Notes => 'positive is a shift toward blue',
     },
     17 => {
-        Name => 'WBShiftMG',
+        Name => 'WBShiftGM',
         Notes => 'positive is a shift toward green',
     },
 );

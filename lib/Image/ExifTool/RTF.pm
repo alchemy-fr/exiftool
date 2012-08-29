@@ -39,8 +39,8 @@ my %rtfEntity = (
         This table lists standard tags of the RTF information group, but ExifTool
         will also extract any non-standard tags found in this group.  As well,
         ExifTool will extract any custom properties that are found.  See
-        L<http://download.microsoft.com/download/2/f/5/2f599e18-07ee-4ec5-a1e7-f4e6a9423592/Word2007RTFSpec9.doc>
-        for the specification.
+        L<http://www.microsoft.com/en-ca/download/details.aspx?id=10725> for the
+        specification.
     },
     title    => { },
     subject  => { },

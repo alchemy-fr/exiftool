@@ -772,10 +772,16 @@ sub WriteXMP($$;$)
             # also allow for missing structure fields in lists of structures
             $regex =~  s/ \d+/ \\d\+/g;
             my $ok = $regex; # regular expression to match standard property names
+            my $ok2;
             # also check for incorrect list types which can cause problems
             if ($regex =~ s{\\/rdf\\:(Bag|Seq|Alt)\\/}{/rdf:(Bag|Seq|Alt)/}g) {
                 # also look for missing bottom-level list
                 $regex =~ s{/rdf:\(Bag\|Seq\|Alt\)\/rdf\\:li\\ \\d\+$}{(/.*)?};
+            } else {
+                $ok2 = $regex;
+                # check for properties in lists that shouldn't be
+                # (ref http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4325.0.html)
+                $regex .= '(/rdf:(Bag|Seq|Alt)/rdf:li \d+)?';
             }
             my @matches = sort grep m{^$regex$}i, keys %capture;
             if (@matches) {
@@ -808,6 +814,8 @@ sub WriteXMP($$;$)
                             my $fixed = shift @fixed;
                             $capture{$fixed} = $capture{$match};
                             delete $capture{$match};
+                            # remove xml:lang attribute from incorrect lang-alt list if necessary
+                            delete $capture{$fixed}[1]{'xml:lang'} if $ok2 and $match !~ /^$ok2$/;
                         }
                         $cap = $capture{$path} || $capture{$fixed[0]};
                         $exifTool->Warn("Fixed incorrect $wrn for $tg", 1);
@@ -981,10 +989,20 @@ sub WriteXMP($$;$)
                                            $path, $newValue, $$tagInfo{Struct});
             } else {
                 $newValue = EscapeXML($newValue);
-                if ($$tagInfo{Resource}) {
-                    $capture{$path} = [ '', { %attrs, 'rdf:resource' => $newValue } ];
-                } else {
+                for (;;) { # (a cheap 'goto')
+                    if ($$tagInfo{Resource}) {
+                        # only store as a resource if it doesn't contain any illegal characters
+                        if ($newValue !~ /[^a-z0-9\:\/\?\#\[\]\@\!\$\&\'\(\)\*\+\,\;\=\.\-\_\~]/i) {
+                            $capture{$path} = [ '', { %attrs, 'rdf:resource' => $newValue } ];
+                            last;
+                        }
+                        my $grp = $exifTool->GetGroup($tagInfo, 1);
+                        $exifTool->Warn("$grp:$$tagInfo{Name} written as a literal because value is not a valid URI", 1);
+                        # fall through to write as a string literal
+                    }
+                    delete $attrs{'rdf:resource'};  # (remove existing resource if necessary)
                     $capture{$path} = [ $newValue, \%attrs ];
+                    last;
                 }
                 if ($verbose > 1) {
                     my $grp = $exifTool->GetGroup($tagInfo, 1);

@@ -43,6 +43,7 @@
 #              28) Warren Hatch private communication (D3v2.00 with SB-800 and SB-900)
 #              29) Anonymous contribution 2011/05/25 (D700, D7000)
 #              30) http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3833.30.html
+#              31) Michael Relt private communication
 #              JD) Jens Duttke private communication
 #------------------------------------------------------------------------------
 
@@ -53,7 +54,7 @@ use vars qw($VERSION %nikonLensIDs %nikonTextEncoding);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '2.63';
+$VERSION = '2.64';
 
 sub LensIDConv($$$);
 sub ProcessNikonAVI($$$);
@@ -258,11 +259,13 @@ sub ProcessNikonCaptureEditVersions($$$);
     'A9 54 80 80 18 18 AB 0E' => 'AF-S Nikkor 200mm f/2G ED VR II',
     'AA 3C 37 6E 30 30 AC 0E' => 'AF-S Nikkor 24-120mm f/4G ED VR',
     'AC 38 53 8E 34 3C AE 0E' => 'AF-S DX VR Nikkor 55-300mm 4.5-5.6G ED',
+    'AD 3C 2D 8E 2C 3C AF 0E' => 'AF-S DX Nikkor 18-300mm 3.5-5.6G ED VR',
     'AE 54 62 62 0C 0C B0 06' => 'AF-S Nikkor 85mm f/1.4G',
     'AF 54 44 44 0C 0C B1 06' => 'AF-S Nikkor 35mm f/1.4G',
     'B0 4C 50 50 14 14 B2 06' => 'AF-S Nikkor 50mm f/1.8G',
     'B1 48 48 48 24 24 B3 06' => 'AF-S DX Micro Nikkor 40mm f/2.8G', #27
     'B3 4C 62 62 14 14 B5 06' => 'AF-S Nikkor 85mm f/1.8G',
+    'B4 40 37 62 2C 34 B6 0E' => 'AF-S VR Zoom-Nikkor 24-85mm f/3.5-4.5G IF-ED', #30
     'B5 4C 3C 3C 14 14 B7 06' => 'AF-S Nikkor 28mm f/1.8G', #30
     '01 00 00 00 00 00 02 00' => 'TC-16A',
     '01 00 00 00 00 00 08 00' => 'TC-16A',
@@ -511,10 +514,9 @@ sub ProcessNikonCaptureEditVersions($$$);
     '12 4A 5C 81 31 3D 09 00' => 'Soligor AF C/D Auto Zoom+Macro 70-210mm 1:4-5.6 UMCS',
     '12 36 69 97 35 42 09 00' => 'Soligor AF Zoom 100-400mm 1:4.5-6.7 MC',
 #
-    '00 00 48 48 53 53 00 01' => 'Loreo 40mm F11-22 3D Lens in a Cap 9005', #PH
-#
     '00 00 00 00 00 00 00 01' => 'Manual Lens No CPU',
 #
+    '00 00 48 48 53 53 00 01' => 'Loreo 40mm F11-22 3D Lens in a Cap 9005', #PH
     '00 47 10 10 24 24 00 00' => 'Fisheye Nikkor 8mm f/2.8 AiS',
     '00 54 44 44 0C 0C 00 00' => 'Nikkor 35mm f/1.4 AiS',
     '00 48 50 50 18 18 00 00' => 'Nikkor H 50mm f/2',
@@ -615,8 +617,11 @@ my %retouchValues = ( #PH
     29 => 'Perspective Control',
     30 => 'Color Outline',
     31 => 'Soft Filter',
+    32 => 'Resize', #31
     33 => 'Miniature Effect',
     34 => 'Skin Softening', # (S9200)
+    35 => 'Selected Frame', #31 (frame exported from MOV)
+    37 => 'Color Sketch', #31
     38 => 'Selective Color', # (S9200)
     40 => 'Drawing', # (S9200)
 );
@@ -4373,6 +4378,7 @@ my %nikonFocalConversions = (
             0 => 'Off',
             1 => 'Multiple Exposure',
             2 => 'Image Overlay',
+            3 => 'HDR', #31
         },
     },
     2 => 'MultiExposureShots',
@@ -4690,7 +4696,7 @@ my %nikonFocalConversions = (
     },
     NCTH => { Name => 'ThumbnailImage', Format => 'undef', Binary => 1 },
     NCVW => { Name => 'PreviewImage',   Format => 'undef', Binary => 1 },
-    # NCDB - 0 bytes long, or 4 null bytes
+    # NCDB - 0 bytes long, or 4 null bytes, or 328 bytes for Nikon D3200
 );
 
 # Nikon NCTG tags from MOV videos (ref PH)
@@ -5543,6 +5549,8 @@ under the same terms as Perl itself.
 =item L<http://homepage3.nifty.com/kamisaka/makernote/makernote_nikon.htm>
 
 =item L<http://www.wohlberg.net/public/software/photo/nstiffexif/>
+
+=item (...plus lots of testing with Best Buy store demos!)
 
 =back
 

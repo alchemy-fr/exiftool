@@ -27,7 +27,7 @@ use vars qw($VERSION $RELEASE @ISA @EXPORT_OK %EXPORT_TAGS $AUTOLOAD @fileTypes
             %mimeType $swapBytes $swapWords $currentByteOrder %unpackStd
             %jpegMarker %specialTags);
 
-$VERSION = '8.94';
+$VERSION = '9.01';
 $RELEASE = '';
 @ISA = qw(Exporter);
 %EXPORT_TAGS = (
@@ -170,6 +170,7 @@ $defaultLang = 'en';    # default language
 # file types that we can write (edit)
 my @writeTypes = qw(JPEG TIFF GIF CRW MRW ORF RAF RAW PNG MIE PSD XMP PPM
                     EPS X3F PS PDF ICC VRD JP2 EXIF AI AIT IND);
+my %writeTypes; # lookup for writable file types (hash filled if required)
 
 # file extensions that we can't write for various base types
 %noWriteFile = (
@@ -838,6 +839,10 @@ sub DummyWriteProc { return 1; }
     },
     Directory => {
         Groups => { 1 => 'System' },
+        Notes => q{
+            may be written to move the file to a specified directory. New directories
+            are created as necessary
+        },
         Writable => 1,
         Protected => 1,
         # translate backslashes in directory names and add trailing '/'
@@ -2688,7 +2693,10 @@ sub CanWrite($)
         my $ext = GetFileExtension($file) || uc($file);
         return grep(/^$ext$/, @{$noWriteFile{$type}}) ? 0 : 1 if $ext;
     }
-    return scalar(grep /^$type$/, @writeTypes);
+    unless (%writeTypes) {
+        $writeTypes{$_} = 1 foreach @writeTypes;
+    }
+    return $writeTypes{$type};
 }
 
 #------------------------------------------------------------------------------
@@ -3493,6 +3501,9 @@ sub RoundFloat($$)
 {
     my ($val, $sig) = @_;
     $val == 0 and return 0;
+    # handle integers specially (to avoid rounding problems with "10 ** $exp"
+    # which caused failed tests with Perl 5.16 on MSWin32-x64-multi-thread)
+    return $val if $val == int($val) and abs($val) < "1e$sig";
     my $sign = $val < 0 ? ($val=-$val, -1) : 1;
     my $log = log($val) / log(10);
     my $exp = int($log) - $sig + ($log > 0 ? 1 : 0);
@@ -4018,6 +4029,14 @@ sub ConvertDateTime($$)
 {
     my ($self, $date) = @_;
     my $dateFormat = $self->{OPTIONS}{DateFormat};
+    my $shift = $self->{OPTIONS}{GlobalTimeShift};
+    if ($shift) {
+        my $dir = ($shift =~ s/^([-+])// and $1 eq '-') ? -1 : 1;
+        require 'Image/ExifTool/Shift.pl';
+        my $offset = $$self{GLOBAL_TIME_OFFSET};
+        $offset or $offset = $$self{GLOBAL_TIME_OFFSET} = { };
+        ShiftTime($date, $shift, $dir, $offset);
+    }
     # only convert date if a format was specified and the date is recognizable
     if ($dateFormat) {
         # a few cameras use incorrect date/time formatting:
@@ -4026,7 +4045,7 @@ sub ConvertDateTime($$)
         # - single-digit seconds with leading space (HP scanners)
         $date =~ s/[-+]\d{2}:\d{2}$//;  # remove timezone if it exists
         my @a = ($date =~ /\d+/g);      # be very flexible about date/time format
-        if (@a and $a[0] > 1900 and $a[0] < 3000 and eval 'require POSIX') {
+        if (@a and $a[0] >= 1000 and $a[0] < 3000 and eval 'require POSIX') {
             $date = POSIX::strftime($dateFormat, $a[5]||0, $a[4]||0, $a[3]||0,
                                                  $a[2]||1, ($a[1]||1)-1, $a[0]-1900);
         } elsif ($self->{OPTIONS}{StrictDate}) {

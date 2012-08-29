@@ -388,6 +388,7 @@ t/ExifTool_21.out
 t/ExifTool_22.out
 t/ExifTool_23.out
 t/ExifTool_24.out
+t/ExifTool_25.out
 t/ExifTool_3.out
 t/ExifTool_4.out
 t/ExifTool_5.out
@@ -586,6 +587,7 @@ t/QuickTime_3.out
 t/RIFF.t
 t/RIFF_2.out
 t/RIFF_3.out
+t/RIFF_4.out
 t/RTF.t
 t/RTF_2.out
 t/Radiance.t
@@ -796,6 +798,7 @@ t/images/QuickTime.m4a
 t/images/QuickTime.mov
 t/images/RIFF.avi
 t/images/RIFF.wav
+t/images/RIFF.webp
 t/images/RTF.rtf
 t/images/Radiance.hdr
 t/images/Real.ra

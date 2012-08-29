@@ -1,7 +1,7 @@
 # Before "make install", this script should be runnable with "make test".
 # After "make install" it should work as "perl t/RIFF.t".
 
-BEGIN { $| = 1; print "1..3\n"; $Image::ExifTool::noConfig = 1; }
+BEGIN { $| = 1; print "1..4\n"; $Image::ExifTool::noConfig = 1; }
 END {print "not ok 1\n" unless $loaded;}
 
 # test 1: Load the module(s)
@@ -15,10 +15,10 @@ use t::TestLib;
 my $testname = 'RIFF';
 my $testnum = 1;
 
-# test 2: Extract information from RIFF.wav and RIFF.avi
+# tests 2-4: Extract information from RIFF.wav, RIFF.avi and RIFF.webp
 {
     my $ext;
-    foreach $ext (qw(wav avi)) {
+    foreach $ext (qw(wav avi webp)) {
         ++$testnum;
         my $exifTool = new Image::ExifTool;
         my $info = $exifTool->ImageInfo("t/images/RIFF.$ext");

@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Image-ExifTool
-version:            8.94
+version:            9.01
 abstract:           Read and write meta information
 author:
     - Phil Harvey (phil@owl.phy.queensu.ca)

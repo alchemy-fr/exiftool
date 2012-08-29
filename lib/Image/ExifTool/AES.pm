@@ -335,7 +335,7 @@ sub InvCipher($)
 #            encrypt with a randomly-generated IV)
 #         3) flag to disable padding
 # Returns: error string, or undef on success
-# Notes: encrypts/decrypts data in place
+# Notes: encrypts/decrypts data in place (encrypted data returned with leading IV)
 sub Crypt($$;$$)
 {
     my ($dataPt, $key, $encrypt, $noPad) = @_;

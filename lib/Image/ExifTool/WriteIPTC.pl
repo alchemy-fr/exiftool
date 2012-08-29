@@ -566,6 +566,8 @@ sub DoWriteIPTC($$$)
             my $nvHash = $exifTool->GetNewValueHash($tagInfo);
             $len = $pos - $valuePtr;
             my $val = substr($$dataPt, $valuePtr, $len);
+            # remove null terminator if it exists (written by braindead software like Picasa 2.0)
+            $val =~ s/\0+$// if $$tagInfo{Format} and $$tagInfo{Format} =~ /^string/;
             my $oldXlat = $xlat;
             FormatIPTC($exifTool, $tagInfo, \$val, \$xlat, $rec, 1);
             if ($exifTool->IsOverwriting($nvHash, $val)) {

@@ -142,13 +142,14 @@
     },
     # Composite tags are added to the Composite table:
     'Image::ExifTool::Composite' => {
-        # Composite tags are unique: The Require/Desire elements list tags
-        # that must/may exist, and the keys of these hashes are used as
-        # indices in the @val array of the ValueConv expression to derive
-        # the composite tag value.  All Require'd tags must exist for the
-        # Composite tag to be evaluated.  If no Require'd tags are specified,
-        # then at least one of the Desire'd tags must exist.  See the
-        # Composite table in Image::ExifTool::Exif for more examples.
+        # Composite tags are unique:  The Require/Desire elements specify
+        # tags that must/may exist, and the keys of these hashes are used
+        # as indices in the @val array of the ValueConv expression to
+        # derive the composite tag value.  All Require'd tags must exist
+        # for the Composite tag to be evaluated.  If no Require'd tags are
+        # specified, then at least one of the Desire'd tags must exist.
+        # See the Composite table in Image::ExifTool::Exif for more
+        # examples, and lib/Image/ExifTool/README for all of the details.
         BaseName => {
             Require => {
                 0 => 'FileName',
@@ -156,7 +157,7 @@
             # remove the extension from FileName
             ValueConv => '$val[0] =~ /(.*)\./ ? $1 : $val[0]',
         },
-        # the following examples demonstrate simplifications which may be
+        # the next few examples demonstrate simplifications which may be
         # used if only one tag is Require'd or Desire'd:
         # 1) the Require lookup may be replaced with a simple tag name
         # 2) "$val" may be used to represent "$val[0]" in the expression
@@ -169,6 +170,7 @@
             Require => 'ScaleFactor35efl',
             Groups => { 2 => 'Camera' },
             ValueConv => 'sqrt(24*24+36*36) / ($val * 1750)',
+            # an optional PrintConv may be used to format the value
             PrintConv => 'sprintf("%.3f mm",$val)',
         },
         # generate a description for this file type
@@ -186,6 +188,7 @@
                 4 => 'ResolutionUnit',
             },
             ValueConv => '$val[0]/$val[2] . " " . $val[1]/$val[3]',
+            # (the @prt array contains print-formatted values)
             PrintConv => 'sprintf("%.1fx%.1f $prt[4]", split(" ",$val))',
         },
         # [advanced] select largest JPEG preview image

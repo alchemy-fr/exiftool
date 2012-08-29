@@ -12,6 +12,7 @@
 #               5) European Patent (EP2 051 528A1) application no. 07792522.0 filed 08.08.2007
 #               6) Dave Nicholson private communication
 #               7) http://www.freepatentsonline.com/20050076039.pdf
+#               8) Michael Reitinger private communication (RX100)
 #
 # Glossary:     RBSP = Raw Byte Sequence Payload
 #------------------------------------------------------------------------------
@@ -23,7 +24,7 @@ use vars qw($VERSION %convMake);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.07';
+$VERSION = '1.08';
 
 sub ProcessSEI($$);
 
@@ -463,8 +464,11 @@ my $parsePictureTiming; # flag to enable parsing of picture timing information (
     FIRST_ENTRY => 0,
     1 => {
         Name => 'ImageStabilization',
+        PrintHex => 1,
         PrintConv => {
             0 => 'Off',
+            0x3f => 'On (0x3f)', #8
+            0xbf => 'Off (0xbf)', #8
             0xff => 'n/a',
             OTHER => sub {
                 my $val = shift;

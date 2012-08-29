@@ -24,7 +24,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.35';
+$VERSION = '1.36';
 
 sub ProcessFujiDir($$$);
 sub ProcessFaceRec($$$);
@@ -377,10 +377,10 @@ my %faceCategories = (
         Writable => 'int16u',
         PrintHex => 1,
         PrintConv => {
-            0x000 => 'F0/Standard (PROVIA)',
+            0x000 => 'F0/Standard (Provia)',
             0x100 => 'F1/Studio Portrait',
             0x110 => 'F1a/Studio Portrait Enhanced Saturation',
-            0x120 => 'F1b/Studio Portrait Smooth Skin Tone (ASTIA)',
+            0x120 => 'F1b/Studio Portrait Smooth Skin Tone (Astia)',
             0x130 => 'F1c/Studio Portrait Increased Sharpness',
             0x200 => 'F2/Fujichrome (Velvia)',
             0x300 => 'F3/Studio Portrait Ex',
@@ -448,7 +448,9 @@ my %faceCategories = (
             detected
         },
     },
+    # 0x4101-0x4105 - exist only if face detection active
     # 0x4104 - also related to face detection (same number of entries as FacePositions)
+    # 0x4200 - same as 0x4100?
     # 0x4203 - same as 0x4103
     # 0x4204 - same as 0x4104
     0x4282 => { #PH

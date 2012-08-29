@@ -29,7 +29,7 @@ use vars qw($VERSION %leicaLensTypes);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.66';
+$VERSION = '1.67';
 
 sub ProcessPanasonicType2($$$);
 sub WhiteBalanceConv($;$$);
@@ -114,8 +114,8 @@ sub WhiteBalanceConv($;$$);
     51 => 'Super-Elmar-M 21mm f/3.4 Asph',  # ? (ref 16, frameSelectorBits=1)
     '51 2' => 'Super-Elmar-M 14mm f/3.8 Asph', # ? (ref 16)
     52 => 'Super-Elmar-M 18mm f/3.8 ASPH.', # ? (ref PH/11)
-    53 => 'Apo-Telyt-M 135mm f/3.4',        # ? (ref 16)
-
+    '53 2' => 'Apo-Telyt-M 135mm f/3.4', #16
+    '53 3' => 'Apo-Summicron-M 50mm f/2 Asph', #16
 );
 
 # M9 frame selector bits for each lens
@@ -692,13 +692,13 @@ my %shootingMode = (
     },
     # 0x45 - int16u: 0
     0x46 => { #PH/JD
-        Name => 'WBAdjustAB',
+        Name => 'WBShiftAB',
         Format => 'int16s',
         Writable => 'int16u',
         Notes => 'positive is a shift toward blue',
     },
     0x47 => { #PH/JD
-        Name => 'WBAdjustGM',
+        Name => 'WBShiftGM',
         Format => 'int16s',
         Writable => 'int16u',
         Notes => 'positive is a shift toward green',
@@ -1321,9 +1321,29 @@ my %shootingMode = (
             '3 0 0 0' => 'Manual',
         },
     },
-    # 0x0411 - saturation or sharpness
+    0x0410 => {
+        Name => 'ShotInfo',
+        SubDirectory => { TagTable => 'Image::ExifTool::Panasonic::ShotInfo' },
+    },
+    # 0x0410 - int8u[16]: first byte is FileNumber 
+    # 0x0411 - int8u[4]: first number is FilmMode (1=Standard,2=Vivid,3=Natural,4=BW Natural,5=BW High Contrast)
     0x0412 => { Name => 'FilmMode',         Writable => 'string' },
     0x0413 => { Name => 'WB_RGBLevels',     Writable => 'rational64u', Count => 3 },
+);
+
+# Leica type5 ShotInfo (ref PH) (X2)
+%Image::ExifTool::Panasonic::ShotInfo = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    WRITE_PROC => \&Image::ExifTool::WriteBinaryData,
+    CHECK_PROC => \&Image::ExifTool::CheckBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 1 => 'Leica', 2 => 'Camera' },
+    TAG_PREFIX => 'Leica_ShotInfo',
+    FIRST_ENTRY => 0,
+    WRITABLE => 1,
+    0 => {
+        Name => 'FileIndex',
+        Format => 'int16u',
+    },
 );
 
 # Leica type6 maker notes (ref PH) (S2)

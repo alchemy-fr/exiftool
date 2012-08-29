@@ -17,7 +17,7 @@ use vars qw($VERSION %samsungLensTypes);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.13';
+$VERSION = '1.14';
 
 sub WriteSTMN($$$);
 sub ProcessINFO($$$);
@@ -480,6 +480,7 @@ my %formatMinMax = (
              9 => 'Custom1',
             10 => 'Custom2',
             11 => 'Custom3',
+           255 => 'n/a', #PH
         },
     },
     1 => 'PictureWizardColor',

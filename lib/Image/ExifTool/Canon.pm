@@ -79,7 +79,7 @@ sub ProcessSerialData($$$);
 sub ProcessFilters($$$);
 sub SwapWords($);
 
-$VERSION = '2.94';
+$VERSION = '2.99';
 
 # Note: Removed 'USM' from 'L' lenses since it is redundant - PH
 # (or is it?  Ref 32 shows 5 non-USM L-type lenses)
@@ -87,9 +87,9 @@ $VERSION = '2.94';
 #     consistent about keeping "USM" in the model name
 %canonLensTypes = ( #4
      Notes => q{
-        Decimal values differentiate lenses which would otherwise have the same
-        LensType, and are used by the Composite LensID tag when attempting to
-        identify the specific lens model.
+        Decimal values have been added to differentiate lenses which would otherwise
+        have the same LensType, and are used by the Composite LensID tag when
+        attempting to identify the specific lens model.
      },
      1 => 'Canon EF 50mm f/1.8',
      2 => 'Canon EF 28mm f/2.8',
@@ -350,6 +350,9 @@ $VERSION = '2.94';
     491 => 'Canon EF 300mm f/2.8L IS II USM', #42
     494 => 'Canon EF 600mm f/4.0L IS II USM', #PH
     495 => 'Canon EF 24-70mm f/2.8L II USM', #PH
+    4143 => 'Canon EF-M 22mm f/2 STM', #34
+    4144 => 'Canon EF 40mm f/2.8 STM', #50
+    4145 => 'Canon EF-M 22mm f/2 STM', #34
 );
 
 # Canon model ID numbers (PH)
@@ -506,6 +509,7 @@ $VERSION = '2.94';
     0x3120000 => 'PowerShot ELPH 310 HS / IXUS 230 HS / IXY 600F',
     0x3140000 => 'PowerShot ELPH 500 HS / IXUS 320 HS / IXY 32S', # (duplicate PowerShot model???)
     0x3160000 => 'PowerShot A1300',
+    0x3170000 => 'PowerShot A810',
     0x3180000 => 'PowerShot ELPH 320 HS / IXUS 240 HS / IXY 420F',
     0x3190000 => 'PowerShot ELPH 110 HS / IXUS 125 HS / IXY 220F',
     0x3200000 => 'PowerShot D20',
@@ -517,6 +521,8 @@ $VERSION = '2.94';
     0x3260000 => 'PowerShot A3400 IS',
     0x3270000 => 'PowerShot A2400 IS',
     0x3280000 => 'PowerShot A2300',
+    0x3350000 => 'PowerShot SX160 IS',
+    0x3370000 => 'PowerShot SX500 IS',
     0x4040000 => 'PowerShot G1',
     0x6040000 => 'PowerShot S100 / Digital IXUS / IXY Digital',
 
@@ -1172,7 +1178,10 @@ my %binaryDataAttrs = (
     },
     0x25 => { #PH
         Name => 'FaceDetect2',
-        SubDirectory => { TagTable => 'Image::ExifTool::Canon::FaceDetect2' },
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Canon::FaceDetect2',
+            # (can't validate because this record uses a 1-byte count instead of a 2-byte count)
+        },
     },
     0x26 => { #PH (A570IS,1DmkIII)
         Name => 'CanonAFInfo2',
@@ -1184,7 +1193,7 @@ my %binaryDataAttrs = (
     },
     0x27 => { #PH
         Name => 'ContrastInfo',
-        Condition => '$$valPt =~ /^\x0a\0.{8}\x1a\0/s', # (seems to be various versions of this information)
+        Condition => '$$valPt =~ /^\x0a\0/', # (seems to be various versions of this information)
         SubDirectory => { TagTable => 'Image::ExifTool::Canon::ContrastInfo' },
     },
     # 0x27 - value 1 is 1 for high ISO pictures, 0 otherwise
@@ -1200,6 +1209,13 @@ my %binaryDataAttrs = (
         ValueConvInv => 'pack("H*", $val)',
     },
     # 0x2d - changes with categories (ref 31)
+    0x2f => { #PH (G12)
+        Name => 'FaceDetect3',
+        SubDirectory => {
+            Validate => 'Image::ExifTool::Canon::Validate($dirData,$subdirStart,$size)',
+            TagTable => 'Image::ExifTool::Canon::FaceDetect3',
+        },
+    },
     0x35 => { #PH
         Name => 'TimeInfo',
         SubDirectory => {
@@ -1451,10 +1467,10 @@ my %binaryDataAttrs = (
     ],
     0x4002 => { #PH
         # unknown data block in some JPEG and CR2 images
-        # (5kB for most models, but 22kb for 5D and 30D)
+        # (5kB for most models, but 22kb for 5D and 30D, and 43kB for 5DmkII so Drop it)
         Name => 'CRWParam',
         Format => 'undef',
-        Flags => [ 'Unknown', 'Binary' ],
+        Flags => [ 'Unknown', 'Binary', 'Drop' ],
     },
     0x4003 => { #PH
         Name => 'ColorInfo',
@@ -1965,6 +1981,8 @@ my %binaryDataAttrs = (
             2 => 'sRAW2 (sRAW)',
         },
     },
+    # 47 - related to aspect ratio: 100=4:3,70=1:1/16:9,90=3:2,60=4:5 (PH G12)
+    #      (roughly image area in percent - 4:3=100%,1:1/16:9=75%,3:2=89%,4:5=60%)
 );
 
 # focal length information (MakerNotes tag 0x02)
@@ -2708,8 +2726,8 @@ my %ciMaxFocal = (
     0x18 => { %ciCameraTemperature }, #36
     0x1b => { %ciMacroMagnification }, #(NC)
     0x1d => { %ciFocalLength },
-    0x30 => {
-        Name => 'CameraOrientation', # <-- (always 9th byte after 0xbbbb for all models - Dave Coffin)
+    0x30 => { # <-- (follows pattern /\xbb\xbb(.{64})?\x01\x01\0\0.{4}/s for all models - Dave Coffin)
+        Name => 'CameraOrientation',
         PrintConv => {
             0 => 'Horizontal (normal)',
             1 => 'Rotate 90 CW',
@@ -5213,24 +5231,26 @@ my %ciMaxFocal = (
 # contrast information (MakerNotes tag 0x27) - PH
 %Image::ExifTool::Canon::ContrastInfo = (
     %binaryDataAttrs,
-    FORMAT => 'int16s',
+    FORMAT => 'int16u',
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
     4 => {
         Name => 'IntelligentContrast',
+        PrintHex => 1,
         PrintConv => {
+            0x00 => 'Off',
+            0x08 => 'On',
+            0xffff => 'n/a',
             OTHER => sub {
-                # DPP shows "On" for any value between 24 and 31
+                # DPP shows "On" for any value except 0xffff when bit 0x08 is set
                 my ($val, $inv) = @_;
                 if ($inv) {
-                    $val =~ /\((\d+)\)/;
+                    $val =~ /(0x[0-9a-f]+)/i or $val =~ /(\d+)/;
                     return $1;
                 } else {
-                    return "On ($val)" if $val >=24 and $val < 32;
-                    return "Off ($val)";
+                    return sprintf("On (0x%.2x)",$val) if $val & 0x08;
+                    return sprintf("Off (0x%.2x)",$val);
                 }
             },
-            0 => 'Off',
-            25 => 'On',
         },
     },
     # 6 - 0=normal, 257=i-Contrast On
@@ -5293,6 +5313,7 @@ my %ciMaxFocal = (
             31 => 'Anchorage',      # [-9]
             32 => 'Honolulu',       # [-10]
             33 => 'Samoa',          # [+13]
+            32766 => '(not set)',   # (NC)
         },
     },
     3 => {
@@ -5408,6 +5429,19 @@ my %ciMaxFocal = (
     GROUPS => { 0 => 'MakerNotes', 2 => 'Image' },
     0x01 => 'FaceWidth',
     0x02 => 'FacesDetected',
+);
+
+# yet more face detect information (MakerNotes tag 0x2f) - PH (G12)
+%Image::ExifTool::Canon::FaceDetect3 = (
+    %binaryDataAttrs,
+    FORMAT => 'int16u',
+    FIRST_ENTRY => 1,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Image' },
+    # 0 - size (34 bytes)
+    # 1 - 1=4:3/16:9,2=1:1/3:2/4:5
+    # 2 - normally 1 if faces detected, but sometimes 0 (maybe if face wasn't in captured image?)
+    3 => 'FacesDetected',
+    # 4 - 240=4:3/4:5/1:1,180=16:9,212=3:2
 );
 
 # File number information (MakerNotes tag 0x93)
@@ -6845,13 +6879,12 @@ sub PrintLensID(@)
         for ($i=1; $$printConv{"$lensType.$i"}; ++$i) {
             push @lenses, $$printConv{"$lensType.$i"};
         }
+        my ($tc, @user, @maybe, @likely, @matches);
         # look for lens in user-defined lenses
         foreach $lens (@lenses) {
-            next unless $Image::ExifTool::userLens{$lens};
-            return LensWithTC($lens, $shortFocal);
+            push @user, $lens if $Image::ExifTool::userLens{$lens};
         }
         # attempt to determine actual lens
-        my ($tc, @maybe, @likely, @matches);
         foreach $tc (1, 1.4, 2, 2.8) {  # loop through teleconverter scaling factors
             foreach $lens (@lenses) {
                 next unless $lens =~ /(\d+)(?:-(\d+))?mm.*?(?:[fF]\/?)(\d+(?:\.\d+)?)(?:-(\d+(?:\.\d+)?))?/;
@@ -6874,6 +6907,23 @@ sub PrintLensID(@)
                 push @matches, $tclens;
             }
             last if @maybe;
+        }
+        if (@user) {
+            # choose the best match if we have more than one
+            if (@user > 1) {
+                my ($try, @good);
+                foreach $try (\@matches, \@likely, \@maybe) {
+                    foreach (@$try) {
+                        $Image::ExifTool::userLens{$_} and push(@good, $_), next;
+                        # check for match with TC string removed
+                        next unless /^(.*) \+ \d+(\.\d+)?x$/;
+                        $Image::ExifTool::userLens{$1} and push(@good, $_);
+                    }
+                    return join(' or ', @good) if @good;
+                }
+            }
+            # default to returning the first user-defined lens
+            return LensWithTC($user[0], $shortFocal);
         }
         return join(' or ', @matches) if @matches;
         return join(' or ', @likely) if @likely;
@@ -7394,7 +7444,7 @@ under the same terms as Perl itself.
 
 =item L<http://homepage3.nifty.com/kamisaka/makernote/makernote_canon.htm>
 
-=item (...plus lots of testing with my 300D and my daughter's A570IS!)
+=item (...plus lots of testing with my 300D, A570IS and G12!)
 
 =back
 
@@ -7404,9 +7454,10 @@ Thanks Michael Rommel and Daniel Pittman for information they provided about
 the Digital Ixus and PowerShot S70 cameras, Juha Eskelinen and Emil Sit for
 figuring out the 20D and 30D FileNumber, Denny Priebe for figuring out a
 couple of 1D tags, and Michael Tiemann, Rainer Honle, Dave Nicholson, Chris
-Huebsch, Ger Vermeulen, Darryl Zurn, D.J. Cristi, Bogdan and Vesa Kivisto for
-decoding a number of new tags.  Also thanks to everyone who made contributions
-to the LensType lookup list or the meanings of other tag values.
+Huebsch, Ger Vermeulen, Darryl Zurn, D.J. Cristi, Bogdan and Vesa Kivisto
+for decoding a number of new tags.  Also thanks to everyone who made
+contributions to the LensType lookup list or the meanings of other tag
+values.
 
 =head1 SEE ALSO
 

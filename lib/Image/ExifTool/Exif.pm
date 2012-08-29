@@ -50,7 +50,7 @@ use vars qw($VERSION $AUTOLOAD @formatSize @formatName %formatNumber %intFormat
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::MakerNotes;
 
-$VERSION = '3.43';
+$VERSION = '3.45';
 
 sub ProcessExif($$$);
 sub WriteExif($$$);
@@ -1507,6 +1507,8 @@ my %sampleFormat = (
         ValueConv => '2 ** ($val / 2)',
         PrintConv => 'sprintf("%.1f",$val)',
     },
+    # Wikipedia: BrightnessValue = Bv = Av + Tv - Sv
+    # ExifTool:  LightValue = LV = Av + Tv - Sv + 5 (5 is the Sv for ISO 100 in Exif usage)
     0x9203 => 'BrightnessValue',
     0x9204 => {
         Name => 'ExposureCompensation',
@@ -2501,7 +2503,7 @@ my %sampleFormat = (
         PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
     },
     LightValue => {
-        Notes => 'calculated LV -- similar to exposure value but includes ISO speed',
+        Notes => 'calculated LV -- similar to exposure value but normalized to ISO 100',
         Require => {
             0 => 'Aperture',
             1 => 'ShutterSpeed',
@@ -3337,10 +3339,7 @@ sub PrintLensID($$@)
     # attempt to determine actual lens
     my (@matches, @best, @user, $diff);
     foreach $lens (@lenses) {
-        if ($Image::ExifTool::userLens{$lens}) {
-            push @user, $lens;
-            next;
-        }
+        push @user, $lens if $Image::ExifTool::userLens{$lens};
         # sf = short focal
         # lf = long focal
         # sa = max aperture at short focal
@@ -3397,7 +3396,17 @@ sub PrintLensID($$@)
         }
         push @matches, $lens;
     }
-    return join(' or ', @user) if @user;
+    if (@user) {
+        # choose the best match if we have more than one
+        if (@user > 1) {
+            my ($try, @good);
+            foreach $try (\@best, \@matches) {
+                $Image::ExifTool::userLens{$_} and push @good, $_ foreach @$try;
+                return join(' or ', @good) if @good;
+            }
+        }
+        return join(' or ', @user);
+    }
     return join(' or ', @best) if @best;
     return join(' or ', @matches) if @matches;
     $lens = $$printConv{$lensType};

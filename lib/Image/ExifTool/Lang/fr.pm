@@ -4489,8 +4489,6 @@ $VERSION = '1.21';
         'None' => 'Aucune',
       },
     },
-   'WBAdjustAB' => 'Ajustement Balance des Blancs bleu/jaune',
-   'WBAdjustGM' => 'Ajustement Balance des Blancs vert/magenta',
    'WBBlueLevel' => 'Niveau Bleu Balance des Blancs',
    'WBBracketMode' => {
       PrintConv => {
@@ -4512,9 +4510,8 @@ $VERSION = '1.21';
       },
     },
    'WBRedLevel' => 'Niveau Rouge Balance des Blancs',
-   'WBShiftAB' => 'Décalage bal. blancs ambre-bleu',
-   'WBShiftGM' => 'Décalage bal. blancs vert-magenta',
-   'WBShiftMG' => 'Décalage bal. blancs magenta-vert',
+   'WBShiftAB' => 'Décalage Balance Blancs ambre-bleu',
+   'WBShiftGM' => 'Décalage Balance Blancs vert-magenta',
    'WB_GBRGLevels' => 'Niveaux BB VBRV',
    'WB_GRBGLevels' => 'Niveaux BB VRBV',
    'WB_GRGBLevels' => 'Niveaux BB VRVB',
