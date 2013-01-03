@@ -148,7 +148,7 @@ sub SaveMakerNotes($)
     $makerNotes .= $makerInfo->{ValBuff};
     # get MakerNotes tag info
     my $tagTablePtr = Image::ExifTool::GetTagTable('Image::ExifTool::Exif::Main');
-    my $tagInfo = $exifTool->GetTagInfo($tagTablePtr, 0x927c);
+    my $tagInfo = $exifTool->GetTagInfo($tagTablePtr, 0x927c, \$makerNotes);
     # save the MakerNotes
     $exifTool->FoundTag($tagInfo, $makerNotes);
     # save the garbage collection some work later
@@ -623,7 +623,7 @@ files, and would lead to far fewer problems with corrupted metadata.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

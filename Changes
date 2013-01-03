@@ -4,8 +4,142 @@ ExifTool Version History
 
 RSS feed: http://owl.phy.queensu.ca/~phil/exiftool/rss.xml
 
-Note: The most recent production release is Version 9.01. (Other versions are
+Note: The most recent production release is Version 9.12. (Other versions are
 considered development releases, and are not uploaded to CPAN.)
+
+Jan. 2, 2013 - Version 9.12 (production release)
+
+  - Fixed problem introduced in 9.10 preserving file modification date/time when
+    some options are used
+
+Jan. 2, 2013 - Version 9.11 (production release)
+
+  - Improved decoding of some Sony tags
+  - Changed 3 tag names to avoid a leading digit to fix XML validation problem
+  - Fixed bug introduced in 9.04 that could double-encipher some Sony MakerNote
+    information when writing (affected files are fixed by writing any tag with
+    ExifTool 9.11)
+
+Dec. 29, 2012 - Version 9.10
+
+  - Added write support for a few new XMP-crs and XMP-photomech tags
+  - Added a new Samsung LensType (thanks Jaroslav Stepanek)
+  - Added a new Pentax LensType (thanks Helmut Schutz)
+  - Added a new Canon LensType
+  - Decode Sony A99 FocusMode (thanks Michael Tapes for the samples)
+  - Tolerate (but warn about) up to 4 bytes of garbage at start of EXIF segment
+  - Changed -P option to also preserve FileCreateDate on Windows (requires
+    Win32API::File::Time)
+  - Changed "[minor]" warning messages to capitalize the "M" (ie. "[Minor]") if
+    processing is affected when the warning is ignored
+  - Patched to avoid problem of slow processing with some corrupted EXIF
+
+Dec. 15, 2012 - Version 9.09
+
+  - Added a few new Google XMP GPano tags
+  - Added a new Olympus CameraType
+  - Added a couple of new Minolta LensTypes
+  - Added two new Nikon LensID's (thanks David Puschel and Robert
+    Rottmerhusen)
+  - Decode Nikon D7000 AFPointsUsed and make this tag writable
+  - Decode a new Olympus tag (thanks Christoph Anton Mitterer)
+  - Renamed one of the FujiFilm RAF RawImageWidth/Height pairs to
+    RawImageFullWidth/Height
+  - Changed -stay_open when combined with -q to flush output after each command
+    (as already done without -q) (requires IO::Handle)
+  - Fixed problem shifting FileCreateDate when writing other "real" tags in the
+    same command
+
+Nov. 26, 2012 - Version 9.08
+
+  - Fixed bug introduced in 9.07 that broke writing of FileModifyDate
+
+Nov. 24, 2012 - Version 9.07
+
+  - Added ability to read/write FileCreateDate (Windows only)
+  - Added ability to read FileInodeChangeDate (non-Windows only)
+  - Added support for new tags in DNG 1.4 specification
+  - Added support for Google Photosphere GPano XMP tags
+  - Added a couple of new Olympus filter effects
+  - Changed a Panasonic LensType (thanks Olaf Ulrich)
+  - API Changes:
+      - Enhanced SetFileModifyDate() to write FileCreateDate (Windows only)
+
+Nov. 17, 2012 - Version 9.06
+
+  - Added support for Nikon maker notes in images from any camera make (as
+    written by Capture NX2)
+  - Added support for FujiFilm X-E1 RAF images
+  - Added a new Olympus CameraType
+  - Added a new PentaxModelID and a new Pentax LensType
+  - Extract FileCreateDate (Windows) and FileInodeChangeDate (other systems)
+  - Fixed bug decoding UTF-16 ID3 synchronized lyrics
+
+Nov. 10, 2012 - Version 9.05
+
+  - Added ability to read APE metadata from MP3 audio files
+  - Decode ID3 synchronized lyrics/text information
+  - Decode maker notes in Leica V-LUX40 MP4 videos
+  - Decode Sony A99 AFPointSelected (thanks Michael Tapes for the samples)
+  - Improved decoding of some Sony tags (thanks Jos Roost)
+  - API Changes:
+      - Removed GeoNoInterpolate option (just set GeoMaxIntSecs to 0 instead)
+
+Nov. 3, 2012 - Version 9.04 (production release)
+
+  - Added two new Sony LensType values (thanks Matthias Paul)
+  - Added a few new Canon LensType values
+  - Added a couple of new PentaxModelID's and decode some new K-5 II values
+  - Added support for some new XMP tags written by the Apple iPhone 5
+  - Added a new Olympus CameraType
+  - Decode more Sony tags/values (thanks Jos Roost)
+  - Decode Nikon HDRInfo (thanks Stefan)
+  - Decode some FlashInfo tags for new Nikon models
+  - Decode a few WM ID3 tags (some documentation on these would be nice)
+  - Fixed bug which could cause truncated/garbage ID3v2 strings to be returned
+  - Fixed -globalTimeShift option to also work when copying tags
+  - Fixed decoding of Nikon AFFineTuneAdj for FirmwareVersion 1.10B (thanks
+    Michael Tapes for the samples for this and the A77)
+  - Fixed problem where a few tags (FileSequence, NewGUID and Now) were not
+    available for use with the -p option
+  - API Changes:
+      - Added RequestAll and GeoNoInterpolate options
+      - Fixed problem in SetNewValue when setting the Raw value of some tags
+
+Oct. 13, 2012 - Version 9.03
+
+  - Added new feature to provide control over directory levels in %d strings
+  - Added ability to write OtherImage in NEF images
+  - Added a new Pentax LensType
+  - Added a few new CanonModelID's (thanks Laurent Clevy)
+  - Added a new Nikon LensID (thanks Geert De Soete)
+  - Added a few new Olympus CameraType values
+  - Decode some new CameraInfo tags for the Canon EOS 650D
+  - Decode a number of new Sony tags (thanks Jos Roost)
+  - Improved decoding of some Sigma tags for the DP1/DP2 Merrill
+  - Give priority to EXIF tags over SigmaRaw tags X3F images
+  - Changed Samsung lens names to include "NX" (thanks Jaroslav Stepanek)
+  - Fixed misleading verbose "TAG is not writable" messages when copying
+    list-type tags
+  - API Changes:
+      - Enhanced GetValue() to allow return of 'Rational' value
+
+Sept. 6, 2012 - Version 9.02
+
+  - Added a new Nikon LensID (thanks Joseph Heled)
+  - Added a new EXIF SubFileType value used in DNG images
+  - Added write support for Apple Adjustment Settings XMP tags (XMP-aas)
+  - Added a couple of new Samsung LensType values (thanks Jaroslav Stepanek)
+  - Added a couple of new Canon LensType values and a new CanonModelID
+  - Decode a number of new Sony tags (thanks Jos Roost)
+  - Enhanced "-o -" feature to allow output file type to be specified
+  - Extract last file access time as FileAccessDate
+  - Allow tags to be set from files which are zero bytes in size
+  - Made ProfileHueSatMap tags Binary if they are too long
+  - Changed names of some PanasonicRaw DistortionInfo tags
+  - Changed decoding for a Sony ExposureMode value
+  - Fixed hang/crash that could occur when writing to an image with corrupted
+    Sony MoreInfo data (ie. SLT-A55V JPEG corrupted by GIMP)
 
 Aug. 25, 2012 - Version 9.01 (production release)
 

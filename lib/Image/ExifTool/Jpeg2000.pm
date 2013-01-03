@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.19';
+$VERSION = '1.20';
 
 sub ProcessJpeg2000Box($$$);
 
@@ -705,8 +705,13 @@ sub ProcessJpeg2000Box($$$)
             }
         } elsif ($$tagInfo{Format} and not $outfile) {
             # only save tag values if Format was specified
-            my $val = ReadValue($dataPt, $valuePtr, $$tagInfo{Format}, undef, $boxLen);
-            $exifTool->FoundTag($tagInfo, $val) if defined $val;
+            my $rational;
+            my $val = ReadValue($dataPt, $valuePtr, $$tagInfo{Format}, undef, $boxLen, \$rational);
+            if (defined $val) {
+                my $key = $exifTool->FoundTag($tagInfo, $val);
+                # save Rational value
+                $$exifTool{RATIONAL}{$key} = $rational if defined $rational and defined $key;
+            }
         } elsif ($outfile) {
             my $boxhdr = pack('N', $boxLen + 8) . $boxID;
             Write($outfile, $boxhdr, substr($$dataPt, $valuePtr, $boxLen)) or $err = 1;
@@ -799,7 +804,7 @@ files.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

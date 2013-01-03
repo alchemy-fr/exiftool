@@ -15,7 +15,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 sub ProcessItemID($$$);
 sub ProcessLinkInfo($$$);
@@ -380,7 +380,7 @@ sub ProcessLinkInfo($$$);
         Format => 'undef[64]',
         RawConv => q{
             $val = $self->Decode($val, 'UCS2');
-            $val =~ s/\0.*//;
+            $val =~ s/\0.*//s;
             return length($val) ? $val : undef;
         },
     },
@@ -699,7 +699,7 @@ information MS Shell Link (Windows shortcut) files.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

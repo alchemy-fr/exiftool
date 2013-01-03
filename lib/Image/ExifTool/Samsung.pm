@@ -8,6 +8,7 @@
 # References:   1) Tae-Sun Park private communication
 #               2) http://www.cybercom.net/~dcoffin/dcraw/
 #               3) Pascal de Bruijn private communication (NX100)
+#               4) Jaroslav Stepanek via rt.cpan.org
 #------------------------------------------------------------------------------
 
 package Image::ExifTool::Samsung;
@@ -17,24 +18,28 @@ use vars qw($VERSION %samsungLensTypes);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.14';
+$VERSION = '1.17';
 
 sub WriteSTMN($$$);
 sub ProcessINFO($$$);
 sub ProcessSamsungIFD($$$);
 
+# Samsung LensType lookup
 %samsungLensTypes = (
+    # (added "Samsung NX" in all of these lens names - ref 4)
     0 => 'Built-in or Manual Lens', #PH (EX1, WB2000)
-    1 => 'Samsung 30mm F2 Pancake',
-    2 => 'Samsung Zoom 18-55mm F3.5-5.6 OIS', # (also version II, ref 1)
-    3 => 'Samsung Zoom 50-200mm F4-5.6 ED OIS',
+    1 => 'Samsung NX 30mm F2 Pancake',
+    2 => 'Samsung NX 18-55mm F3.5-5.6 OIS', # (also version II, ref 1)
+    3 => 'Samsung NX 50-200mm F4-5.6 ED OIS',
     # what about the non-OIS version of the 18-55,
-    # which was supposed to be available before the 20-50?
-    4 => 'Samsung 20-50mm F3.5-5.6 Compact Zoom', #PH
-    5 => 'Samsung 20mm F2.8 Pancake', #PH (guess)
-    # 6 - 'Samsung 85mm F1.4 ED SSA', ? (ref 1 guess)
-    7 => 'Samsung 60mm F2.8 Macro ED OIS SSA', #1
-    8 => 'Samsung 16mm F2.4 Ultra Wide Pancake', #1
+    # which was supposed to be available before the 20-50? - PH
+    4 => 'Samsung NX 20-50mm F3.5-5.6 ED', #PH/4
+    5 => 'Samsung NX 20mm F2.8 Pancake', #PH
+    6 => 'Samsung NX 18-200mm F3.5-6.3 ED OIS', #4
+    7 => 'Samsung NX 60mm F2.8 Macro ED OIS SSA', #1
+    8 => 'Samsung NX 16mm F2.4 Pancake', #1/4
+    9 => 'Samsung NX 85mm F1.4 ED SSA', #4
+    12 => 'Samsung NX 12-24mm F4-5.6 ED', #4
 );
 
 # range of values for Formats used in encrypted information
@@ -738,7 +743,7 @@ Samsung maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

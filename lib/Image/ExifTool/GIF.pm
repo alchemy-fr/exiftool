@@ -19,7 +19,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.08';
+$VERSION = '1.09';
 
 # road map of directory locations in GIF images
 my %gifMap = (
@@ -417,7 +417,7 @@ Block:
 
                 $raf->Read($buff, 5) == 5 or last;
                 # make sure this contains the expected data
-                if ($buff =~ /^\x03\x01(..)\0$/) {
+                if ($buff =~ /^\x03\x01(..)\0$/s) {
                     $exifTool->HandleTag($tagTablePtr, 'ExtensionAnimation', $buff);
                 }
                 $raf->Seek(-$length-5, 1) or last;  # seek back to start of block
@@ -499,7 +499,7 @@ write GIF meta information.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

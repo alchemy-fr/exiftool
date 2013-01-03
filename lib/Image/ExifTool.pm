@@ -8,7 +8,7 @@
 # Revisions:    Nov. 12/2003 - P. Harvey Created
 #               (See html/history.html for revision history)
 #
-# Legal:        Copyright (c) 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+# Legal:        Copyright (c) 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 #               This library is free software; you can redistribute it and/or
 #               modify it under the same terms as Perl itself.
 #------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ use vars qw($VERSION $RELEASE @ISA @EXPORT_OK %EXPORT_TAGS $AUTOLOAD @fileTypes
             %mimeType $swapBytes $swapWords $currentByteOrder %unpackStd
             %jpegMarker %specialTags);
 
-$VERSION = '9.01';
+$VERSION = '9.12';
 $RELEASE = '';
 @ISA = qw(Exporter);
 %EXPORT_TAGS = (
@@ -65,7 +65,7 @@ sub CountNewValues($);
 sub SaveNewValues($);
 sub RestoreNewValues($);
 sub WriteInfo($$;$$);
-sub SetFileModifyDate($$;$);
+sub SetFileModifyDate($$;$$);
 sub SetFileName($$;$);
 sub GetAllTags(;$);
 sub GetWritableTags(;$);
@@ -115,6 +115,7 @@ sub NewGUID();
 sub DoEscape($$);
 sub ConvertFileSize($);
 sub ParseArguments($;@); #(defined in attempt to avoid mod_perl problem)
+sub ReadValue($$$$$;$);
 
 # list of main tag tables to load in LoadAllTables() (sub-tables are recursed
 # automatically).  Note: They will appear in this order in the documentation
@@ -869,7 +870,10 @@ sub DummyWriteProc { return 1; }
     },
     FileSize => {
         Groups => { 1 => 'System' },
-        Notes => 'print conversion uses historic prefixes: 1 kB = 1024 bytes, etc.',
+        Notes => q{
+            note that the print conversion for this tag uses historic prefixes: 1 kB =
+            1024 bytes, etc.
+        },
         PrintConv => \&ConvertFileSize,
     },
     ResourceForkSize => {
@@ -887,19 +891,13 @@ sub DummyWriteProc { return 1; }
     FileModifyDate => {
         Description => 'File Modification Date/Time',
         Notes => q{
-            the filesystem modification time.  Note that although ExifTool can not write
-            the filesystem creation time directly, in OS X the creation time is pushed
-            backwards by writing an earlier modification time.  This provides a
-            mechanism to indirectly set the creation time:  1) Rewrite the file to set
-            the filesystem creation and modification times to the current time, 2) Set
-            FileModifyDate to the desired creation time, then 3) Restore FileModifyDate
-            to its original value.  This trick does not work in Windows.  Also note that
-            ExifTool can not handle filesystem dates before 1970 due to limitations of
-            the standard C libraries
+            the filesystem modification date/time.  Note that ExifTool may not be able
+            to handle filesystem dates before 1970 depending on the limitations of the
+            system's standard libraries
         },
         Groups => { 1 => 'System', 2 => 'Time' },
         Writable => 1,
-        # all pseudo-tags must be protected so -tagsfromfile fails with
+        # all writable pseudo-tags must be protected so -tagsfromfile fails with
         # unrecognized files unless a pseudo tag is specified explicitly
         Protected => 1,
         Shift => 'Time',
@@ -907,6 +905,53 @@ sub DummyWriteProc { return 1; }
         ValueConvInv => 'GetUnixTime($val,1)',
         PrintConv => '$self->ConvertDateTime($val)',
         PrintConvInv => '$self->InverseDateTime($val)',
+    },
+    FileAccessDate => {
+        Description => 'File Access Date/Time',
+        Notes => q{
+            the date/time of last access of the file.  Note that this access time is
+            updated whenever any software, including ExifTool, reads the file
+        },
+        Groups => { 1 => 'System', 2 => 'Time' },
+        ValueConv => 'ConvertUnixTime($val,1)',
+        PrintConv => '$self->ConvertDateTime($val)',
+    },
+    FileCreateDate => {
+        Description => 'File Creation Date/Time',
+        Notes => q{
+            the filesystem creation date/time.  Windows only.  Requires
+            Win32API::File::Time for writing.  Note that although ExifTool can not
+            currently access the filesystem creation time on other systems, the creation
+            time is pushed backwards on OS X by writing an earlier modification time,
+            which provides a mechanism to write this indirectly:  1) Rewrite the file to
+            set the filesystem creation and modification times to the current time, 2)
+            Set FileModifyDate to the desired creation time, then 3) Restore
+            FileModifyDate to its original value
+        },
+        Groups => { 1 => 'System', 2 => 'Time' },
+        Writable => 1,
+        Protected => 1, # all writable pseudo-tags must be protected!
+        Shift => 'Time',
+        ValueConv => 'ConvertUnixTime($val,1)',
+        ValueConvInv => q{
+            if ($^O ne 'MSWin32') {
+                warn "This tag is Windows only\n";
+                return undef;
+            }
+            return GetUnixTime($val,1);
+        },
+        PrintConv => '$self->ConvertDateTime($val)',
+        PrintConvInv => '$self->InverseDateTime($val)',
+    },
+    FileInodeChangeDate => {
+        Description => 'File Inode Change Date/Time',
+        Notes => q{
+            the date/time when the file's directory information was last changed.
+            Non-Windows systems only
+        },
+        Groups => { 1 => 'System', 2 => 'Time' },
+        ValueConv => 'ConvertUnixTime($val,1)',
+        PrintConv => '$self->ConvertDateTime($val)',
     },
     FilePermissions => {
         Groups => { 1 => 'System' },
@@ -1551,12 +1596,12 @@ sub ExtractInfo($;@)
         delete $self->{MAKER_NOTE_BYTE_ORDER};
 
         # return our version number
-        my $tff = $self->{TAGS_FROM_FILE};
+        my $reqAll = $self->{OPTIONS}{RequestAll};
         $self->FoundTag('ExifToolVersion', "$VERSION$RELEASE");
-        $self->FoundTag('Now', TimeNow()) if $self->{REQ_TAG_LOOKUP}{now} or $tff;
-        $self->FoundTag('NewGUID', NewGUID()) if $self->{REQ_TAG_LOOKUP}{newguid} or $tff;
+        $self->FoundTag('Now', TimeNow()) if $self->{REQ_TAG_LOOKUP}{now} or $reqAll;
+        $self->FoundTag('NewGUID', NewGUID()) if $self->{REQ_TAG_LOOKUP}{newguid} or $reqAll;
         # generate sequence number if necessary
-        if ($self->{REQ_TAG_LOOKUP}{filesequence} or $tff) {
+        if ($self->{REQ_TAG_LOOKUP}{filesequence} or $reqAll) {
             $self->FoundTag('FileSequence', $$self{FILE_SEQUENCE});
         }
         ++$$self{FILE_SEQUENCE};        # count files read
@@ -1613,10 +1658,15 @@ sub ExtractInfo($;@)
             # get file size and last modified time if this is a plain file
             my $fileSize = -s _;
             my $fileTime = -M _;
+            my $accTime = -A _;
+            my $cTime = -C _;
             my @stat = stat _;
             $self->FoundTag('FileSize', $fileSize) if defined $fileSize;
             $self->FoundTag('ResourceForkSize', $rsize) if $rsize;
             $self->FoundTag('FileModifyDate', $^T - $fileTime*(24*3600)) if defined $fileTime;
+            $self->FoundTag('FileAccessDate', $^T - $accTime*(24*3600)) if defined $accTime;
+            my $cTag = $^O eq 'MSWin32' ? 'FileCreateDate' : 'FileInodeChangeDate';
+            $self->FoundTag($cTag, $^T - $cTime*(24*3600));
             $self->FoundTag('FilePermissions', $stat[2]) if defined $stat[2];
         }
 
@@ -2003,7 +2053,7 @@ sub GetRequestedTags($)
 # Get tag value
 # Inputs: 0) ExifTool object reference
 #         1) tag key (or flattened tagInfo for getting field values, not part of public API)
-#         2) [optional] Value type: PrintConv, ValueConv, Both or Raw, the default
+#         2) [optional] Value type: PrintConv, ValueConv, Both, Raw or Rational, the default
 #            is PrintConv or ValueConv, depending on the PrintConv option setting
 #         3) raw field value (not part of public API)
 # Returns: Scalar context: tag value or undefined
@@ -2015,7 +2065,11 @@ sub GetValue($$;$)
     my (@convTypes, $tagInfo, $valueConv, $both);
 
     # figure out what conversions to do
-    $type or $type = $self->{OPTIONS}{PrintConv} ? 'PrintConv' : 'ValueConv';
+    if ($type) {
+        return $self->{RATIONAL}{$tag} if $type eq 'Rational';
+    } else {
+        $type = $self->{OPTIONS}{PrintConv} ? 'PrintConv' : 'ValueConv';
+    }
 
     # start with the raw value
     my $value = $self->{VALUE}{$tag};
@@ -2632,10 +2686,9 @@ sub GetShortcuts()
 #            or FileType value if a description is requested
 #         1) flag to return long description instead of type ('0' to return any recognized type)
 # Returns: File type (or desc) or undef if extension not supported or if
-#          description is the same as the input FileType.  In array
-#          context, may return more than one file type if the file may be
-#          different formats.  Returns list of all supported extensions if no
-#          file specified
+#          description is the same as the input FileType.  In array context,
+#          may return more than one file type if the file may be different formats.
+#          Returns list of all supported extensions if no file specified
 sub GetFileType(;$$)
 {
     local $_;
@@ -2738,6 +2791,7 @@ sub Init($)
     $self->{FILE_ORDER} = { };      # * hash of tag order in file ('*' = based on tag key)
     $self->{VALUE}      = { };      # * hash of raw tag values
     $self->{BOTH}       = { };      # * hash for Value/PrintConv values of Require'd tags
+    $self->{RATIONAL}   = { };      # * hash of original rational components
     $self->{TAG_INFO}   = { };      # * hash of tag information
     $self->{TAG_EXTRA}  = { };      # * hash of extra tag information (dynamic group names)
     $self->{PRIORITY}   = { };      # * priority of current tags
@@ -3204,14 +3258,15 @@ sub AUTOLOAD
 
 #------------------------------------------------------------------------------
 # Add warning tag
-# Inputs: 0) ExifTool object reference, 1) warning message, 2) true if minor
+# Inputs: 0) ExifTool object reference, 1) warning message
+#         2) true if minor (2 if behaviour changes when warning is ignored)
 # Returns: true if warning tag was added
 sub Warn($$;$)
 {
     my ($self, $str, $ignorable) = @_;
     if ($ignorable) {
         return 0 if $self->{OPTIONS}{IgnoreMinorErrors};
-        $str = "[minor] $str";
+        $str = $ignorable eq '2' ? "[Minor] $str" : "[minor] $str";
     }
     $self->FoundTag('Warning', $str);
     return 1;
@@ -3634,34 +3689,35 @@ sub GetDouble($$) { return DoUnpackDbl('d', @_); }
 sub Get16uRev($$) { return DoUnpackRev('S', @_); }
 
 # rationals may be a floating point number, 'inf' or 'undef'
+my ($ratNumer, $ratDenom);
 sub GetRational32s($$)
 {
     my ($dataPt, $pos) = @_;
-    my $numer = Get16s($dataPt,$pos);
-    my $denom = Get16s($dataPt, $pos + 2) or return $numer ? 'inf' : 'undef';
+    $ratNumer = Get16s($dataPt,$pos);
+    $ratDenom = Get16s($dataPt, $pos + 2) or return $ratNumer ? 'inf' : 'undef';
     # round off to a reasonable number of significant figures
-    return RoundFloat($numer / $denom, 7);
+    return RoundFloat($ratNumer / $ratDenom, 7);
 }
 sub GetRational32u($$)
 {
     my ($dataPt, $pos) = @_;
-    my $numer = Get16u($dataPt,$pos);
-    my $denom = Get16u($dataPt, $pos + 2) or return $numer ? 'inf' : 'undef';
-    return RoundFloat($numer / $denom, 7);
+    $ratNumer = Get16u($dataPt,$pos);
+    $ratDenom = Get16u($dataPt, $pos + 2) or return $ratNumer ? 'inf' : 'undef';
+    return RoundFloat($ratNumer / $ratDenom, 7);
 }
 sub GetRational64s($$)
 {
     my ($dataPt, $pos) = @_;
-    my $numer = Get32s($dataPt,$pos);
-    my $denom = Get32s($dataPt, $pos + 4) or return $numer ? 'inf' : 'undef';
-    return RoundFloat($numer / $denom, 10);
+    $ratNumer = Get32s($dataPt,$pos);
+    $ratDenom = Get32s($dataPt, $pos + 4) or return $ratNumer ? 'inf' : 'undef';
+    return RoundFloat($ratNumer / $ratDenom, 10);
 }
 sub GetRational64u($$)
 {
     my ($dataPt, $pos) = @_;
-    my $numer = Get32u($dataPt,$pos);
-    my $denom = Get32u($dataPt, $pos + 4) or return $numer ? 'inf' : 'undef';
-    return RoundFloat($numer / $denom, 10);
+    $ratNumer = Get32u($dataPt,$pos);
+    $ratDenom = Get32u($dataPt, $pos + 4) or return $ratNumer ? 'inf' : 'undef';
+    return RoundFloat($ratNumer / $ratDenom, 10);
 }
 sub GetFixed16s($$)
 {
@@ -3805,18 +3861,25 @@ my %readValueProc = (
     ifd => \&Get32u,
     ifd64 => \&Get64u,
 );
+# lookup for all rational types
+my %isRational = (
+    rational32u => 1,
+    rational32s => 1,
+    rational64u => 1,
+    rational64s => 1,
+);
 sub FormatSize($) { return $formatSize{$_[0]}; }
 
 #------------------------------------------------------------------------------
 # Read value from binary data (with current byte ordering)
 # Inputs: 0) data reference, 1) value offset, 2) format string,
 #         3) number of values (or undef to use all data)
-#         4) valid data length relative to offset
+#         4) valid data length relative to offset, 5) optional pointer to returned rational
 # Returns: converted value, or undefined if data isn't there
 #          or list of values in list context
-sub ReadValue($$$$$)
+sub ReadValue($$$$$;$)
 {
-    my ($dataPt, $offset, $format, $count, $size) = @_;
+    my ($dataPt, $offset, $format, $count, $size, $ratPt) = @_;
 
     my $len = $formatSize{$format};
     unless ($len) {
@@ -3834,17 +3897,27 @@ sub ReadValue($$$$$)
     }
     my @vals;
     my $proc = $readValueProc{$format};
-    if ($proc) {
+    if (not $proc) {
+        # handle undef/binary/string (also unsupported unicode/complex)
+        $vals[0] = substr($$dataPt, $offset, $count * $len);
+        # truncate string at null terminator if necessary
+        $vals[0] =~ s/\0.*//s if $format eq 'string';
+    } elsif ($isRational{$format} and $ratPt) {
+        # store rationals separately as string fractions
+        my @rat;
+        for (;;) {
+            push @vals, &$proc($dataPt, $offset);
+            push @rat, "$ratNumer/$ratDenom";
+            last if --$count <= 0;
+            $offset += $len;
+        }
+        $$ratPt = join(' ',@rat);
+    } else {
         for (;;) {
             push @vals, &$proc($dataPt, $offset);
             last if --$count <= 0;
             $offset += $len;
         }
-    } else {
-        # handle undef/binary/string (also unsupported unicode/complex)
-        $vals[0] = substr($$dataPt, $offset, $count * $len);
-        # truncate string at null terminator if necessary
-        $vals[0] =~ s/\0.*//s if $format eq 'string';
     }
     return @vals if wantarray;
     return join(' ', @vals) if @vals > 1;
@@ -4347,7 +4420,7 @@ sub ProcessTrailers($$)
                     $fixup = $$dirInfo{Fixup};  # save fixup
                 }
             } else {
-                $success = 0 if $self->Error("Error rewriting $dirName trailer", 1);
+                $success = 0 if $self->Error("Error rewriting $dirName trailer", 2);
                 last;
             }
         } elsif ($result < 0) {
@@ -4733,11 +4806,19 @@ sub ProcessJPEG($$)
                 $self->ProcessDirectory(\%dirInfo, $tagTablePtr);
             }
         } elsif ($marker == 0xe1) {         # APP1 (EXIF, XMP, QVCI)
-            if ($$segDataPt =~ /^Exif\0/) { # (some Kodak cameras don't put a second \0)
+            # (some Kodak cameras don't put a second "\0", and I have seen an
+            #  example where there was a second 4-byte APP1 segment header)
+            if ($$segDataPt =~ /^(.{0,4})Exif\0/is) {
                 undef $dumpType;    # (will be dumped here)
                 # this is EXIF data --
                 # get the data block (into a common variable)
                 my $hdrLen = length($exifAPP1hdr);
+                if (length $1) {
+                    $hdrLen += length $1;
+                    $self->Warn('Unknown garbage at start of EXIF segment',1);
+                } elsif ($$segDataPt !~ /^Exif\0/) {
+                    $self->Warn('Incorrect EXIF segment identifier',1);
+                }
                 my %dirInfo = (
                     Parent => $markerName,
                     DataPt => $segDataPt,
@@ -5783,7 +5864,7 @@ sub GetFileExtension($)
 {
     my $filename = shift;
     my $fileExt;
-    if ($filename and $filename =~ /.*\.(.+)$/) {
+    if ($filename and $filename =~ /.*\.([^.]+)$/) {
         $fileExt = uc($1);   # change extension to upper case
         # convert TIF extension to TIFF because we use the
         # extension for the file type tag of TIFF images
@@ -5804,7 +5885,7 @@ sub GetTagInfoList($$)
 
     if ($specialTags{$tagID}) {
         # (hopefully this won't happen)
-        warn "Tag $tagID conflicts with internal ExifTool variable\n";
+        warn "Tag $tagID conflicts with internal ExifTool variable in $$tagTablePtr{TABLE_NAME}\n";
     } elsif (ref $tagInfo eq 'HASH') {
         return ($tagInfo);
     } elsif (ref $tagInfo eq 'ARRAY') {
@@ -5950,7 +6031,7 @@ sub HandleTag($$$$;%)
     my $verbose = $self->{OPTIONS}{Verbose};
     my $tagInfo = $parms{TagInfo} || $self->GetTagInfo($tagTablePtr, $tag, \$val);
     my $dataPt = $parms{DataPt};
-    my ($subdir, $format, $count, $size, $noTagInfo);
+    my ($subdir, $format, $count, $size, $noTagInfo, $rational);
 
     if ($tagInfo) {
         $subdir = $$tagInfo{SubDirectory}
@@ -5969,7 +6050,7 @@ sub HandleTag($$$$;%)
         if ($start >= 0 and $start + $size <= $dLen) {
             $format = $$tagInfo{Format} || $$tagTablePtr{FORMAT};
             if ($format) {
-                $val = ReadValue($dataPt, $start, $format, $$tagInfo{Count}, $size);
+                $val = ReadValue($dataPt, $start, $format, $$tagInfo{Count}, $size, \$rational);
             } else {
                 $val = substr($$dataPt, $start, $size);
             }
@@ -5982,6 +6063,7 @@ sub HandleTag($$$$;%)
     if ($verbose) {
         undef $tagInfo if $noTagInfo;
         $parms{Value} = $val;
+        $parms{Value} .= " ($rational)" if defined $rational;
         $parms{Table} = $tagTablePtr;
         if ($format) {
             $count or $count = int(($parms{Size} || 0) / ($formatSize{$format} || 1));
@@ -6023,7 +6105,10 @@ sub HandleTag($$$$;%)
             # return now unless directory is writable as a block
             return undef unless $$tagInfo{Writable};
         }
-        return $self->FoundTag($tagInfo, $val);
+        my $key = $self->FoundTag($tagInfo, $val);
+        # save original components of rational numbers
+        $$self{RATIONAL}{$key} = $rational if defined $rational and defined $key;
+        return $key;
     }
     return undef;
 }
@@ -6135,9 +6220,11 @@ sub FoundTag($$$)
             $$valueHash{$nextTag} = $$valueHash{$tag};
             $self->{FILE_ORDER}{$nextTag} = $self->{FILE_ORDER}{$tag};
             my $oldInfo = $self->{TAG_INFO}{$nextTag} = $self->{TAG_INFO}{$tag};
-            if ($self->{TAG_EXTRA}{$tag}) {
-                $self->{TAG_EXTRA}{$nextTag} = $self->{TAG_EXTRA}{$tag};
-                delete $self->{TAG_EXTRA}{$tag};
+            foreach ('TAG_EXTRA','RATIONAL') {
+                if ($self->{$_}{$tag}) {
+                    $self->{$_}{$nextTag} = $self->{$_}{$tag};
+                    delete $self->{$_}{$tag};
+                }
             }
             # update tag key for list if necessary
             $self->{LIST_TAGS}{$oldInfo} = $nextTag if $self->{LIST_TAGS}{$oldInfo};
@@ -6314,6 +6401,17 @@ sub VerboseDump($$;%)
 }
 
 #------------------------------------------------------------------------------
+# Print data in hex
+# Inputs: 0) data
+# Returns: hex string
+# (this is a convenience function for use in debugging PrintConv statements)
+sub PrintHex($)
+{
+    my $val = shift;
+    return join(' ', unpack('H2' x length($val), $val));
+}
+
+#------------------------------------------------------------------------------
 # Extract binary data from file
 # 0) ExifTool object reference, 1) offset, 2) length, 3) tag name if conditional
 # Returns: binary data, or undef on error
@@ -6401,7 +6499,7 @@ sub ProcessBinaryData($$$)
     my $nextIndex = 0;
     my $varSize = 0;
     foreach $index (@tags) {
-        my ($tagInfo, $val, $saveNextIndex, $len, $mask, $wasVar);
+        my ($tagInfo, $val, $saveNextIndex, $len, $mask, $wasVar, $rational);
         if ($$tagTablePtr{$index}) {
             $tagInfo = $self->GetTagInfo($tagTablePtr, $index);
             unless ($tagInfo) {
@@ -6516,7 +6614,7 @@ sub ProcessBinaryData($$$)
         }
         # read value now if necessary
         unless (defined $val and not $$tagInfo{SubDirectory}) {
-            $val = ReadValue($dataPt, $entry+$offset, $format, $count, $more);
+            $val = ReadValue($dataPt, $entry+$offset, $format, $count, $more, \$rational);
             $mask = $$tagInfo{Mask};
             $val &= $mask if $mask;
         }
@@ -6580,7 +6678,10 @@ sub ProcessBinaryData($$$)
             $val += $base + $$self{BASE} if eval $$tagInfo{IsOffset};
         }
         $val{$index} = $val;
-        unless ($self->FoundTag($tagInfo,$val)) {
+        my $key = $self->FoundTag($tagInfo,$val);
+        if ($key) {
+            $$self{RATIONAL}{$key} = $rational if defined $rational;
+        } else {
             # don't increment nextIndex if we didn't extract a tag
             $nextIndex = $saveNextIndex if defined $saveNextIndex;
         }

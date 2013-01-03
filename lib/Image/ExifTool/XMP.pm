@@ -46,7 +46,7 @@ use Image::ExifTool qw(:Utils);
 use Image::ExifTool::Exif;
 require Exporter;
 
-$VERSION = '2.54';
+$VERSION = '2.58';
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(EscapeXML UnescapeXML);
 
@@ -76,7 +76,7 @@ my %stdXlatNS = (
     'prismusagerights' => 'pur',
 );
 
-# translate ExifTool namespaces to standard XMP namespace prefixes
+# translate ExifTool XMP family 1 group names to standard XMP namespace prefixes
 my %xmpNS = (
     # shorten ugly namespace prefixes
     'iptcCore' => 'Iptc4xmpCore',
@@ -87,8 +87,8 @@ my %xmpNS = (
     # 'pur' => 'prismusagerights',
 );
 
-# Lookup to translate our namespace prefixes into URI's.  This list need
-# not be complete, but it must contain an entry for each namespace prefix
+# Lookup to translate standard XMP namespace prefixes into URI's.  This list
+# need not be complete, but it must contain an entry for each namespace prefix
 # (NAMESPACE) for writable tags in the XMP tables or in structures
 %nsURI = (
     aux       => 'http://ns.adobe.com/exif/1.0/aux/',
@@ -147,6 +147,7 @@ my %xmpNS = (
     digiKam   => 'http://www.digikam.org/ns/1.0/',
     swf       => 'http://ns.adobe.com/swf/1.0',
     cell      => 'http://developer.sonyericsson.com/cell/1.0/',
+    aas       => 'http://ns.apple.com/adjustment-settings/1.0/',
    'mwg-rs'   => 'http://www.metadataworkinggroup.com/schemas/regions/',
    'mwg-kw'   => 'http://www.metadataworkinggroup.com/schemas/keywords/',
    'mwg-coll' => 'http://www.metadataworkinggroup.com/schemas/collections/',
@@ -154,6 +155,8 @@ my %xmpNS = (
     extensis  => 'http://ns.extensis.com/extensis/1.0/',
     ics       => 'http://ns.idimager.com/ics/1.0/',
     fpv       => 'http://ns.fastpictureviewer.com/fpv/1.0/',
+   'apple-fi' => 'http://ns.apple.com/faceinfo/1.0/',
+    GPano     => 'http://ns.google.com/photos/1.0/panorama/',
 );
 
 # build reverse namespace lookup
@@ -399,6 +402,16 @@ my %sCorrection = (
     LocalBrightness  => { Writable => 'real' },
     LocalToningHue   => { Writable => 'real' },
     LocalToningSaturation => { Writable => 'real' },
+    LocalExposure2012     => { Writable => 'real' },
+    LocalContrast2012     => { Writable => 'real' },
+    LocalHighlights2012   => { Writable => 'real' },
+    LocalShadows2012      => { Writable => 'real' },
+    LocalClarity2012      => { Writable => 'real' },
+    LocalLuminanceNoise   => { Writable => 'real' },
+    LocalMoire       => { Writable => 'real' },
+    LocalDefringe    => { Writable => 'real' },
+    LocalTemperature => { Writable => 'real' },
+    LocalTint        => { Writable => 'real' },
     CorrectionMasks  => { Struct => \%sCorrectionMask, List => 'Seq' },
 );
 
@@ -579,6 +592,10 @@ my %sLocationDetails = (
         Name => 'cell',
         SubDirectory => { TagTable => 'Image::ExifTool::XMP::cell' },
     },
+    aas => {
+        Name => 'aas',
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::aas' },
+    },
    'mwg-rs' => {
         Name => 'mwg-rs',
         SubDirectory => { TagTable => 'Image::ExifTool::XMP::mwg_rs' },
@@ -602,6 +619,14 @@ my %sLocationDetails = (
     fpv => {
         Name => 'fpv',
         SubDirectory => { TagTable => 'Image::ExifTool::XMP::fpv' },
+    },
+   'apple-fi' => {
+        Name => 'apple-fi',
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::apple_fi' },
+    },
+    GPano => {
+        Name => 'GPano',
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::GPano' },
     },
 );
 
@@ -1164,6 +1189,46 @@ my %sPantryItem = (
         Name => 'GradientBasedCorrSaturation',
         Flat => 1, List => 0,
     },
+    GradientBasedCorrectionsLocalExposure2012 => {
+        Name => 'GradientBasedCorrExposure2012',
+        Flat => 1, List => 0,
+    },
+    GradientBasedCorrectionsLocalContrast2012 => {
+        Name => 'GradientBasedCorrContrast2012',
+        Flat => 1, List => 0,
+    },
+    GradientBasedCorrectionsLocalHighlights2012 => {
+        Name => 'GradientBasedCorrHighlights2012',
+        Flat => 1, List => 0,
+    },
+    GradientBasedCorrectionsLocalShadows2012 => {
+        Name => 'GradientBasedCorrShadows2012',
+        Flat => 1, List => 0,
+    },
+    GradientBasedCorrectionsLocalClarity2012 => {
+        Name => 'GradientBasedCorrClarity2012',
+        Flat => 1, List => 0,
+    },
+    GradientBasedCorrectionsLocalLuminanceNoise => {
+        Name => 'GradientBasedCorrLuminanceNoise',
+        Flat => 1, List => 0,
+    },
+    GradientBasedCorrectionsLocalMoire => {
+        Name => 'GradientBasedCorrMoire',
+        Flat => 1, List => 0,
+    },
+    GradientBasedCorrectionsLocalDefringe => {
+        Name => 'GradientBasedCorrDefringe',
+        Flat => 1, List => 0,
+    },
+    GradientBasedCorrectionsLocalTemperature => {
+        Name => 'GradientBasedCorrTemperature',
+        Flat => 1, List => 0,
+    },
+    GradientBasedCorrectionsLocalTint => {
+        Name => 'GradientBasedCorrTint',
+        Flat => 1, List => 0,
+    },
     GradientBasedCorrectionsCorrectionMasks => {
         Name => 'GradientBasedCorrMasks',
         Flat => 1
@@ -1253,6 +1318,46 @@ my %sPantryItem = (
         Name => 'PaintCorrectionSaturation',
         Flat => 1, List => 0,
     },
+    PaintBasedCorrectionsLocalExposure2012 => {
+        Name => 'PaintCorrectionExposure2012',
+        Flat => 1, List => 0,
+    },
+    PaintBasedCorrectionsLocalContrast2012 => {
+        Name => 'PaintCorrectionContrast2012',
+        Flat => 1, List => 0,
+    },
+    PaintBasedCorrectionsLocalHighlights2012 => {
+        Name => 'PaintCorrectionHighlights2012',
+        Flat => 1, List => 0,
+    },
+    PaintBasedCorrectionsLocalShadows2012 => {
+        Name => 'PaintCorrectionShadows2012',
+        Flat => 1, List => 0,
+    },
+    PaintBasedCorrectionsLocalLuminanceNoise => {
+        Name => 'PaintCorrectionLuminanceNoise',
+        Flat => 1, List => 0,
+    },
+    PaintBasedCorrectionsLocalMoire => {
+        Name => 'PaintCorrectionMoire',
+        Flat => 1, List => 0,
+    },
+    PaintBasedCorrectionsLocalDefringe => {
+        Name => 'PaintCorrectionDefringe',
+        Flat => 1, List => 0,
+    },
+    PaintBasedCorrectionsLocalTemperature => {
+        Name => 'PaintCorrectionTemperature',
+        Flat => 1, List => 0,
+    },
+    PaintBasedCorrectionsLocalTint => {
+        Name => 'PaintCorrectionTint',
+        Flat => 1, List => 0,
+    },
+    PaintBasedCorrectionsLocalClarity2012 => {
+        Name => 'PaintCorrectionClarity2012',
+        Flat => 1, List => 0,
+    },
     PaintBasedCorrectionsCorrectionMasks => {
         Name => 'PaintBasedCorrectionMasks',
         Flat => 1,
@@ -1337,6 +1442,12 @@ my %sPantryItem = (
     ToneCurvePV2012Red                   => { List => 'Seq' },
     ToneCurvePV2012Green                 => { List => 'Seq' },
     ToneCurvePV2012Blue                  => { List => 'Seq' },
+    DefringePurpleAmount                 => { Writable => 'integer' },
+    DefringePurpleHueLo                  => { Writable => 'integer' },
+    DefringePurpleHueHi                  => { Writable => 'integer' },
+    DefringeGreenAmount                  => { Writable => 'integer' },
+    DefringeGreenHueLo                   => { Writable => 'integer' },
+    DefringeGreenHueHi                   => { Writable => 'integer' },
 );
 
 # Tiff namespace properties (tiff)
@@ -2703,7 +2814,7 @@ sub FoundXMP($$$$;$)
 {
     local $_;
     my ($exifTool, $tagTablePtr, $props, $val, $attrs) = @_;
-    my ($lang, @structProps, $rawVal);
+    my ($lang, @structProps, $rawVal, $rational);
     my ($tag, $ns) = GetXMPTagID($props, $exifTool->{OPTIONS}{Struct} ? \@structProps : undef);
     return 0 unless $tag;   # ignore things that aren't valid tags
 
@@ -2907,14 +3018,18 @@ NoLoop:
     my $new = $$tagInfo{WasAdded} && $$exifTool{OPTIONS}{XMPAutoConv};
     if ($fmt or $new) {
         $rawVal = $val; # save raw value for verbose output
-        unless (($new or $fmt eq 'rational') and ConvertRational($val)) {
+        if (($new or $fmt eq 'rational') and ConvertRational($val)) {
+            $rational = $rawVal;
+        } else {
             $val = ConvertXMPDate($val, $new) if $new or $fmt eq 'date';
         }
         # protect against large binary data in unknown tags
         $$tagInfo{Binary} = 1 if $new and length($val) > 65536;
     }
     # store the value for this tag
-    my $key = $exifTool->FoundTag($tagInfo, $val);
+    my $key = $exifTool->FoundTag($tagInfo, $val) or return 0;
+    # save original components of rational numbers (used when copying)
+    $$exifTool{RATIONAL}{$key} = $rational if defined $rational;
     # save structure/list information if necessary
     if (@structProps and (@structProps > 1 or defined $structProps[0][1])) {
         $exifTool->{TAG_EXTRA}{$key}{Struct} = \@structProps;
@@ -3214,7 +3329,7 @@ sub ParseXMPElement($$$;$$$$)
                     } elsif ($lastProp eq 'rdf:type' and $wasEmpty) {
                         # do not extract empty structure types (for now)
                     } elsif ($lastProp =~ /^et:(desc|prt|val)$/ and ($count or $1 eq 'desc')) {
-                        # ignore et:desc, and et:val if preceeded by et:prt
+                        # ignore et:desc, and et:val if preceded by et:prt
                         --$count;
                     } else {
                         &$foundProc($exifTool, $tagTablePtr, $propListPt, $val, \%attrs);
@@ -3353,12 +3468,12 @@ sub ProcessXMP($$;$)
             }
             if ($buff =~ /^\0\0/) {
                 $fmt = 'N';     # UTF-32 MM with or without BOM
-            } elsif ($buff =~ /^..\0\0/) {
+            } elsif ($buff =~ /^..\0\0/s) {
                 $fmt = 'V';     # UTF-32 II with or without BOM
             } elsif (not $fmt) {
                 if ($buff =~ /^\0/) {
                     $fmt = 'n'; # UTF-16 MM without BOM
-                } elsif ($buff =~ /^.\0/) {
+                } elsif ($buff =~ /^.\0/s) {
                     $fmt = 'v'; # UTF-16 II without BOM
                 }
             }
@@ -3470,7 +3585,7 @@ sub ProcessXMP($$;$)
         $begin = join "\0", split //, $begin;
         # must reset pos because it was killed by previous unsuccessful //g match
         pos($$dataPt) = $dirStart;
-        if ($$dataPt =~ /\G(\0)?\Q$begin\E\0./g) {
+        if ($$dataPt =~ /\G(\0)?\Q$begin\E\0./sg) {
             # validate byte ordering by checking for U+FEFF character
             if ($1) {
                 # should be big-endian since we had a leading \0
@@ -3482,7 +3597,7 @@ sub ProcessXMP($$;$)
             # check for UTF-32 encoding (with three \0's between characters)
             $begin =~ s/\0/\0\0\0/g;
             pos($$dataPt) = $dirStart;
-            if ($$dataPt !~ /\G(\0\0\0)?\Q$begin\E\0\0\0./g) {
+            if ($$dataPt !~ /\G(\0\0\0)?\Q$begin\E\0\0\0./sg) {
                 $fmt = 0;   # set format to zero as indication we didn't find encoded XMP
             } elsif ($1) {
                 # should be big-endian
@@ -3580,7 +3695,7 @@ information.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
