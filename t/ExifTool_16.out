@@ -175,4 +175,6 @@ FileName : Canon.jpg
 FilePermissions : rw-r--r--
 FileSize : 2.6 kB
 ---- System:Time ----
-FileModifyDate : 2007:05:01 07:34:38-04:00
+FileAccessDate : 2012:11:20 07:49:39-05:00
+FileInodeChangeDate : 2012:11:17 09:18:25-05:00
+FileModifyDate : 2006:10:03 15:10:31-04:00

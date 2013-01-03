@@ -16,11 +16,13 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.33';
+$VERSION = '1.36';
 
 sub ProcessID3v2($$$);
 sub ProcessPrivate($$$);
+sub ProcessSynText($$$);
 sub ConvertID3v1Text($$);
+sub ConvertTimeStamp($);
 
 # audio formats that we process after an ID3v2 header (in order)
 my @audioFormats = qw(APE MPC FLAC OGG MP3);
@@ -379,8 +381,8 @@ my %genre = (
     'PIC-3' => { Name => 'PictureDescription', Groups => { 2 => 'Image' } },
   # POP => 'Popularimeter',
     SLT => {
-        Name => 'SynchronizedLyricText',
-        Binary => 1,
+        Name => 'SynLyrics',
+        SubDirectory => { TagTable => 'Image::ExifTool::ID3::SynLyrics' },
     },
     TAL => 'Album',
     TBP => 'BeatsPerMinute',
@@ -479,8 +481,8 @@ my %id3v2_common = (
   # RBUF => 'RecommendedBufferSize',
   # RVRB => 'Reverb',
     SYLT => {
-        Name => 'SynchronizedLyricText',
-        Binary => 1,
+        Name => 'SynLyrics',
+        SubDirectory => { TagTable => 'Image::ExifTool::ID3::SynLyrics' },
     },
   # SYTC => 'SynchronizedTempoCodes',
     TALB => 'Album',
@@ -586,11 +588,48 @@ my %id3v2_common = (
     PCST => { Name => 'Podcast', Binary => 1, Unknown => 1 },
 );
 
+# Synchronized lyrics/text
+%Image::ExifTool::ID3::SynLyrics = (
+    GROUPS => { 1 => 'ID3', 2 => 'Audio' },
+    VARS => { NO_ID => 1 },
+    PROCESS_PROC => \&ProcessSynText,
+    NOTES => 'The following tags are extracted from synchronized lyrics/text frames.',
+    desc => { Name => 'SynchronizedLyricsDescription' },
+    type => {
+        Name => 'SynchronizedLyricsType',
+        PrintConv => {
+            0 => 'Other',
+            1 => 'Lyrics',
+            2 => 'Text Transcription',
+            3 => 'Movement/part Name',
+            4 => 'Events',
+            5 => 'Chord',
+            6 => 'Trivia/"pop-up" Information',
+            7 => 'Web Page URL',
+            8 => 'Image URL',
+        },
+    },
+    text => {
+        Name => 'SynchronizedLyricsText',
+        List => 1,
+        Notes => q{
+            each list item has a leading time stamp in square brackets.  Time stamps may
+            be in seconds with format [MM:SS.ss], or MPEG frames with format [FFFF],
+            depending on how this information was stored
+        },
+        PrintConv => \&ConvertTimeStamp,
+    },
+);
+
 # ID3 PRIV tags (ref PH)
 %Image::ExifTool::ID3::Private = (
     PROCESS_PROC => \&Image::ExifTool::ID3::ProcessPrivate,
     GROUPS => { 1 => 'ID3', 2 => 'Audio' },
-    NOTES => 'ID3 private (PRIV) tags.',
+    VARS => { NO_ID => 1 },
+    NOTES => q{
+        ID3 private (PRIV) tags.  ExifTool will decode any private tags found, even
+        if they do not appear in this table.
+    },
     XMP => {
         SubDirectory => {
             DirName => 'XMP',
@@ -603,6 +642,62 @@ my %id3v2_common = (
     AverageLevel => {
         ValueConv => 'length($val)==4 ? unpack("V",$val) : \$val',
     },
+    # Windows Media attributes ("/" in tag ID is converted to "_" by ProcessPrivate)
+    WM_WMContentID => {
+        Name => 'WM_ContentID',
+        ValueConv => 'require Image::ExifTool::ASF; Image::ExifTool::ASF::GetGUID($val)',
+    },
+    WM_WMCollectionID => {
+        Name => 'WM_CollectionID',
+        ValueConv => 'require Image::ExifTool::ASF; Image::ExifTool::ASF::GetGUID($val)',
+    },
+    WM_WMCollectionGroupID => {
+        Name => 'WM_CollectionGroupID',
+        ValueConv => 'require Image::ExifTool::ASF; Image::ExifTool::ASF::GetGUID($val)',
+    },
+    WM_MediaClassPrimaryID => {
+        ValueConv => 'require Image::ExifTool::ASF; Image::ExifTool::ASF::GetGUID($val)',
+    },
+    WM_MediaClassSecondaryID => {
+        ValueConv => 'require Image::ExifTool::ASF; Image::ExifTool::ASF::GetGUID($val)',
+    },
+    WM_Provider => {
+        ValueConv => '$self->Decode($val,"UCS2","II")', #PH (NC)
+    },
+    # there are lots more WM tags that could be decoded if I had samples or documentation - PH
+    # WM/AlbumArtist
+    # WM/AlbumTitle
+    # WM/Category
+    # WM/Composer
+    # WM/Conductor
+    # WM/ContentDistributor
+    # WM/ContentGroupDescription
+    # WM/EncodingTime
+    # WM/Genre
+    # WM/GenreID
+    # WM/InitialKey
+    # WM/Language
+    # WM/Lyrics
+    # WM/MCDI
+    # WM/MediaClassPrimaryID
+    # WM/MediaClassSecondaryID
+    # WM/Mood
+    # WM/ParentalRating
+    # WM/Period
+    # WM/ProtectionType
+    # WM/Provider
+    # WM/ProviderRating
+    # WM/ProviderStyle
+    # WM/Publisher
+    # WM/SubscriptionContentID
+    # WM/SubTitle
+    # WM/TrackNumber
+    # WM/UniqueFileIdentifier
+    # WM/WMCollectionGroupID
+    # WM/WMCollectionID
+    # WM/WMContentID
+    # WM/Writer
+    # WM/Year
 );
 
 # ID3 Composite tags
@@ -658,6 +753,81 @@ sub ConvertID3v1Text($$)
 }
 
 #------------------------------------------------------------------------------
+# Re-format time stamp in synchronized lyrics
+# Inputs: 0) synchronized lyrics entry (ie. "[84.030]Da do do do")
+# Returns: entry with formatted timestamp (ie. "[01:24.03]Da do do do")
+sub ConvertTimeStamp($)
+{
+    my $val = shift;
+    # do nothing if this isn't a time stamp (frame count doesn't contain a decimal)
+    return $val unless $val =~ /^\[(\d+\.\d+)\]/g;
+    my $time = $1;
+    # print hours only if more than 60 minutes
+    my $h = int($time / 3600);
+    if ($h) {
+        $time -= $h * 3600;
+        $h = "$h:";
+    } else {
+        $h = '';
+    }
+    my $m = int($time / 60);
+    my $s = $time - $m * 60;
+    return sprintf('[%s%.2d:%05.2f]', $h, $m, $s) . substr($val, pos($val));
+}
+
+#------------------------------------------------------------------------------
+# Process ID3 synchronized lyrics/text
+# Inputs: 0) ExifTool object ref, 1) dirInfo ref, 2) tag table ref
+sub ProcessSynText($$$)
+{
+    my ($exifTool, $dirInfo, $tagTablePtr) = @_;
+    my $dataPt = $$dirInfo{DataPt};
+
+    $exifTool->VerboseDir('SynLyrics', 0, length $$dataPt);
+    return unless length $$dataPt > 6;
+
+    my ($enc,$lang,$timeCode,$type) = unpack('Ca3CC', $$dataPt);
+    $lang = lc $lang;
+    undef $lang if $lang !~ /^[a-z]{3}$/ or $lang eq 'eng';
+    pos($$dataPt) = 6;
+    my ($termLen, $pat);
+    if ($enc == 1 or $enc == 2) {
+        $$dataPt =~ /\G(..)*?\0\0/sg or return;
+        $termLen = 2;
+        $pat = '\G(?:..)*?\0\0(....)';
+    } else {
+        $$dataPt =~ /\0/g or return;
+        $termLen = 1;
+        $pat = '\0(....)';
+    }
+    my $desc = substr($$dataPt, 6, pos($$dataPt) - 6 - $termLen);
+    $desc = DecodeString($exifTool, $desc, $enc);
+
+    my $tagInfo = $exifTool->GetTagInfo($tagTablePtr, 'desc');
+    $tagInfo = Image::ExifTool::GetLangInfo($tagInfo, $lang) if $lang;
+    $exifTool->HandleTag($tagTablePtr, 'type', $type);
+    $exifTool->HandleTag($tagTablePtr, 'desc', $desc, TagInfo => $tagInfo);
+    $tagInfo = $exifTool->GetTagInfo($tagTablePtr, 'text');
+    $tagInfo = Image::ExifTool::GetLangInfo($tagInfo, $lang) if $lang;
+
+    for (;;) {
+        my $pos = pos $$dataPt;
+        last unless $$dataPt =~ /$pat/sg;
+        my $time = unpack('N', $1);
+        my $text = substr($$dataPt, $pos, pos($$dataPt) - $pos - 4 - $termLen);
+        $text = DecodeString($exifTool, $text, $enc);
+        my $timeStr;
+        if ($timeCode == 2) { # time in ms
+            $timeStr = sprintf('%.3f', $time / 1000);
+        } else {              # time in MPEG frames
+            $timeStr = sprintf('%.4d', $time);
+            $timeStr .= '?' if $timeCode != 1;
+        }
+        $exifTool->HandleTag($tagTablePtr, 'text', "[$timeStr]$text", TagInfo => $tagInfo);
+    }
+}
+
+#------------------------------------------------------------------------------
 # Process ID3 PRIV data
 # Inputs: 0) ExifTool object ref, 1) dirInfo ref, 2) tag table ref
 sub ProcessPrivate($$$)
@@ -665,7 +835,8 @@ sub ProcessPrivate($$$)
     my ($exifTool, $dirInfo, $tagTablePtr) = @_;
     my $dataPt = $$dirInfo{DataPt};
     my ($tag, $start);
-    if ($$dataPt =~ /^(.*?)\0/) {
+    $exifTool->VerboseDir('PRIV', 0, length $$dataPt);
+    if ($$dataPt =~ /^(.*?)\0/s) {
         $tag = $1;
         $start = length($tag) + 1;
     } else {
@@ -740,7 +911,7 @@ sub DecodeString($$;$)
         for (;;) {
             my $v;
             # split string at null terminators on word boundaries
-            if ($val =~ s/((..)*?)\0\0//) {
+            if ($val =~ s/((..)*?)\0\0//s) {
                 $v = $1;
             } else {
                 last unless length $val > 1;
@@ -895,15 +1066,17 @@ sub ProcessID3v2($$$)
             defined $dataLen or $exifTool->Warn("Invalid length for $id frame"), next;
             $dataLen == length($val) or $exifTool->Warn("Wrong length for $id frame"), next;
         }
-        $verbose and $exifTool->VerboseInfo($id, $tagInfo,
-            Table   => $tagTablePtr,
-            Value   => $val,
-            DataPt  => $dataPt,
-            DataPos => $$dirInfo{DataPos},
-            Size    => $len,
-            Start   => $offset,
-        );
-        next unless $tagInfo;
+        unless ($tagInfo) {
+            $verbose and $exifTool->VerboseInfo($id, $tagInfo,
+                Table   => $tagTablePtr,
+                Value   => $val,
+                DataPt  => $dataPt,
+                DataPos => $$dirInfo{DataPos},
+                Size    => $len,
+                Start   => $offset,
+            );
+            next;
+        }
 #
 # decode data in this frame
 #
@@ -921,19 +1094,19 @@ sub ProcessID3v2($$$)
             my $enc = unpack('C', $val);
             my $url;
             if ($enc == 1 or $enc == 2) {
-                ($val, $url) = ($val =~ /^(.(?:..)*?)\0\0(.*)/);
+                ($val, $url) = ($val =~ /^(.(?:..)*?)\0\0(.*)/s);
             } else {
-                ($val, $url) = ($val =~ /^(..*?)\0(.*)/);
+                ($val, $url) = ($val =~ /^(..*?)\0(.*)/s);
             }
             unless (defined $val and defined $url) {
                 $exifTool->Warn("Invalid $id frame value");
                 next;
             }
             $val = DecodeString($exifTool, $val);
-            $url =~ s/\0.*//;
+            $url =~ s/\0.*//s;
             $val = length($val) ? "($val) $url" : $url;
         } elsif ($id =~ /^W/) {
-            $val =~ s/\0.*//;   # truncate at null
+            $val =~ s/\0.*//s;  # truncate at null
         } elsif ($id =~ /^(COM|COMM|ULT|USLT)$/) {
             $valLen > 4 or $exifTool->Warn("Short $id frame"), next;
             $lang = substr($val,1,3);
@@ -994,7 +1167,7 @@ sub ProcessID3v2($$$)
                 $val .= sprintf("%+.1f%% %s", 100 * $rel / ((1<<$bits)-1), $$elem[0]);
             }
         } elsif ($id eq 'RVA2') {
-            my ($pos, $id) = $val=~/^([^\0]*)\0/ ? (length($1)+1, $1) : (1, '');
+            my ($pos, $id) = $val=~/^([^\0]*)\0/s ? (length($1)+1, $1) : (1, '');
             my @vals;
             while ($pos + 4 <= $valLen) {
                 my $type = Get8u(\$val, $pos);
@@ -1023,7 +1196,7 @@ sub ProcessID3v2($$$)
             $exifTool->{ID3_Ver} = $tagTablePtr->{GROUPS}->{1};
             $exifTool->HandleTag($tagTablePtr, $id, $val);
             next;
-        } elsif ($$tagInfo{Format}) {
+        } elsif ($$tagInfo{Format} or $$tagInfo{SubDirectory}) {
             $exifTool->HandleTag($tagTablePtr, $id, undef, DataPt => \$val);
             next;
         } elsif (not $$tagInfo{Binary}) {
@@ -1033,7 +1206,13 @@ sub ProcessID3v2($$$)
         if ($lang and $lang =~ /^[a-z]{3}$/i and $lang ne 'eng') {
             $tagInfo = Image::ExifTool::GetLangInfo($tagInfo, lc $lang);
         }
-        $exifTool->FoundTag($tagInfo, $val);
+        $exifTool->HandleTag($tagTablePtr, $id, $val,
+            TagInfo => $tagInfo,
+            DataPt  => $dataPt,
+            DataPos => $$dirInfo{DataPos},
+            Size    => $len,
+            Start   => $offset,
+        );
     }
 }
 
@@ -1164,7 +1343,7 @@ sub ProcessID3($$)
         }
         # set file type to MP3 if we didn't find audio data
         $exifTool->SetFileType('MP3');
-        # record the size if the ID3 metadata
+        # record the size of the ID3 metadata
         $exifTool->FoundTag('ID3Size', $id3Len);
         # process ID3v2 header if it exists
         if (%id3Header) {
@@ -1200,32 +1379,43 @@ sub ProcessID3($$)
 sub ProcessMP3($$)
 {
     my ($exifTool, $dirInfo) = @_;
+    my $rtnVal = 0;
 
     # must first check for leading/trailing ID3 information
+    # (and process the rest of the file if found)
     unless ($exifTool->{DoneID3}) {
-        ProcessID3($exifTool, $dirInfo) and return 1;
+        $rtnVal = ProcessID3($exifTool, $dirInfo);
     }
-    my $raf = $$dirInfo{RAF};
-    my $rtnVal = 0;
-    my $buff;
+
+    # check for MPEG A/V data if not already processed above
+    unless ($rtnVal) {
+        my $raf = $$dirInfo{RAF};
+        my $buff;
 #
 # extract information from first audio/video frame headers
 # (if found in the first $scanLen bytes)
 #
-    # scan further into a file that should be an MP3
-    my $scanLen = ($$exifTool{FILE_EXT} and $$exifTool{FILE_EXT} eq 'MP3') ? 8192 : 256;
-    if ($raf->Read($buff, $scanLen)) {
-        require Image::ExifTool::MPEG;
-        if ($buff =~ /\0\0\x01(\xb3|\xc0)/) {
-            # look for A/V headers in first 64kB
-            my $buf2;
-            $raf->Read($buf2, 0x10000 - $scanLen) and $buff .= $buf2;
-            $rtnVal = 1 if Image::ExifTool::MPEG::ParseMPEGAudioVideo($exifTool, \$buff);
-        } else {
-            # look for audio frame sync in first $scanLen bytes
-            # (set MP3 flag to 1 so this will fail unless layer 3 audio)
-            $rtnVal = 1 if Image::ExifTool::MPEG::ParseMPEGAudio($exifTool, \$buff, 1);
+        # scan further into a file that should be an MP3
+        my $scanLen = ($$exifTool{FILE_EXT} and $$exifTool{FILE_EXT} eq 'MP3') ? 8192 : 256;
+        if ($raf->Read($buff, $scanLen)) {
+            require Image::ExifTool::MPEG;
+            if ($buff =~ /\0\0\x01(\xb3|\xc0)/) {
+                # look for A/V headers in first 64kB
+                my $buf2;
+                $raf->Read($buf2, 0x10000 - $scanLen) and $buff .= $buf2;
+                $rtnVal = 1 if Image::ExifTool::MPEG::ParseMPEGAudioVideo($exifTool, \$buff);
+            } else {
+                # look for audio frame sync in first $scanLen bytes
+                # (set MP3 flag to 1 so this will fail unless layer 3 audio)
+                $rtnVal = 1 if Image::ExifTool::MPEG::ParseMPEGAudio($exifTool, \$buff, 1);
+            }
         }
+    }
+
+    # check for an APE trailer if this was a valid A/V file and we haven't already done it
+    if ($rtnVal and not $exifTool->{DoneAPE}) {
+        require Image::ExifTool::APE;
+        Image::ExifTool::APE::ProcessAPE($exifTool, $dirInfo);
     }
     return $rtnVal;
 }
@@ -1250,7 +1440,7 @@ other types of audio files.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

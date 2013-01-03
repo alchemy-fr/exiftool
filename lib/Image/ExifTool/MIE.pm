@@ -14,7 +14,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::GPS;
 
-$VERSION = '1.37';
+$VERSION = '1.38';
 
 sub ProcessMIE($$);
 sub ProcessMIEGroup($$$);
@@ -829,13 +829,13 @@ sub MIEGroupFormat(;$)
 # ReadValue() with added support for UTF formats (utf8, utf16 and utf32)
 # Inputs: 0) data reference, 1) value offset, 2) format string,
 #         3) number of values (or undef to use all data)
-#         4) valid data length relative to offset
+#         4) valid data length relative to offset, 5) returned rational ref
 # Returns: converted value, or undefined if data isn't there
 #          or list of values in list context
 # Notes: all string formats are converted to UTF8
-sub ReadMIEValue($$$$$)
+sub ReadMIEValue($$$$$;$)
 {
-    my ($dataPt, $offset, $format, $count, $size) = @_;
+    my ($dataPt, $offset, $format, $count, $size, $ratPt) = @_;
     my $val;
     if ($format =~ /^(utf(8|16|32)|string)/) {
         if ($1 eq 'utf8' or $1 eq 'string') {
@@ -862,7 +862,7 @@ sub ReadMIEValue($$$$$)
         $val =~ s/\0.*//s unless $format =~ /_list$/;
     } else {
         $format = 'undef' if $format eq 'free'; # read 'free' as 'undef'
-        return ReadValue($dataPt, $offset, $format, $count, $size);
+        return ReadValue($dataPt, $offset, $format, $count, $size, $ratPt);
     }
     return $val;
 }
@@ -1580,8 +1580,9 @@ sub ProcessMIEGroup($$$)
         } else {
             # process MIE data format types
             if ($tagInfo) {
+                my $rational;
                 # extract tag value
-                my $val = ReadMIEValue(\$value, 0, $formatStr, undef, $valLen);
+                my $val = ReadMIEValue(\$value, 0, $formatStr, undef, $valLen, \$rational);
                 unless (defined $val) {
                     $exifTool->Warn("Error reading $tag value");
                     $val = '<err>';
@@ -1643,7 +1644,8 @@ sub ProcessMIEGroup($$$)
                         # add units to value if specified
                         $val .= "($units)" if defined $units;
                     }
-                    $exifTool->FoundTag($tagInfo, $val);
+                    my $key = $exifTool->FoundTag($tagInfo, $val);
+                    $$exifTool{RATIONAL}{$key} = $rational if defined $rational and defined $key;
                 }
             } else {
                 # skip over unknown information or free bytes
@@ -1722,7 +1724,7 @@ sub ProcessMIE($$)
         my $num = $raf->Read($buff, 8);
         if ($num == 8) {
             # verify file identifier
-            if ($buff =~ /^~(\x10|\x18)\x04(.)0MIE/) {
+            if ($buff =~ /^~(\x10|\x18)\x04(.)0MIE/s) {
                 SetByteOrder($1 eq "\x10" ? 'MM' : 'II');
                 my $len = ord($2);
                 # skip extended DataLength if it exists
@@ -1858,7 +1860,7 @@ following features are rated for each format with a score of 0 to 10:
  11) Compressed meta information supported.
  12) Relocatable data elements (ie. no fixed offsets).
  13) Binary meta information (+7) with variable byte order (+3).
- 14) Mandatory tags not required (an unecessary complication).
+ 14) Mandatory tags not required (an unnecessary complication).
  15) Append information to end of file without editing.
 
                           Feature number                   Total
@@ -2533,7 +2535,7 @@ tag name.  For example:
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.  The MIE format itself is also

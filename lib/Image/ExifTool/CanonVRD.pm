@@ -20,7 +20,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.17';
+$VERSION = '1.18';
 
 sub ProcessCanonVRD($$;$);
 sub WriteCanonVRD($$;$);
@@ -129,7 +129,7 @@ my %noYes = ( 0 => 'No', 1 => 'Yes' );
     },
     5 => {
         Name => 'RawCodecVersion',
-        ValueConv => '$val =~ s/\0.*//; $val',  # truncate string at null
+        ValueConv => '$val =~ s/\0.*//s; $val',  # truncate string at null
     },
     6 => {
         Name => 'CRCDevelParams',
@@ -1463,7 +1463,7 @@ trailer in JPEG, CRW, CR2 and TIFF images.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

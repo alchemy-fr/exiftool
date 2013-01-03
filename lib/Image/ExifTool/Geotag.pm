@@ -22,7 +22,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:Public);
 
-$VERSION = '1.33';
+$VERSION = '1.35';
 
 sub JITTER() { return 2 }       # maximum time jitter
 
@@ -677,6 +677,7 @@ sub SetGeoValues($$;$)
     # maximum time (sec) from nearest GPS fix when position is still considered valid
     my $geoMaxIntSecs = $exifTool->Options('GeoMaxIntSecs');
     my $geoMaxExtSecs = $exifTool->Options('GeoMaxExtSecs');
+
     # use 30 minutes for a default
     defined $geoMaxIntSecs or $geoMaxIntSecs = 1800;
     defined $geoMaxExtSecs or $geoMaxExtSecs = 1800;
@@ -787,7 +788,7 @@ sub SetGeoValues($$;$)
             my $t1 = $$times[$i1];
             my $p1 = $$points{$t1};
             # check to see if we are extrapolating before the first entry in a track
-            my $maxSecs = $$p1{first} ? $geoMaxExtSecs : $geoMaxIntSecs;
+            my $maxSecs = ($$p1{first} and $geoMaxIntSecs) ? $geoMaxExtSecs : $geoMaxIntSecs;
             # don't interpolate if fixes are too far apart
             if ($t1 - $t0 > $maxSecs) {
                 # treat as an extrapolation -- use nearest fix if close enough
@@ -1139,7 +1140,7 @@ user-defined tags, GPSPitch and GPSRoll, must be active.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

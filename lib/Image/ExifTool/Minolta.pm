@@ -40,6 +40,7 @@
 #              26) http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3521.0.html
 #              27) http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3833.0.html
 #              28) Michael Reitinger private communication (RX100)
+#              29) http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4086.0.html
 #              JD) Jens Duttke private communication
 #------------------------------------------------------------------------------
 
@@ -173,6 +174,7 @@ $VERSION = '1.96';
     1 => 'Minolta AF 80-200mm F2.8 HS-APO G',
     2 => 'Minolta AF 28-70mm F2.8 G',
     3 => 'Minolta AF 28-80mm F4-5.6',
+    4 => 'Minolta AF 85mm F1.4G', #exiv2 0.23
     5 => 'Minolta AF 35-70mm F3.5-4.5 [II]', # (original and II, ref 13)
     6 => 'Minolta AF 24-85mm F3.5-4.5 [New]', # (original and New, ref 13)
   # 7 => 'AF 100-400mm F4.5-6.7 (D)', ??
@@ -201,7 +203,8 @@ $VERSION = '1.96';
     24.2 => 'Sigma 17-70mm F2.8-4.5 (D)',
     24.3 => 'Sigma 20-40mm F2.8 EX DG Aspherical IF', #JD/22
     24.4 => 'Sigma 18-200mm F3.5-6.3 DC', #22
-    24.5 => 'Tamron SP AF 28-75mm F2.8 XR Di (IF) Macro', #JD
+    24.5 => 'Sigma DC 18-125mm F4-5,6 D', #exiv2 0.23
+    24.6 => 'Tamron SP AF 28-75mm F2.8 XR Di (IF) Macro', #JD
     25 => 'Minolta AF 100-300mm F4.5-5.6 APO (D) or Sigma Lens',
     25.1 => 'Sigma 100-300mm F4 EX (APO (D) or D IF)', #JD
     25.2 => 'Sigma 70mm F2.8 EX DG Macro', #JD
@@ -266,8 +269,10 @@ $VERSION = '1.96';
     61 => 'Sony 85mm F2.8 SAM (SAL85F28)', #17/25
     62 => 'Sony DT 35mm F1.8 SAM (SAL35F18)', #PH/25
     63 => 'Sony DT 16-50mm F2.8 SSM (SAL1650)', #17/25
-    64 => 'Sony 500mm F4.0 G SSM (SAL500F40G)', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4086.0.html
+    64 => 'Sony 500mm F4.0 G SSM (SAL500F40G)', #29
     65 => 'Sony DT 18-135mm F3.5-5.6 SAM (SAL-18135)', #25
+    66 => 'Sony 300mm F2.8 G SSM II (SAL-300F28G2)', #29
+    68 => 'Sony DT 55-300mm F4.5-5.6 SAM (SAL-55300)', #29
     128 => 'Tamron or Sigma Lens (128)',
     128.1 => 'Tamron 18-200mm F3.5-6.3',
     128.2 => 'Tamron 28-300mm F3.5-6.3',
@@ -2767,7 +2772,7 @@ and write Minolta RAW (MRW) images.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

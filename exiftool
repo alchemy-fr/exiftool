@@ -12,7 +12,7 @@
 use strict;
 require 5.004;
 
-my $version = '9.01';
+my $version = '9.12';
 
 # add our 'lib' directory to the include list BEFORE 'use Image::ExifTool'
 my $exeDir;
@@ -47,6 +47,7 @@ sub DoSetFromFile($$$);
 sub CleanFilename($);
 sub ProcessFiles($;$);
 sub ScanDir($$;$);
+sub SetFileTime($@);
 sub PreserveTime();
 sub LoadPrintFormat($);
 sub FilenameSPrintf($;$);
@@ -279,13 +280,18 @@ if ($binaryStdout) {
 }
 
 # flush console and print "{ready}" message if -stay_open is in effect
-if ($stayOpen >= 2 and not $quiet) {
-    eval 'require IO::Handle' and STDERR->flush();
-    my $id = defined $executeID ? $executeID : '';
-    my $save = $|;
-    $| = 1;     # turn on output autoflush for stdout
-    print "{ready$id}\n";
-    $| = $save; # restore original autoflush setting
+if ($stayOpen >= 2) {
+    if ($quiet) {
+        # flush output if possible
+        eval 'require IO::Handle' and STDERR->flush(), STDOUT->flush();
+    } else {
+        eval 'require IO::Handle' and STDERR->flush();
+        my $id = defined $executeID ? $executeID : '';
+        my $save = $|;
+        $| = 1;     # turn on output autoflush for stdout
+        print "{ready$id}\n";
+        $| = $save; # restore original autoflush setting
+    }
 }
 
 $rtnVal = 0 unless defined $rtnVal;
@@ -580,7 +586,7 @@ for (;;) {
     }
     /^(-?)(a|duplicates)$/i and $mainTool->Options(Duplicates => ($1 ? 0 : 1)), next;
     /^arg(s|format)$/i and $argFormat = 1, next;
-    /^b(inary)?$/i and $mainTool->Options(Binary => 1), $binaryOutput = 1,  next;
+    /^b(inary)?$/i and $mainTool->Options(Binary => 1), $binaryOutput = 1, next;
     if (/^c(oordFormat)?$/i) {
         my $fmt = shift;
         $fmt or Error("Expecting coordinate format for -c option\n"), next Command;
@@ -1615,6 +1621,7 @@ sub GetImageInfo($$)
         my $oldDups = $exifTool->Options('Duplicates');
         if (%printFmt) {
             $exifTool->Options(Duplicates => 1);
+            $exifTool->Options(RequestAll => 1);
         } else {
             @foundTags = @tags;
         }
@@ -2052,9 +2059,8 @@ sub GetImageInfo($$)
 sub SetImageInfo($$$)
 {
     my ($exifTool, $file, $orig) = @_;
-    my ($outfile, $restored, $isTemporary, $isStdout);
+    my ($outfile, $restored, $isTemporary, $isStdout, $outType, $tagsFromSrc);
     my $infile = $file;    # save infile in case we change it again
-    my $tagsFromSrc;
 
     undef $tmpFile; # make sure this isn't defined
 
@@ -2066,7 +2072,10 @@ sub SetImageInfo($$$)
     # if it already exists (note: this test must be delayed until after we
     # set tags from dynamic files if writing FileName or Directory)
     if (defined $outOpt) {
-        if ($outOpt eq '-') {
+        if ($outOpt =~ /^-(\.\w+)?$/) {
+            # allow output file type to be specified with "-o -.EXT"
+            $outType = GetFileType($outOpt) if $1;
+            $outfile = '-';
             $isStdout = 1;
         } else {
             $outfile = FilenameSPrintf($outOpt, $orig);
@@ -2075,50 +2084,52 @@ sub SetImageInfo($$$)
                 ++$countBadCr;
                 return 0;
             }
-            if (-d $outfile or $outfile =~ /\/$/) {
-                $outfile .= '/' unless $outfile =~ /\/$/;
-                my $name = $file;
-                $name =~ s/.*\///;  # remove directory name
-                $outfile .= $name;
-            } else {
-                my $srcType = GetFileType($file) || '';
-                my $outType = GetFileType($outfile);
-                if ($outType and ($srcType ne $outType or $outType eq 'ICC')) {
-                    unless (CanCreate($outfile)) {
-                        my $what = $srcType ? 'other types' : 'scratch';
-                        WarnOnce "Error: Can't create $outType files from $what\n";
-                        ++$countBadCr;
-                        return 0;
+        }
+        if (not $isStdout and (-d $outfile or $outfile =~ /\/$/)) {
+            $outfile .= '/' unless $outfile =~ /\/$/;
+            my $name = $file;
+            $name =~ s/.*\///;  # remove directory name
+            $outfile .= $name;
+        } else {
+            my $srcType = GetFileType($file) || '';
+            $outType or $outType = GetFileType($outfile);
+            if ($outType and ($srcType ne $outType or $outType eq 'ICC')) {
+                unless (CanCreate($outType)) {
+                    my $what = $srcType ? 'other types' : 'scratch';
+                    WarnOnce "Error: Can't create $outType files from $what\n";
+                    ++$countBadCr;
+                    return 0;
+                }
+                if ($file ne '') {
+                    # restore previous new values unless done already
+                    $exifTool->RestoreNewValues() unless $restored;
+                    $restored = 1;
+                    # translate to this type by setting specified tags from file
+                    my @setTags = @tags;
+                    foreach (@exclude) {
+                        push @setTags, "-$_";
                     }
-                    if ($file ne '') {
-                        # restore previous new values unless done already
-                        $exifTool->RestoreNewValues() unless $restored;
-                        $restored = 1;
-                        # translate to this type by setting specified tags from file
-                        my @setTags = @tags;
-                        foreach (@exclude) {
-                            push @setTags, "-$_";
-                        }
-                        # force some tags to be copied for certain file types
-                        my %forceCopy = (
-                            ICC => 'ICC_Profile',
-                            VRD => 'CanonVRD',
-                        );
-                        push @setTags, $forceCopy{$outType} if $forceCopy{$outType};
-                        # assume "-tagsFromFile @" unless -tagsFromFile already specified
-                        # (%setTags won't be empty if -tagsFromFile used)
-                        if (not %setTags or (@setTags and not $setTags{'@'})) {
-                            return 0 unless DoSetFromFile($exifTool, $file, \@setTags);
-                        } elsif (@setTags) {
-                            # add orphaned tags to existing "-tagsFromFile @" for this file only
-                            push @setTags, @{$setTags{'@'}};
-                            $tagsFromSrc = \@setTags;
-                        }
-                        # all done with source file -- create from meta information alone
-                        $file = '';
+                    # force some tags to be copied for certain file types
+                    my %forceCopy = (
+                        ICC => 'ICC_Profile',
+                        VRD => 'CanonVRD',
+                    );
+                    push @setTags, $forceCopy{$outType} if $forceCopy{$outType};
+                    # assume "-tagsFromFile @" unless -tagsFromFile already specified
+                    # (%setTags won't be empty if -tagsFromFile used)
+                    if (not %setTags or (@setTags and not $setTags{'@'})) {
+                        return 0 unless DoSetFromFile($exifTool, $file, \@setTags);
+                    } elsif (@setTags) {
+                        # add orphaned tags to existing "-tagsFromFile @" for this file only
+                        push @setTags, @{$setTags{'@'}};
+                        $tagsFromSrc = \@setTags;
                     }
+                    # all done with source file -- create from meta information alone
+                    $file = '';
                 }
             }
+        }
+        unless ($isStdout) {
             $outfile = NextUnusedFilename($outfile);
             if (-e $outfile and not $doSetFileName) {
                 Warn "Error: '$outfile' already exists - $infile\n";
@@ -2272,12 +2283,13 @@ sub SetImageInfo($$$)
             }
             # quickly rename file and/or set file date if this is all we are doing
             if ($numSet == $numPseudo) {
-                my $r1 = $exifTool->SetFileModifyDate($file);
-                my $r2 = 0;
-                $r2 = $exifTool->SetFileName($file, $outfile) if defined $outfile;
-                if ($r1 > 0 or $r2 > 0) {
+                my $r1 = $exifTool->SetFileModifyDate($file,undef,'FileCreateDate');
+                my $r2 = $exifTool->SetFileModifyDate($file);
+                my $r3 = 0;
+                $r3 = $exifTool->SetFileName($file, $outfile) if defined $outfile;
+                if ($r1 > 0 or $r2 > 0 or $r3 > 0) {
                     ++$countGoodWr;
-                } elsif ($r1 < 0 or $r2 < 0) {
+                } elsif ($r1 < 0 or $r2 < 0 or $r3 < 0) {
                     ++$countBadWr;
                     return 0;
                 } else {
@@ -2300,21 +2312,20 @@ sub SetImageInfo($$$)
         }
     }
     # rewrite the file
-    my $success = $exifTool->WriteInfo($file, $outfile);
+    my $success = $exifTool->WriteInfo($file, $outfile, $outType);
 
     # get file time if preserving it
-    my ($modTime, $accTime);
+    my ($aTime, $mTime, $cTime);
     if ($preserveTime and $success and -e $file) {
-        $modTime = $^T - (-M $file) * (24 * 3600);
-        $accTime = $^T - (-A $file) * (24 * 3600);
+        $aTime = $^T - (-A _) * (24 * 3600);
+        $mTime = $^T - (-M _) * (24 * 3600);
+        $cTime = $^T - (-C _) * (24 * 3600);
     }
     if ($success == 1) {
         # preserve the original file times
         if (defined $tmpFile) {
             if (-e $file) {
-                if ($preserveTime and not utime($accTime, $modTime, $tmpFile)) {
-                    Warn "Error setting file time - $file\n";
-                }
+                SetFileTime($tmpFile, $aTime, $mTime, $cTime) if $preserveTime;
                 if ($isTemporary) {
                     # preserve original file attributes if possible
                     Image::ExifTool::CopyFileAttrs($file, $outfile);
@@ -2335,8 +2346,8 @@ sub SetImageInfo($$$)
                         Open(\*NEW_FILE, $newFile) or Error("Error opening $newFile\n"), return 0;
                         binmode(NEW_FILE);
 
-                        #........................................................
-                        # temporary disable CTRL-C during this critical operation
+                        #..........................................................
+                        # temporarily disable CTRL-C during this critical operation
                         $critical = 1;
                         undef $tmpFile;     # handle deletion of temporary file ourself
                         if (Open(\*ORIG_FILE, $file, '>')) {
@@ -2356,11 +2367,9 @@ sub SetImageInfo($$$)
                             } else {
                                 unlink $newFile;
                                 if ($preserveTime) {
-                                    unless (utime($accTime, $modTime, $file)) {
-                                        Warn "Error setting file time - $file\n";
-                                    }
+                                    SetFileTime($file, $aTime, $mTime, $cTime);
                                     # save time to set it later again to patch OS X 10.6 bug
-                                    $preserveTime{$file} = [ $accTime, $modTime ];
+                                    $preserveTime{$file} = [ $aTime, $mTime, $cTime ];
                                 }
                             }
                             ++$countGoodWr;
@@ -2372,7 +2381,7 @@ sub SetImageInfo($$$)
                         }
                         undef $critical;            # end critical section
                         SigInt() if $interrupted;   # issue delayed SIGINT if necessary
-                        #........................................................
+                        #..........................................................
 
                     # simply rename temporary file to replace original
                     # (if we didn't already rename it to add "_original")
@@ -2415,9 +2424,7 @@ sub SetImageInfo($$$)
             unlink $tmpFile;
             ++$countSameWr;
         } else {
-            if (defined $accTime and not utime($accTime, $modTime, $outfile)) {
-                Warn "Error setting file time - $file\n";
-            }
+            SetFileTime($outfile, $aTime, $mTime, $cTime) if defined $aTime;
             if ($overwriteOrig) {
                 unlink $file or Warn "Error erasing original $file\n";
             }
@@ -2785,12 +2792,28 @@ sub ScanDir($$;$)
 }
 
 #------------------------------------------------------------------------------
+# Set file system times
+# Inputs: 0) file name, 1) access time, 2) modification time, 3) creation time
+# Notes: issues warning if modification/access times can't be set
+sub SetFileTime($@)
+{
+    my ($file, $aTime, $mTime, $cTime) = @_;
+    unless (utime($aTime, $mTime, $file)) {
+        Warn "Error setting file time - $file\n";
+    }
+    # set creation time for Windows systems only (if Win32API::File::Time is available)
+    if ($^O eq 'MSWin32' and eval 'require Win32API::File::Time') {
+        Win32API::File::Time::SetFileTime($file,undef,undef,$cTime);
+    }
+}
+
+#------------------------------------------------------------------------------
 # patch for OS X 10.6 to preserve file modify date
 # (this probably isn't a 100% fix, but it may solve a majority of the cases)
 sub PreserveTime()
 {
     local $_;
-    utime @{$preserveTime{$_}}, $_ foreach keys %preserveTime;
+    SetFileTime($_, @{$preserveTime{$_}}) foreach keys %preserveTime;
     undef %preserveTime;
 }
 
@@ -2845,27 +2868,36 @@ sub FilenameSPrintf($;$)
     my ($fmt, $file) = @_;
     local $_;
     # return format string straight away if no tokens
-    return $fmt unless $fmt =~ /%[-+]?\d*\.?\d*[lu]?[dfe]/;
+    return $fmt unless $fmt =~ /%[-+]?\d*[.:]?\d*[lu]?[dfe]/;
     return undef unless defined $file;
     CleanFilename($file);   # make sure we are using forward slashes
     # split filename into directory, file, extension
     my @parts = ($file =~ /^(.*?)([^\/]*?)(\.[^.\/]*)?$/);
     $parts[2] = $parts[2] ? substr($parts[2], 1) : '';
     @parts or Warn("Error: Bad pattern match for file $file\n"), return undef;
-    my %part;
-    foreach ('d','f','e') {
-        $part{$_} = shift @parts;
-    }
+    my (%part, $len, $part);
+    $part{$_} = shift @parts foreach ('d','f','e');
     my ($filename, $pos) = ('', 0);
-    while ($fmt =~ /(%([-+]?)(\d*)\.?(\d*)([lu]?)([dfe]))/g) {
+    while ($fmt =~ /(%([-+]?)(\d*)([.:]?)(\d*)([lu]?)([dfe]))/g) {
         $filename .= substr($fmt, $pos, pos($fmt) - $pos - length($1));
         $pos = pos($fmt);
-        my ($sign, $wid, $skip, $mod, $code) = ($2, $3, $4 || 0, $5, $6);
-        my $len = length $part{$code};
+        my ($sign, $wid, $dot, $skip, $mod, $code) = ($2, $3, $4, $5 || 0, $6, $7);
+        my @path;
+        if ($code eq 'd' and $dot and $dot eq ':') {
+            # field width applies to directory levels instead of characters
+            @path = split '/', $part{d};
+            $len = scalar @path;
+        } else {
+            $len = length $part{$code};
+        }
         next unless $skip < $len;
         $wid = $len - $skip if $wid eq '' or $wid + $skip > $len;
         $skip = $len - $wid - $skip if $sign eq '-';
-        my $part = substr($part{$code}, $skip, $wid);
+        if (@path) {
+            $part = join('/', @path[$skip..($skip+$wid-1)]) . '/';
+        } else {
+            $part = substr($part{$code}, $skip, $wid);
+        }
         $part = ($mod eq 'u') ? uc($part) : lc($part) if $mod;
         $filename .= $part;
     }
@@ -2977,7 +3009,7 @@ sub OpenOutputFile($)
     if ($textOut) {
         $outfile = $file;
         CleanFilename($outfile);
-        if ($textOut =~ /%[-+]?\d*\.?\d*[lun]?[dfecC]/) {
+        if ($textOut =~ /%[-+]?\d*[.:]?\d*[lun]?[dfecC]/) {
             # make filename from printf-like $textOut
             $outfile = FilenameSPrintf($textOut, $file);
             return () unless defined $outfile;
@@ -3023,7 +3055,7 @@ sub Rename($$)
 {
     my ($old, $new) = @_;
     my $result = rename($old, $new);
-    
+
     if (not $result and $^O eq 'MSWin32') {
         my $try = 2;
         for (;;) {
@@ -3047,7 +3079,7 @@ sub SlurpFile($$)
     binmode(INFILE);
     my $bsize = 1024 * 1024;
     my $num = read(INFILE, $$buffPt, $bsize);
-    unless ($num) {
+    unless (defined $num) {
         close(INFILE);
         Warn("Error reading $file\n");
         return 0;
@@ -3298,8 +3330,8 @@ L<Tag operations|/Tag operations>
 
 L<Input-output text formatting|/Input-output text formatting>
 
-  -args       (-argFormat)         Output data as exiftool arguments
-  -b          (-binary)            Output data in binary format
+  -args       (-argFormat)         Format metadata as exiftool arguments
+  -b          (-binary)            Output metadata in binary format
   -c FMT      (-coordFormat)       Set format for GPS coordinates
   -charset [[TYPE=]CHARSET]        Specify encoding for special characters
   -csv[=CSVFILE]                   Export/import tags in CSV format
@@ -3328,7 +3360,7 @@ L<Input-output text formatting|/Input-output text formatting>
   -t          (-tab)               Output in tab-delimited list format
   -T          (-table)             Output in tabular format
   -v[NUM]     (-verbose)           Print verbose messages
-  -w[!] EXT   (-textOut)           Write output text files
+  -w[!] EXT   (-textOut)           Write (or overwrite!) output text files
   -X          (-xmlFormat)         Use RDF/XML output format
 
 L<Processing control|/Processing control>
@@ -3468,10 +3500,16 @@ removed if the containing group is deleted:
   - Deleting EXIF only removes ExifIFD which also deletes
     InteropIFD and MakerNotes.
 
-Note:  MakerNotes tags may be edited, but not created or deleted
-individually.  This avoids many potential problems including the inevitable
-compatibility problems with OEM software which may be very inflexible about
-the information it expects to find in the maker notes.
+Notes:
+
+1) MakerNotes tags may be edited, but not created or deleted individually. 
+This avoids many potential problems including the inevitable compatibility
+problems with OEM software which may be very inflexible about the
+information it expects to find in the maker notes.
+
+2) Changes to PDF files are reversible because the original information is
+never actually deleted from the file.  So ExifTool alone may not be used to
+securely edit metadata in PDF files.
 
 Special feature:  Integer values may be specified in hexadecimal with a
 leading C<0x>, and simple rational values may be specified as fractions.
@@ -3527,10 +3565,11 @@ by a group name and/or suffixed by C<#>.  Wildcards may be used in the
 source tag name only, with the exception that C<All> or C<*> may be used as
 a destination group or tag name to represent the same family 1 group or tag
 name as the source.  If no destination group is specified, the information
-is written to the preferred group.  As a convenience, C<-tagsFromFile @> is
-assumed for any redirected tags which are specified without a prior
-B<-tagsFromFile> option. Copied tags may also be added or deleted from a
-list with arguments of the form E<quot>'-I<SRCTAG>+E<gt>I<DSTTAG>'E<quot> or
+is written to the preferred group.  Whitespace around the C<E<gt>> or
+C<E<lt>> is ignored.  As a convenience, C<-tagsFromFile @> is assumed for
+any redirected tags which are specified without a prior B<-tagsFromFile>
+option.  Copied tags may also be added or deleted from a list with arguments
+of the form E<quot>'-I<SRCTAG>+E<gt>I<DSTTAG>'E<quot> or
 E<quot>'-I<SRCTAG>-E<gt>I<DSTTAG>'E<quot>.
 
 An extension of the redirection feature allows strings involving tag names
@@ -3540,7 +3579,8 @@ prefixed with a C<$> symbol.  See the B<-p> option for more details about
 this syntax.  Strings starting with a C<=> sign must insert a single space
 after the C<E<lt>> to avoid confusion with the C<E<lt>=> operator which sets
 the tag value from the contents of a file.  A single space at the start of
-the string is removed if it exists, but all other whitespace is preserved.
+the string is removed if it exists, but all other whitespace in the string
+is preserved.
 
 See L</COPYING EXAMPLES> for examples using B<-tagsFromFile>.
 
@@ -3625,13 +3665,13 @@ above will produce warning messages for any tags which are not writable.
 
 =item B<-b> (B<-binary>)
 
-Output requested data in binary format without tag names or descriptions.
-This option is mainly used for extracting embedded images or other binary
-data, but it may also be useful for some text strings since control
-characters (such as newlines) are not replaced by '.' as they are in the
-default output.  List items are separated by a newline when extracted with
-the B<-b> option.  May be combined with C<-php> or C<-X> to extract binary
-data in PHP or XML format.
+Output requested metadata in binary format without tag names or
+descriptions.  This option is mainly used for extracting embedded images or
+other binary data, but it may also be useful for some text strings since
+control characters (such as newlines) are not replaced by '.' as they are in
+the default output.  List items are separated by a newline when extracted
+with the B<-b> option.  May be combined with C<-php> or C<-X> to extract
+binary data in PHP or XML format.
 
 =item B<-c> I<FMT> (B<-coordFormat>)
 
@@ -3917,7 +3957,7 @@ with this command:
 
 produces output like this:
 
-    -- Generated by ExifTool 9.01 --
+    -- Generated by ExifTool 9.12 --
     File: a.jpg - 2003:10:31 15:44:19
     (f/5.6, 1/60s, ISO 100)
     File: b.jpg - 2006:05:23 11:57:38
@@ -4046,12 +4086,13 @@ Instead, this simple case is accomplished using shell redirection:
 
     exiftool FILE > out.txt
 
-Advanced features:  A substring of the original file name, directory or
-extension may be taken by specifying a field width immediately following the
-'%' character.  If the width is negative, the substring is taken from the
-end.  The substring position (characters to ignore at the start or end of
-the string) may be given by a second optional value after a decimal point.
-For example:
+Advanced features:
+
+A substring of the original file name, directory or extension may be taken
+by specifying a field width immediately following the '%' character.  If the
+width is negative, the substring is taken from the end.  The substring
+position (characters to ignore at the start or end of the string) may be
+given by a second optional value after a decimal point.  For example:
 
     Input File Name     Format Specifier    Output File Name
     ----------------    ----------------    ----------------
@@ -4059,6 +4100,21 @@ For example:
     Picture-123.jpg     %-.4f.out           Picture.out
     Picture-123.jpg     %7f.%-3f            Picture.123
     Picture-123a.jpg    Meta%-3.1f.txt      Meta123.txt
+
+For %d, the field width/position specifiers may be applied to the directory
+levels instead of substring position by using a colon instead of a decimal
+point in the format specifier.  For example:
+
+    Source Dir     Format   Result       Notes
+    ------------   ------   ----------   ------------------
+    pics/2012/02   %2:d     pics/2012/   take top 2 levels
+    pics/2012/02   %-:1d    pics/2012/   up one directory level
+    pics/2012/02   %:1d     2012/02/     ignore top level
+    pics/2012/02   %1:1d    2012/        take 1 level after top
+    /Users/phil    %:2d     phil/        ignore top 2 levels
+
+(Note that the root directory counts as one level when an absolute path is
+used as in the last example above.)
 
 For %c, these modifiers have a different effects.  If a field width is
 given, the copy number is padded with zeros to the specified width.  A
@@ -4118,6 +4174,11 @@ data values to be written, encoded in base64 if necessary.  The B<-t> option
 adds tag table information to the output (table C<name>, decimal tag C<id>,
 and C<index> for cases where multiple conditional tags exist with the same
 ID).
+
+Note: This output is NOT the same as XMP because it uses
+dynamically-generated property names corresponding to the ExifTool tag
+names, and not the standard XMP properties.  To write XMP instead, use the
+B<-o> option with an XMP extension for the output file.
 
 =back
 
@@ -4197,7 +4258,7 @@ I<TAG>.  For example, to process files in order of date:
 
     exiftool -fileOrder DateTimeOriginal DIR
 
-Additional B<-fileOrder> options may be added as secondary sort keys. 
+Additional B<-fileOrder> options may be added for secondary sort keys. 
 Floating point values are sorted numerically, and all other values are
 sorted alphabetically.  The sort order may be reversed by prefixing the tag
 name with a C<-> (ie. C<-fileOrder -createdate>).  A C<#> may be appended to
@@ -4248,13 +4309,21 @@ also specified on the command line.  The alternative is to use the
 C<$GROUP:all> syntax. (ie. Use C<$exif:all> instead of C<$exif> in I<EXPR>
 to test for the existence of EXIF tags.)
 
+3) Tags in the string are interpolated the same way as with B<-p> before the
+expression is evaluated.  In this interpolation, C<$/> is converted to a
+newline and C<$$> represents a single C<$> symbol (so Perl variables, if
+used, require a double C<$>).
+
 =item B<-m> (B<-ignoreMinorErrors>)
 
 Ignore minor errors and warnings.  This enables writing to files with minor
 errors and disables some validation checks which could result in minor
 warnings.  Generally, minor errors/warnings indicate a problem which usually
 won't result in loss of metadata if ignored.  However, there are exceptions,
-so ExifTool leaves it up to you to make the final decision.
+so ExifTool leaves it up to you to make the final decision.  Minor errors
+and warnings are indicated by "[minor]" at the start of the message. 
+Warnings which affect processing when ignored are indicated by "[Minor]"
+(with a capital "M").
 
 =item B<-o> I<OUTFILE> or I<FMT> (B<-out>)
 
@@ -4268,7 +4337,7 @@ precedence over that specified by the B<-o> option.
 I<OUTFILE> may be C<-> to write to stdout.  The output file name may also be
 specified using a I<FMT> string in which %d, %f and %e represent the
 directory, file name and extension of I<FILE>.  Also, %c may be used to add
-a copy number.  See the B<-w> option for I<FMT> string examples.
+a copy number. See the B<-w> option for I<FMT> string examples.
 
 The output file is taken to be a directory name if it already exists as a
 directory or if the name ends with '/'.  Output directories are created if
@@ -4277,12 +4346,17 @@ B<-overwrite_original> option with B<-o> causes the original source file to
 be erased after the output file is successfully written.
 
 A special feature of this option allows the creation of certain types of
-files from scratch.  Currently, this can be done with XMP, ICC/ICM, MIE, VRD
-and EXIF files by specifying the appropriate extension for I<OUTFILE>.  The
-file is then created from a combination of information in I<FILE> (as if the
-B<-tagsFromFile> option was used), and tag values assigned on the command
-line.  If no I<FILE> is specified, the output file may be created from
-scratch using only tags assigned on the command line.
+files from scratch, or with the metadata from another type of file.  The
+following file types may be created using this technique:
+
+    XMP, ICC/ICM, MIE, VRD, EXIF
+
+The output file type is determined by the extension of I<OUTFILE> (specified
+as C<-.EXT> when writing to stdout).  The output file is then created from a
+combination of information in I<FILE> (as if the B<-tagsFromFile> option was
+used), and tag values assigned on the command line.  If no I<FILE> is
+specified, the output file may be created from scratch using only tags
+assigned on the command line.
 
 =item B<-overwrite_original>
 
@@ -4310,9 +4384,10 @@ B<-overwrite_original> option should be used instead unless necessary.
 =item B<-P> (B<-preserve>)
 
 Preserve the filesystem modification date/time of the original file
-(C<FileModifyDate>) when writing.  Note that some filesystems (ie. Mac and
-Windows) store a creation date which is not preserved by this option.  For
-these systems, the B<-overwrite_original_in_place> option may be used to
+(C<FileModifyDate>) when writing.  Note that some filesystems store a
+creation date which is not preserved by this option, with the exception of
+Windows systems where Win32API::File::Time is available.  For other systems,
+the B<-overwrite_original_in_place> option may be used if necessary to
 preserve the creation date.
 
 =item B<-password> I<PASSWD>
@@ -4497,9 +4572,9 @@ argument per line (NOT one option per line -- some options require
 additional arguments, and all arguments must be placed on separate lines).
 Blank lines and lines beginning with C<#> and are ignored.  Normal shell
 processing of arguments is not performed, which among other things means
-that arguments should not be quoted.  I<ARGFILE> may exist relative to
-either the current directory or the exiftool directory unless an absolute
-pathname is given.
+that arguments should not be quoted and spaces are treated as any other
+character.  I<ARGFILE> may exist relative to either the current directory or
+the exiftool directory unless an absolute pathname is given.
 
 For example, the following I<ARGFILE> will set the value of Copyright to
 "Copyright YYYY, Phil Harvey", where "YYYY" is the year of CreateDate:
@@ -4609,7 +4684,8 @@ for a description of the I<FMT> syntax.  Note that file name I<FMT> strings
 for all options are based on the original I<FILE> specified from the command
 line, not the name of the source file specified by B<-srcfile>.  A I<FMT> of
 C<@> may be used to represent the original I<FILE>, and may be useful when
-specifying multiple B<-srcfile> options.
+specifying multiple B<-srcfile> options (ie. to fall back to processing the
+original I<FILE> if no sidecar exists).
 
 If than one B<-srcfile> option is specified, the files are tested in order
 and the first existing source file is processed.  If none of the source
@@ -4827,7 +4903,7 @@ Recursively delete all XMP-crss information from images in a directory.
 
 =item exiftool '-ThumbnailImageE<lt>=thumb.jpg' dst.jpg
 
-Set the thumbnail image from specified file (Note: The quotes are neccessary
+Set the thumbnail image from specified file (Note: The quotes are necessary
 to prevent shell redirection).
 
 =item exiftool '-JpgFromRawE<lt>=%d%f_JFR.JPG' -ext CRW -r .
@@ -5211,7 +5287,7 @@ error occured or if all files failed the B<-if> condition.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey
+Copyright 2003-2013, Phil Harvey
 
 This is free software; you can redistribute it and/or modify it under the
 same terms as Perl itself.

@@ -24,14 +24,15 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.36';
+$VERSION = '1.38';
 
 sub ProcessFujiDir($$$);
 sub ProcessFaceRec($$$);
 
 # the following RAF version numbers have been tested for writing:
 my %testedRAF = (
-    '0100' => 'E550, E900, S5600, S6000fd, S6500fd, HS10/HS11, S200EXR, X100, X-S1 Ver1.00',
+    '0100' => 'E550, E900, F770, S5600, S6000fd, S6500fd, HS10/HS11, HS30, S200EXR, X100, XF1, X-Pro1, X-S1 Ver1.00',
+    '0101' => 'X-E1',
     '0102' => 'S100FS, X10 Ver1.02',
     '0103' => 'IS Pro Ver1.03',
     '0104' => 'S5Pro Ver1.04',
@@ -611,8 +612,8 @@ my %faceCategories = (
             Start => '$val',
         },
     },
-    0xf001 => 'RawImageWidth',
-    0xf002 => 'RawImageHeight',
+    0xf001 => 'RawImageFullWidth',
+    0xf002 => 'RawImageFullHeight',
     0xf003 => 'BitsPerSample',
     # 0xf004 - values: 4
     # 0xf005 - values: 1374, 1668
@@ -818,7 +819,7 @@ sub WriteRAF($$)
         # make sure padding is only zero bytes (can be >100k for HS10)
         # (have seen non-null padding in X-Pro1)
         if ($buff =~ /[^\0]/) {
-            return 1 if $exifTool->Error('Non-null bytes found in padding', 1);
+            return 1 if $exifTool->Error('Non-null bytes found in padding', 2);
         }
     }
     # calculate offset difference due to change in JPEG size
@@ -936,7 +937,7 @@ FujiFilm maker notes in EXIF information, and to read/write FujiFilm RAW
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -52,7 +52,7 @@ use vars qw($VERSION %pentaxLensTypes);
 use Image::ExifTool::Exif;
 use Image::ExifTool::HP;
 
-$VERSION = '2.47';
+$VERSION = '2.52';
 
 sub CryptShutterCount($$);
 sub PrintFilter($$$);
@@ -75,6 +75,7 @@ sub PrintFilter($$$);
     '2 0' => 'A Series Lens', #7 (from smc PENTAX-A 400mm F5.6)
     '3 0' => 'Sigma', # (includes 'Sigma 30mm F1.4 EX DC' - PH)
     # (and 'Sigma 105mm F2.8 EX DG Macro', ref 24)
+    # (and 'Sigma 18-50mm F2.8 EX Macro')
     '3 17' => 'smc PENTAX-FA SOFT 85mm F2.8',
     '3 18' => 'smc PENTAX-F 1.7X AF ADAPTER',
     '3 19' => 'smc PENTAX-F 24-50mm F4',
@@ -143,7 +144,7 @@ sub PrintFilter($$$);
     '3 255.6' => 'Sigma 24-60mm F2.8 EX DG', #PH
     '3 255.7' => 'Sigma 70-300mm F4-5.6 Macro', #JD
     '3 255.8' => 'Sigma 55-200mm F4-5.6 DC', #JD
-    '3 255.9' => 'Sigma 18-50mm F2.8 EX DC', #JD
+    '3 255.9' => 'Sigma 18-50mm F2.8 EX DC', #JD (also Macro version - PH)
     '4 1' => 'smc PENTAX-FA SOFT 28mm F2.8',
     '4 2' => 'smc PENTAX-FA 80-320mm F4.5-5.6',
     '4 3' => 'smc PENTAX-FA 43mm F1.9 Limited',
@@ -230,6 +231,7 @@ sub PrintFilter($$$);
     '7 0' => 'smc PENTAX-DA 21mm F3.2 AL Limited', #13
     '7 58' => 'smc PENTAX-D FA Macro 100mm F2.8 WR', #PH - this bit of information cost me $600 ;)
     '7 75' => 'Tamron SP AF 70-200mm F2.8 Di LD [IF] Macro (A001)', #(Anton Bondar)
+    '7 212' => 'smc Pentax-DA 50mm F1.8', #PH
     '7 213' => 'smc PENTAX-DA 40mm F2.8 XS', #PH
     '7 214' => 'smc PENTAX-DA 35mm F2.4 AL', #PH
     '7 216' => 'smc PENTAX-DA L 55-300mm F4-5.8 ED', #PH
@@ -268,6 +270,8 @@ sub PrintFilter($$$);
     '8 21' => 'Sigma 17-50mm F2.8 EX DC OS HSM', #26
     '8 22' => 'Sigma 85mm F1.4 EX DG HSM', #26
     '8 23' => 'Sigma 70-200mm F2.8 APO EX DG OS HSM', #27
+    '8 27' => 'Sigma 18-200mm F3.5-6.3 II DC HSM', #27
+    '8 210' => 'smc Pentax-DA 18-270mm F3.5-6.3 ED SDM', #Helmut Schutz
     '8 215' => 'smc PENTAX-DA 18-135mm F3.5-5.6 ED AL [IF] DC WR', #PH
     '8 226' => 'smc PENTAX-DA* 55mm F1.4 SDM', #JD
     '8 227' => 'smc PENTAX-DA* 60-250mm F4 [IF] SDM', #JD
@@ -298,6 +302,7 @@ sub PrintFilter($$$);
     '21 3' => '03 Fish-eye 3.2mm F5.6', #PH (NC)
     '21 4' => '04 Toy Lens Wide 6.3mm F7.1', #PH (NC)
     '21 5' => '05 Toy Lens Telephoto 18mm F8', #PH (NC)
+    '21 6' => '06 Telephoto Zoom 15-45mm F2.8', #PH
 );
 
 # Pentax model ID codes - PH
@@ -413,6 +418,9 @@ my %pentaxModelID = (
     0x12f48 => 'Optio LS465',
     0x12f52 => 'K-30',
     0x12f5c => 'X-5',
+    0x12f66 => 'Q10',
+    0x12f70 => 'K-5 II',
+    0x12f71 => 'K-5 II s', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4515.0.html
 );
 
 # Pentax city codes - (PH, Optio WP)
@@ -749,6 +757,7 @@ my %binaryDataAttrs = (
             30 => '4288x3216', #PH (Optio RS1000)
             31 => '4608x3456', #PH (Optio RZ18)
             129 => '1920x1080', #PH (Optio RZ10)
+            135 => '4608x2592', #PH (Q10 stretch filter)
             257 => '3216x3216', #PH (Optio RZ10)
             '0 0' => '2304x1728', #13
             '4 0' => '1600x1200', #PH (Optio MX4)
@@ -760,6 +769,7 @@ my %binaryDataAttrs = (
             '35 1' => '2400x1600', #7
             '36 0' => '3008x2008 or 3040x2024',  #PH
             '37 0' => '3008x2000', #13
+            # 65535 - seen for an X-5 panorama (PH)
         },
     },
     0x000b => { #3
@@ -823,6 +833,7 @@ my %binaryDataAttrs = (
             59 => 'Report', #25
             60 => 'Kids', #13
             61 => 'Blur Reduction', #13
+            63 => 'Panorama 2', #PH (X-5)
             65 => 'Half-length Portrait', #JD
             66 => 'Portrait 2', #PH (LS645)
             75 => 'Blue Sky', #PH (LS465)
@@ -906,7 +917,7 @@ my %binaryDataAttrs = (
         Name => 'AFPointSelected',
         Writable => 'int16u',
         PrintConvColumns => 2,
-        PrintConv => {
+        PrintConv => [{
             # 0 - Contrast-detect AF? - PH (K-5)
             0xffff => 'Auto',
             0xfffe => 'Fixed Center',
@@ -926,6 +937,9 @@ my %binaryDataAttrs = (
             10 => 'Bottom',
             11 => 'Lower-right',
         },
+        # (second number exists for K-5II(s) is usually 0, but is 1 for AF.C with
+        # AFPointMode=='Select' and extended tracking focus points are enabled in the settings)
+        ],
     },
     0x000f => { #PH
         Name => 'AFPointsInFocus',
@@ -1038,7 +1052,7 @@ my %binaryDataAttrs = (
             276 => 25600, #PH
             277 => 36000, #PH
             278 => 51200, #PH
-            # 65534 Auto? (Q MOV) PH
+            # 65534 Auto? (Q/Q10 MOV) PH
             # 65535 Auto? (K-01 MP4) PH
         },
     },
@@ -1662,7 +1676,7 @@ my %binaryDataAttrs = (
         PrintConv => {
             '0 0 0 0' => 'Off',
             '1 0 0 0' => 'On',
-            # '0 2 0 0' - seen for Pentax Q and K-01
+            # '0 2 0 0' - seen for Pentax Q, Q10 and K-01
         },
     },
     0x006b => { #PH (K-5)
@@ -1840,7 +1854,7 @@ my %binaryDataAttrs = (
             '1 1' => 'Weak',
             '1 2' => 'Normal',
             '1 3' => 'Strong',
-            # '2 4' - seen for Pentax Q and K-01
+            # '2 4' - seen for Pentax Q, Q10 and K-01
         },
     },
     0x007a => { #PH
@@ -2307,6 +2321,7 @@ my %binaryDataAttrs = (
             6 => 'On (Video)', # (K-7)
             7 => 'On (7)', #(NC) (K20D, K200D, K-m, K-5)
             15 => 'On (15)', # (K20D (with Tamron 10-20mm @ 10mm))
+            135 => 'On (135)', #(K-5IIs)
         },
     },
     2 => {
@@ -2929,6 +2944,7 @@ my %binaryDataAttrs = (
             75 => 'Night Scene Portrait',
             83 => 'No Flash',
             91 => 'Night Scene',
+            # 96 - seen for Pentax Q10
             99 => 'Surf & Snow',
             104 => 'Night Snap', # (Q)
             107 => 'Text',
@@ -5045,7 +5061,7 @@ values.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

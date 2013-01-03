@@ -912,7 +912,7 @@ sub ReadToNested($;$)
         }
         # are we in a literal string?
         if ($delim[0] eq ')') {
-            # ignore escaped delimiters (preceeded by odd number of \'s)
+            # ignore escaped delimiters (preceded by odd number of \'s)
             next if length($1) & 0x01;
             # ignore all delimiters but unescaped braces
             next unless $2 eq '(' or $2 eq ')';
@@ -2035,7 +2035,7 @@ including AESV2 (AES-128) and AESV3 (AES-256).
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

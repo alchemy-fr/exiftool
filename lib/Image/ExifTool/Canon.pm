@@ -38,6 +38,7 @@
 #              22) Dave Nicholson private communication (PowerShot S30)
 #              23) Magne Nilsen private communication (400D)
 #              24) Wolfgang Hoffmann private communication (40D)
+#              25) Laurent Clevy private communication
 #              26) Steve Balcombe private communication
 #              27) Chris Huebsch private communication (40D)
 #              28) Hal Williamson private communication (XTi)
@@ -79,7 +80,7 @@ sub ProcessSerialData($$$);
 sub ProcessFilters($$$);
 sub SwapWords($);
 
-$VERSION = '2.99';
+$VERSION = '3.03';
 
 # Note: Removed 'USM' from 'L' lenses since it is redundant - PH
 # (or is it?  Ref 32 shows 5 non-USM L-type lenses)
@@ -136,6 +137,7 @@ $VERSION = '2.99';
     27 => 'Canon EF 35-80mm f/4-5.6', #32
     # 27 => 'Carl Zeiss Distagon T* 28mm f/2 ZF', #PH (must be with an adapter, because the ZF version is a Nikon mount)
     # 27 => 'EMF adapter for Canon EOS digital cameras', #50 (reports MaxFocalLength of 65535)
+    # 27 => optix adapter
     28 => 'Canon EF 80-200mm f/4.5-5.6 or Tamron Lens', #32
     28.1 => 'Tamron SP AF 28-105mm f/2.8 LD Aspherical IF', #15
     28.2 => 'Tamron SP AF 28-75mm f/2.8 XR Di LD Aspherical [IF] Macro', #4
@@ -193,7 +195,8 @@ $VERSION = '2.99';
     131.5 => 'Sigma APO 120-300mm f/2.8 EX DG HSM', #15
            # 'Sigma APO 120-300mm f/2.8 EX DG HSM + 1.4x', #15
            # 'Sigma APO 120-300mm f/2.8 EX DG HSM + 2x', #15
-    131.6 => 'Sigma 4.5mm F2.8 EX DC HSM Circular Fisheye', #PH
+    131.6 => 'Sigma 4.5mm f/2.8 EX DC HSM Circular Fisheye', #PH
+    131.7 => 'Sigma 70-200mm f/2.8 APO EX HSM', #PH (http://www.lensrentals.com/blog/2012/08/canon-illumination-correction-and-third-party-lenses)
     132 => 'Canon EF 1200mm f/5.6L', #32
     134 => 'Canon EF 600mm f/4L IS', #15
     135 => 'Canon EF 200mm f/1.8L',
@@ -201,7 +204,7 @@ $VERSION = '2.99';
     137 => 'Canon EF 85mm f/1.2L or Sigma or Tamron Lens', #10
     137.1 => 'Sigma 18-50mm f/2.8-4.5 DC OS HSM', #PH
     137.2 => 'Sigma 50-200mm f/4-5.6 DC OS HSM', #PH
-    137.3 => 'Sigma 18-250mm f/3.5-6.3 DC OS HSM', #PH
+    137.3 => 'Sigma 18-250mm f/3.5-6.3 DC OS HSM', #PH (also Sigma 18-250mm f/3.5-6.3 DC Macro OS HSM)
     137.4 => 'Sigma 24-70mm f/2.8 IF EX DG HSM', #PH
     137.5 => 'Sigma 18-125mm f/3.8-5.6 DC OS HSM', #PH
     137.6 => 'Sigma 17-70mm f/2.8-4 DC Macro OS HSM', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,2819.0.html
@@ -212,6 +215,7 @@ $VERSION = '2.99';
    '137.11' => 'Tamron SP 17-50mm f/2.8 XR Di II VC', #50 (model B005)
    '137.12' => 'Tamron SP 60mm f/2 Macro Di II', #50 (model G005)
    '137.13' => 'Sigma 10-20mm f/3.5 EX DC HSM', #Gerald Erdmann
+   '137.14' => 'Tamron SP 24-70mm f/2.8 Di VC USD', #PH
     138 => 'Canon EF 28-80mm f/2.8-4L', #32
     139 => 'Canon EF 400mm f/2.8L',
     140 => 'Canon EF 500mm f/4.5L', #32
@@ -253,6 +257,7 @@ $VERSION = '2.99';
     161.2 => 'Sigma 28-70mm f/2.8 EX', #PH (http://www.breezesys.com/forum/showthread.php?t=3718)
     161.3 => 'Tamron AF 17-50mm f/2.8 Di-II LD Aspherical', #40
     161.4 => 'Tamron 90mm f/2.8',
+    161.5 => 'Sigma 24-60mm f/2.8 EX DG', #PH (http://www.lensrentals.com/blog/2012/08/canon-illumination-correction-and-third-party-lenses)
     162 => 'Canon EF 200mm f/2.8L', #32
     163 => 'Canon EF 300mm f/4L', #32
     164 => 'Canon EF 400mm f/5.6L', #32
@@ -267,6 +272,7 @@ $VERSION = '2.99';
     169.4 => 'Sigma 50mm f/1.4 EX DG HSM', #PH
     169.5 => 'Sigma 85mm f/1.4 EX DG HSM', #Rolando Ruzic
     169.6 => 'Sigma 30mm f/1.4 EX DC HSM', #Rodolfo Borges
+    169.7 => 'Sigma 35mm f/1.4 DG HSM', #PH
     170 => 'Canon EF 200mm f/2.8L II', #9
     171 => 'Canon EF 300mm f/4L', #15
     172 => 'Canon EF 400mm f/5.6L', #32
@@ -350,7 +356,10 @@ $VERSION = '2.99';
     491 => 'Canon EF 300mm f/2.8L IS II USM', #42
     494 => 'Canon EF 600mm f/4.0L IS II USM', #PH
     495 => 'Canon EF 24-70mm f/2.8L II USM', #PH
-    4143 => 'Canon EF-M 22mm f/2 STM', #34
+    503 => 'Canon EF 24mm f/2.8 IS USM', #PH
+    502 => 'Canon EF 28mm f/2.8 IS USM', #PH
+    4142 => 'Canon EF-S 18-135mm f/3.5-5.6 IS STM',
+    4143 => 'Canon EF-M 18-55mm f/3.5-5.6 IS STM',
     4144 => 'Canon EF 40mm f/2.8 STM', #50
     4145 => 'Canon EF-M 22mm f/2 STM', #34
 );
@@ -521,10 +530,16 @@ $VERSION = '2.99';
     0x3260000 => 'PowerShot A3400 IS',
     0x3270000 => 'PowerShot A2400 IS',
     0x3280000 => 'PowerShot A2300',
+    0x3330000 => 'PowerShot G15', #25
+    0x3340000 => 'PowerShot SX50', #25
     0x3350000 => 'PowerShot SX160 IS',
+    0x3360000 => 'PowerShot S110 (new)',
     0x3370000 => 'PowerShot SX500 IS',
+    0x3390000 => 'IXUS 245 HS / IXY 430F', # (apparently no PowerShot equivalent)
     0x4040000 => 'PowerShot G1',
     0x6040000 => 'PowerShot S100 / Digital IXUS / IXY Digital',
+
+# (see http://cweb.canon.jp/e-support/faq/answer/digitalcamera/10447-1.html for PowerShot/IXUS/IXY names)
 
     0x4007d673 => 'DC19/DC21/DC22',
     0x4007d674 => 'XH A1',
@@ -594,9 +609,12 @@ $VERSION = '2.99';
     0x80000297 => 'WFT-E2 II',
     0x80000298 => 'WFT-E4 II',
     0x80000301 => 'EOS Rebel T4i / 650D / Kiss X6i',
+    0x80000302 => '6D', #25
+    0x80000331 => 'EOS M',
 );
 
 my %canonQuality = (
+    -1 => 'n/a', # (PH, EOS M MOV video)
     1 => 'Economy',
     2 => 'Normal',
     3 => 'Fine',
@@ -929,6 +947,11 @@ my %binaryDataAttrs = (
             Name => 'CanonCameraInfo600D',
             Condition => '$$self{Model} =~ /\b(600D|REBEL T3i|Kiss X5)\b/',
             SubDirectory => { TagTable => 'Image::ExifTool::Canon::CameraInfo600D' },
+        },
+        {
+            Name => 'CanonCameraInfo650D',
+            Condition => '$$self{Model} =~ /\b(650D|REBEL T4i|Kiss X6i)\b/',
+            SubDirectory => { TagTable => 'Image::ExifTool::Canon::CameraInfo650D' },
         },
         {
             Name => 'CanonCameraInfo1000D',
@@ -1455,7 +1478,7 @@ my %binaryDataAttrs = (
             Name => 'ColorData6',
             SubDirectory => { TagTable => 'Image::ExifTool::Canon::ColorData6' },
         },
-        {   # (int16u[1312]) - 1DX, 5DmkIII
+        {   # (int16u[1312]) - 1DX, 5DmkIII, 650D
             Condition => '$count == 1312',
             Name => 'ColorData7',
             SubDirectory => { TagTable => 'Image::ExifTool::Canon::ColorData7' },
@@ -1587,6 +1610,7 @@ my %binaryDataAttrs = (
     4 => {
         Name => 'CanonFlashMode',
         PrintConv => {
+            -1 => "n/a", # (PH, EOS M MOV video)
             0 => 'Off',
             1 => 'Auto',
             2 => 'On',
@@ -1623,6 +1647,7 @@ my %binaryDataAttrs = (
             6 => 'Manual Focus (6)',
            16 => 'Pan Focus', #PH
            # 137 - Single?
+           # 519 - seen in EOS M MOV video
         },
     },
     9 => { #PH
@@ -2982,14 +3007,6 @@ my %ciMaxFocal = (
     0x06 => { %ciISO },
     0x1b => { %ciCameraTemperature },
     0x20 => { %ciFocalLength },
-    0x89 => {
-        Name => 'FocusDistanceUpper',
-        %focusDistanceByteSwap,
-    },
-    0x8b => {
-        Name => 'FocusDistanceLower',
-        %focusDistanceByteSwap,
-    },
     0x7a => {
         Name => 'CameraOrientation',
         PrintConv => {
@@ -2997,6 +3014,14 @@ my %ciMaxFocal = (
             1 => 'Rotate 90 CW',
             2 => 'Rotate 270 CW',
         },
+    },
+    0x89 => {
+        Name => 'FocusDistanceUpper',
+        %focusDistanceByteSwap,
+    },
+    0x8b => {
+        Name => 'FocusDistanceLower',
+        %focusDistanceByteSwap,
     },
     0xb5 => {
         Name => 'WhiteBalance',
@@ -4331,6 +4356,88 @@ my %ciMaxFocal = (
     },
 );
 
+# Canon camera information for 650D (MakerNotes tag 0x0d) (ref PH)
+%Image::ExifTool::Canon::CameraInfo650D = (
+    %binaryDataAttrs,
+    FORMAT => 'int8u',
+    FIRST_ENTRY => 0,
+    PRIORITY => 0,
+    IS_SUBDIR => [ 0x390 ],
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    NOTES => 'CameraInfo tags for the EOS 650D.',
+    0x03 => { %ciFNumber },
+    0x04 => { %ciExposureTime },
+    0x06 => { %ciISO },
+    0x1b => { %ciCameraTemperature }, # (1DX/5DmkIII + 0)
+    0x20 => { %ciFocalLength }, # (1DX/5DmkIII + 0)
+    # 0x35 - seems to be the same as 0x54
+    0x7d => { # (1DX/5DmkIII + 3)
+        Name => 'CameraOrientation',
+        PrintConv => {
+            0 => 'Horizontal (normal)',
+            1 => 'Rotate 90 CW',
+            2 => 'Rotate 270 CW',
+        },
+    },
+    0x8c => { # (1DX + 3)
+        Name => 'FocusDistanceUpper',
+        %focusDistanceByteSwap,
+    },
+    0x8e => { # (1DX + 3)
+        Name => 'FocusDistanceLower',
+        %focusDistanceByteSwap,
+    },
+    0xbc => { # (1DX + 7)
+        Name => 'WhiteBalance',
+        Format => 'int16u',
+        SeparateTable => 1,
+        PrintConv => \%canonWhiteBalance,
+    },
+    0xc0 => { # (1DX + 7)
+        Name => 'ColorTemperature',
+        Format => 'int16u',
+    },
+    0xf4 => { # (1DX + 7)
+        Name => 'PictureStyle',
+        Format => 'int8u',
+        Flags => ['PrintHex','SeparateTable'],
+        PrintConv => \%pictureStyles,
+    },
+    0x127 => {
+        Name => 'LensType',
+        Format => 'int16uRev', # value is big-endian
+        SeparateTable => 1,
+        ValueConvInv => 'int($val)', # (must truncate decimal part)
+        PrintConv => \%canonLensTypes,
+    },
+    0x129 => { %ciMinFocal },
+    0x12b => { %ciMaxFocal },
+    0x21b => { # (version 1.0.1)
+        Name => 'FirmwareVersion',
+        Format => 'string[6]',
+        Writable => 0,
+        RawConv => '$val=~/^\d+\.\d+\.\d+\s*$/ ? $val : undef',
+    },
+    0x270 => { # (NC)
+        Name => 'FileIndex',
+        Groups => { 2 => 'Image' },
+        Format => 'int32u',
+        ValueConv => '$val + 1',
+        ValueConvInv => '$val - 1',
+    },
+    0x27c => { # (NC)
+        Name => 'DirectoryIndex',
+        Groups => { 2 => 'Image' },
+        Format => 'int32u',
+        ValueConv => '$val - 1',
+        ValueConvInv => '$val + 1',
+    },
+    0x390 => {
+        Name => 'PictureStyleInfo',
+        SubDirectory => { TagTable => 'Image::ExifTool::Canon::PSInfo2' },
+    },
+);
+
 # Canon camera information for 1000D (MakerNotes tag 0x0d) (ref PH)
 %Image::ExifTool::Canon::CameraInfo1000D = (
     %binaryDataAttrs,
@@ -5147,8 +5254,8 @@ my %ciMaxFocal = (
     GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
     NOTES => q{
         Newer version of the AFInfo record containing much of the same information
-        (and coordinate confusion) as the older version.  In this record, values of
-        9 and 45 have been observed for NumAFPoints.
+        (and coordinate confusion) as the older version.  In this record, NumAFPoints
+        may be 7, 9, 11, 19, 31, 45 or 61, depending on the camera model.
     },
     0 => {
         Name => 'AFInfoSize',
@@ -5164,6 +5271,7 @@ my %ciMaxFocal = (
             7 => 'Zone AF', #46
             8 => 'AF Point Expansion', #46
             9 => 'Spot AF', #46
+            # 13 - seen this for the EOS M - PH
         },
     },
     2 => {
@@ -5517,6 +5625,11 @@ my %ciMaxFocal = (
         },
         { #7 (1DmkII, 1DSmkII, 1DSmkIIN)
             Name => 'ShutterCount',
+            # ref http://www.luminous-landscape.com/forum/index.php?topic=36469 :
+            Notes => q{
+                there are reports that the ShutterCount changed when loading a settings file
+                on the 1DSmkII
+            },
             Condition => '$$self{Model} =~ /\b1Ds? Mark II\b/',
             Format => 'int32u',
             ValueConv => '($val>>16)|(($val&0xffff)<<16)',
@@ -6365,7 +6478,7 @@ my %ciMaxFocal = (
     0x00 => {
         Name => 'ColorDataVersion',
         PrintConv => {
-            10 => '10 (1DX/5DmkIII)',
+            10 => '10 (1DX/5DmkIII/650D)',
         },
     },
     0x3f => { Name => 'WB_RGGBLevelsAsShot',     Format => 'int16s[4]' },
@@ -7157,6 +7270,7 @@ sub PrintFocalRange(@)
 # Notes: The tagID's for serial stream tags are consecutive indices beginning
 #        at 0, and the corresponding values must be contiguous in memory.
 #        "Unknown" tags must be used to skip padding or unknown values.
+# (does not yet extract Rational values)
 sub ProcessSerialData($$$)
 {
     my ($exifTool, $dirInfo, $tagTablePtr) = @_;
@@ -7427,7 +7541,7 @@ Canon maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

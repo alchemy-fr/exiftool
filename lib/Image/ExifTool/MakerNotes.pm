@@ -20,7 +20,7 @@ sub ProcessGE2($$$);
 sub WriteUnknownOrPreview($$$);
 sub FixLeicaBase($$;$);
 
-$VERSION = '1.75';
+$VERSION = '1.76';
 
 my $debug;          # set to 1 to enable debugging code
 
@@ -32,6 +32,19 @@ my $debug;          # set to 1 to enable debugging code
 # - Put these in alphabetical order to make TagNames documentation nicer.
 @Image::ExifTool::MakerNotes::Main = (
     # decide which MakerNotes to use (based on camera make/model)
+    {
+        # this maker notes starts with a standard TIFF header at offset 0x0a
+        # (must check Nikon signature first because Nikon Capture NX can generate
+        #  NEF images containing Nikon maker notes from JPEG images of any camera model)
+        Name => 'MakerNoteNikon',
+        Condition => '$$valPt=~/^Nikon\x00\x02/',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Nikon::Main',
+            Start => '$valuePtr + 18',
+            Base => '$start - 8',
+            ByteOrder => 'Unknown',
+        },
+    },
     {
         Name => 'MakerNoteCanon',
         # (starts with an IFD)
@@ -413,20 +426,9 @@ my $debug;          # set to 1 to enable debugging code
         Notes => 'not EXIF-based',
     },
     {
-        # this maker notes starts with a standard TIFF header at offset 0x0a
-        Name => 'MakerNoteNikon',
-        Condition => '$$self{Make}=~/^NIKON/i and $$valPt=~/^Nikon\x00\x02/',
-        SubDirectory => {
-            TagTable => 'Image::ExifTool::Nikon::Main',
-            Start => '$valuePtr + 18',
-            Base => '$start - 8',
-            ByteOrder => 'Unknown',
-        },
-    },
-    {
         # older Nikon maker notes
         Name => 'MakerNoteNikon2',
-        Condition => '$$self{Make}=~/^NIKON/ and $$valPt=~/^Nikon\x00\x01/',
+        Condition => '$$valPt=~/^Nikon\x00\x01/',
         SubDirectory => {
             TagTable => 'Image::ExifTool::Nikon::Type2',
             Start => '$valuePtr + 8',
@@ -1538,7 +1540,7 @@ maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

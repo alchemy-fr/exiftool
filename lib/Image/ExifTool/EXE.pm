@@ -21,7 +21,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 sub ProcessPEResources($$);
 sub ProcessPEVersion($$);
@@ -731,7 +731,7 @@ sub ProcessCHM($$)
     my $buff;
 
     return 0 unless $raf->Read($buff, 56) == 56 and
-        $buff =~ /^ITSF.{20}\x10\xfd\x01\x7c\xaa\x7b\xd0\x11\x9e\x0c\0\xa0\xc9\x22\xe6\xec/;
+        $buff =~ /^ITSF.{20}\x10\xfd\x01\x7c\xaa\x7b\xd0\x11\x9e\x0c\0\xa0\xc9\x22\xe6\xec/s;
     my $tagTablePtr = GetTagTable('Image::ExifTool::EXE::CHM');
     $exifTool->SetFileType();
     SetByteOrder('II');
@@ -1194,7 +1194,7 @@ library files.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -602,7 +602,7 @@ my %writeTable = (
     0xa435 => 'string',     # LensSerialNumber
     0xa500 => 'rational64u',# Gamma
 #
-# DNG stuff (back in IFD0)
+# DNG stuff (mostly in IFD0, "Raw IFD" in SubIFD)
 #
     0xc612 => {             # DNGVersion
         Writable => 'int8u',
@@ -794,6 +794,7 @@ my %writeTable = (
     },
     0xc65d => {             # RawDataUniqueID
         Writable => 'int8u',
+        Count => 16,
         WriteGroup => 'IFD0',
         Count => 16,
         ValueConvInv => 'pack("H*", $val)',
@@ -976,12 +977,14 @@ my %writeTable = (
     },
     0xc71c => {             # RawImageDigest
         Writable => 'int8u',
+        Count => 16,
         WriteGroup => 'IFD0',
         Protected => 1,
         ValueConvInv => 'pack("H*", $val)',
     },
     0xc71d => {             # OriginalRawFileDigest
         Writable => 'int8u',
+        Count => 16,
         WriteGroup => 'IFD0',
         Protected => 1,
         ValueConvInv => 'pack("H*", $val)',
@@ -998,6 +1001,63 @@ my %writeTable = (
         WriteGroup => 'IFD0',
         Protected => 1,
     },
+    0xc791 => {             # OriginalDefaultFinalSize
+        Writable => 'int32u',
+        Count => 2,
+        WriteGroup => 'IFD0',
+        Protected => 1,
+    },
+    0xc792 => {             # OriginalBestQualitySize
+        Writable => 'int32u',
+        Count => 2,
+        WriteGroup => 'IFD0',
+        Protected => 1,
+    },
+    0xc793 => {             # OriginalDefaultCropSize
+        Writable => 'rational64u',
+        Count => 2,
+        WriteGroup => 'IFD0',
+        Protected => 1,
+    },
+    0xc7a3 => {             # ProfileHueSatMapEncoding
+        Writable => 'int32u',
+        WriteGroup => 'IFD0',
+        Protected => 1,
+    },
+    0xc7a4 => {             # ProfileLookTableEncoding
+        Writable => 'int32u',
+        WriteGroup => 'IFD0',
+        Protected => 1,
+    },
+    0xc7a5 => {             # BaselineExposureOffset
+        Writable => 'rational64u',
+        WriteGroup => 'IFD0',
+        Protected => 1,
+    },
+    0xc7a6 => {             # DefaultBlackRender
+        Writable => 'int32u',
+        WriteGroup => 'IFD0',
+        Protected => 1,
+    },
+    0xc7a7 => {             # NewRawImageDigest
+        Writable => 'int8u',
+        Count => 16,
+        WriteGroup => 'IFD0',
+        Protected => 1,
+        ValueConvInv => 'pack("H*", $val)',
+    },
+    0xc7a8 => {             # RawToPreviewGain
+        Writable => 'double',
+        WriteGroup => 'IFD0',
+        Protected => 1,
+    },
+    0xc7b5 => {             # DefaultUserCrop
+        Writable => 'rational64u',
+        Count => 4,
+        WriteGroup => 'SubIFD',
+        Protected => 1,
+    },
+    # --- end DNG tags ---
     0xea1d => {             # OffsetSchema
         Writable => 'int32s',
     },
@@ -2524,7 +2584,7 @@ NoOverwrite:            next if $isNew > 0;
                         # must handle sub-IFD's specially since the values
                         # are actually offsets to subdirectories
                         unless ($readCount) {   # can't have zero count
-                            return undef if $exifTool->Error("$name entry $index has zero count", 1);
+                            return undef if $exifTool->Error("$name entry $index has zero count", 2);
                             next;
                         }
                         my $writeCount = 0;
@@ -3311,7 +3371,7 @@ NoOverwrite:            next if $isNew > 0;
                             # read and validate
                             undef $buff unless $r->Seek($offset+$base+$dataPos,0) and
                                                $r->Read($buff,$size) == $size and
-                                               $buff =~ /^.\xd8\xff[\xc4\xdb\xe0-\xef]/;
+                                               $buff =~ /^.\xd8\xff[\xc4\xdb\xe0-\xef]/s;
                             $r->Seek($tell, 0) or $exifTool->Error('Seek error'), return undef;
                         }
                         # set flag if we must load PreviewImage
@@ -3501,7 +3561,7 @@ This file contains routines to write EXIF metadata.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -19,7 +19,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 sub ProcessJpgFromRaw($$$);
 sub WriteJpgFromRaw($$$);
@@ -163,11 +163,11 @@ my %jpgFromRawMap = (
         PanasonicHack => 1,
         OffsetPair => 0x117, # (use StripByteCounts as the offset pair)
     },
-    # 0x119 undef[32] - lens distortion data? (http://thinkfat.blogspot.com/2009/02/dissecting-panasonic-rw2-files.html)
     0x119 => {
         Name => 'DistortionInfo',
         SubDirectory => { TagTable => 'Image::ExifTool::PanasonicRaw::DistortionInfo' },
     },
+    # 0x11b - chromatic aberration correction (ref 3)
     0x2bc => { # PH Extension!!
         Name => 'ApplicationNotes', # (writable directory!)
         Writable => 'int8u',
@@ -222,8 +222,14 @@ my %jpgFromRawMap = (
     FIRST_ENTRY => 0,
     NOTES => 'Lens distortion correction information.',
     # 0,1 - checksums
+    2 => {
+        Name => 'DistortionParam02',
+        ValueConv => '$val / 32768',
+        ValueConvInv => '$val * 32768',
+    },
+    # 3 - usually 0, but seen 0x026b when value 5 is non-zero
     4 => {
-        Name => 'DistortionParamB',
+        Name => 'DistortionParam04',
         ValueConv => '$val / 32768',
         ValueConvInv => '$val * 32768',
     },
@@ -232,6 +238,7 @@ my %jpgFromRawMap = (
         ValueConv => '1 / (1 + $val/32768)',
         ValueConvInv => '(1/$val - 1) * 32768',
     },
+    # 6 - seen 0x0000-0x027f
     7.1 => {
         Name => 'DistortionCorrection',
         Mask => 0x0f,
@@ -239,12 +246,18 @@ my %jpgFromRawMap = (
         PrintConv => { 0 => 'Off', 1 => 'On' },
     },
     8 => {
-        Name => 'DistortionParamA',
+        Name => 'DistortionParam08',
         ValueConv => '$val / 32768',
         ValueConvInv => '$val * 32768',
     },
+    9 => {
+        Name => 'DistortionParam09',
+        ValueConv => '$val / 32768',
+        ValueConvInv => '$val * 32768',
+    },
+    # 10 - seen 0xfc,0x0101,0x01f4,0x021d,0x0256
     11 => {
-        Name => 'DistortionParamC',
+        Name => 'DistortionParam11',
         ValueConv => '$val / 32768',
         ValueConvInv => '$val * 32768',
     },
@@ -252,6 +265,7 @@ my %jpgFromRawMap = (
         Name => 'DistortionN',
         Unknown => 1,
     },
+    # 13 - seen 0x0000,0x01f9-0x02b2
     # 14,15 - checksums
 );
 
@@ -498,7 +512,7 @@ write meta information in Panasonic/Leica RAW, RW2 and RWL images.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -32,7 +32,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.61';
+$VERSION = '1.62';
 
 sub FixWrongFormat($);
 sub ProcessMOV($$;$);
@@ -265,6 +265,7 @@ my %graphicsMode = (
     ],
     skip => [
         {
+            Name => 'CanonSkip',
             Condition => '$$valPt =~ /^\0.{3}(CNDB|CNCV|CNMN|CNFV|CNTH|CNDM)/s',
             SubDirectory => { TagTable => 'Image::ExifTool::Canon::Skip' },
         },
@@ -797,7 +798,7 @@ my %graphicsMode = (
         },
     },
     DcMD => {
-        Name => 'DcMD',
+        Name => 'KodakDcMD',
         SubDirectory => { TagTable => 'Image::ExifTool::Kodak::DcMD' },
     },
     # AMBA => Ambarella AVC atom (unknown data written by Kodak Playsport video cam)
@@ -944,6 +945,10 @@ my %graphicsMode = (
         Name => 'PanasonicPANA',
         SubDirectory => { TagTable => 'Image::ExifTool::Panasonic::PANA' },
     },
+    LEIC => { #PH
+        Name => 'LeicaLEIC',
+        SubDirectory => { TagTable => 'Image::ExifTool::Panasonic::PANA' },
+    },
     PENT => { #PH
         Name => 'PentaxPENT',
         SubDirectory => {
@@ -995,7 +1000,7 @@ my %graphicsMode = (
         },
     },
     Xtra => { #PH (microsoft)
-        Name => 'Xtra',
+        Name => 'MicrosoftXtra',
         SubDirectory => { TagTable => 'Image::ExifTool::Microsoft::Xtra' },
     },
     hinv => 'HintVersion', #PH (guess)
@@ -2882,7 +2887,7 @@ information from QuickTime and MP4 video, and M4A audio files.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -35,7 +35,7 @@ use vars qw($VERSION);
 use Image::ExifTool::Exif;
 use Image::ExifTool::APP12;
 
-$VERSION = '1.92';
+$VERSION = '1.97';
 
 sub PrintLensInfo($$$);
 
@@ -283,11 +283,15 @@ my %olympusCameraTypes = (
     D4519 => 'SZ-14',
     D4520 => 'SZ-31MR',
     D4521 => 'SH-25MR',
+    D4523 => 'SP-720UZ',
     D4529 => 'VG170',
+    D4531 => 'XZ-2',
     D4535 => 'SP-620UZ',
     D4536 => 'TG-320',
     D4537 => 'VR340,D750',
     D4541 => 'SZ-12',
+    D4545 => 'VH410',
+    D4562 => 'SP-820UZ',
     D4809 => 'C2500L',
     D4842 => 'E-10',
     D4856 => 'C-1',
@@ -316,6 +320,8 @@ my %olympusCameraTypes = (
     S0038 => 'E-PL3',
     S0039 => 'E-PM1',
     S0040 => 'E-PL1s',
+    S0042 => 'E-PL5',
+    S0043 => 'E-PM2',
     SR45 => 'D220',
     SR55 => 'D320L',
     SR83 => 'D340L',
@@ -439,6 +445,7 @@ my %filters = (
     28 => 'Reflection', # (TG-820,SZ-31MR)
     29 => 'Fragmented', # (TG-820,SZ-31MR)
     32 => 'Dramatic Tone B&W', # (E-M5)
+    33 => 'Watercolor II', # (E-PM2)
 );
 
 # tag information for WAV "Index" tags
@@ -709,6 +716,7 @@ my %indexInfo = (
             43 => 'Hand-held Starlight', #PH (SH-21)
             100 => 'Panorama', #PH (SH-21)
             101 => 'Magic Filter', #PH
+            103 => 'HDR', #PH (XZ-2)
         },
     },
     0x0404 => { #PH (D595Z, C7070WZ)
@@ -1702,6 +1710,11 @@ my %indexInfo = (
         PrintConv => '$val=sprintf("%x",$val);$val=~s/(.{3})$/\.$1/;$val',
         PrintConvInv => '$val=sprintf("%.3f",$val);$val=~s/\.//;hex($val)',
     },
+    0x403 => { #http://dev.exiv2.org/issues/870
+        Name => 'ConversionLens',
+        Writable => 'string',
+        # (observed values: '','TCON','FCON','WCON')
+    },
     0x1000 => { #6
         Name => 'FlashType',
         Writable => 'int16u',
@@ -2096,6 +2109,7 @@ my %indexInfo = (
             66 => 'e-Portrait', #11
             67 => 'Soft Background Shot', #11
             142 => 'Hand-held Starlight', #PH (SH-21)
+            154 => 'HDR', #PH (XZ-2)
         },
     },
     0x50a => { #PH/4/6
@@ -2264,6 +2278,8 @@ my %indexInfo = (
                 0x8030 => 'Frame',
                 0x8040 => 'Soft Focus',
                 0x8050 => 'White Edge',
+                0x8060 => 'B&W', # (NC - E-PL2 with "Grainy Film" filter)
+                # (E-PL2 also has "Pict. Tone" effect)
             },
         ],
     },
@@ -3931,7 +3947,7 @@ sub ExtenderStatus($$$)
     # (other extenders don't seem to affect the reported max aperture)
     return 1 if "$info[0] $info[1]" ne '0 4';
     # get the maximum aperture for this lens (in $1)
-    $lensType =~ / F(\d+(.\d+)?)/ or return 1;
+    $lensType =~ / F(\d+(\.\d+)?)/ or return 1;
     # If the maximum aperture at the maximum focal length is greater than the
     # known max/max aperture of the lens, then the extender must be attached
     return ($maxAperture - $1 > 0.2) ? 1 : 2;
@@ -3994,7 +4010,7 @@ Olympus or Epson maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2012, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
