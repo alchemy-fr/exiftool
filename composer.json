@@ -1,6 +1,5 @@
 {
     "name": "phpexiftool/exiftool",
-    "version": "9.01",
     "type": "library",
     "description": "Exiftool is a library for reading, writing and editing meta information. This package is not PHP, but required for the main PHP driver : PHP Exiftool",
     "keywords": ["exiftool", "metadatas"],
