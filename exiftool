@@ -12,7 +12,7 @@
 use strict;
 require 5.004;
 
-my $version = '9.12';
+my $version = '9.15';
 
 # add our 'lib' directory to the include list BEFORE 'use Image::ExifTool'
 my $exeDir;
@@ -74,6 +74,7 @@ my @csvTags;        # order of tags for first file with CSV option (lower case)
 my @delFiles;       # list of files to delete
 my @dynamicFiles;   # list of -tagsFromFile files with dynamic names and -TAG<=FMT pairs
 my @exclude;        # list of excluded tags
+my (@echo3, @echo4);# stdout and stderr echo after processing is complete
 my @files;          # list of files and directories to scan
 my @moreArgs;       # more arguments to process after -stay_open -@
 my @newValues;      # list of new tag values to set
@@ -270,8 +271,13 @@ if (grep /^-common_args$/i, @ARGV) {
 
 #..............................................................................
 # loop over sets of command-line arguments separated by "-execute"
-Command: while (@ARGV or not defined $rtnVal or $stayOpen >= 2 or @commonArgs)
-{
+Command: for (;;) {
+
+@echo3 and print STDOUT join("\n", @echo3), "\n";
+@echo4 and print STDERR join("\n", @echo4), "\n";
+
+# exit Command loop now if we are all done processing commands
+last unless @ARGV or not defined $rtnVal or $stayOpen >= 2 or @commonArgs;
 
 # attempt to restore text mode for STDOUT if necessary
 if ($binaryStdout) {
@@ -303,6 +309,8 @@ undef @csvFiles;
 undef @csvTags;
 undef @delFiles;
 undef @dynamicFiles;
+undef @echo3;
+undef @echo4;
 undef @exclude;
 undef @files;
 undef @newValues;
@@ -394,7 +402,7 @@ my $setTagsFile;    # filename for last TagsFromFile option
 my $sortOpt;        # sort option is used
 my $useMWG;         # flag set if we are using any MWG tag
 
-my ($argsLeft, @nextPass);
+my ($argsLeft, @nextPass, $badCmd);
 my $pass = 0;
 
 # for Windows, use globbing for wildcard expansion if available - MK/20061010
@@ -417,6 +425,7 @@ for (;;) {
 
   # execute the command now if no more arguments or -execute is used
   if (not @ARGV or $ARGV[0] =~ /^-execute(\d*)$/i) {
+    next Command if $badCmd;
     if (@ARGV) {
         $executeID = $1;        # save -execute number for "{ready}" response
         $helped = 1;            # don't show help if we used -execute
@@ -459,6 +468,8 @@ for (;;) {
     last;               # process the command now
   }
   $_ = shift;
+  next if $badCmd;      # flush remaining arguments if aborting this command
+
   if (s/^(-|\xe2\x88\x92)//) {  # allow funny dashes (nroff dash bug for cut-n-paste from pod)
     s/^\xe2\x88\x92/-/;         # translate double-dash too
     my $a = lc $_;
@@ -529,14 +540,15 @@ for (;;) {
         $setTagsFile = $2 ? substr($2,1) : (@ARGV ? shift : '');
         if ($setTagsFile eq '') {
             Error("File must be specified for -tagsFromFile option\n");
-            next Command;
+            $badCmd = 1;
+            next;
         }
         # create necessary lists, etc for this new -tagsFromFile file
         AddSetTagsFile($setTagsFile, { Replace => ($1 and lc($1) eq 'add') ? 0 : 1 } );
         next;
     }
     if ($a eq '@') {
-        my $argFile = shift or Error("Expecting filename for -\@ option\n"), next Command;
+        my $argFile = shift or Error("Expecting filename for -\@ option\n"), $badCmd=1, next;
         # switch to new ARGFILE if using chained -stay_open options
         if ($stayOpen == 1) {
             # defer remaining arguments until we close this argfile
@@ -557,7 +569,8 @@ for (;;) {
         unless (Open($fp, $argFile)) {
             unless ($argFile !~ /^\// and Open($fp, "$exeDir/$argFile")) {
                 Error "Error opening arg file $argFile\n";
-                next Command;
+                $badCmd = 1;
+                next
             }
         }
         if ($stayOpen == 1) {
@@ -589,7 +602,7 @@ for (;;) {
     /^b(inary)?$/i and $mainTool->Options(Binary => 1), $binaryOutput = 1, next;
     if (/^c(oordFormat)?$/i) {
         my $fmt = shift;
-        $fmt or Error("Expecting coordinate format for -c option\n"), next Command;
+        $fmt or Error("Expecting coordinate format for -c option\n"), $badCmd=1, next;
         $mainTool->Options('CoordFormat', $fmt);
         next;
     }
@@ -639,7 +652,7 @@ for (;;) {
     }
     if (/^d$/ or $a eq 'dateformat') {
         my $fmt = shift;
-        $fmt or Error("Expecting date format for -d option\n"), next Command;
+        $fmt or Error("Expecting date format for -d option\n"), $badCmd=1, next;
         $mainTool->Options('DateFormat', $fmt);
         next;
     }
@@ -649,10 +662,16 @@ for (;;) {
     (/^-e$/ or $a eq 'composite') and $mainTool->Options(Composite => 1), next;
     (/^E$/ or $a eq 'escapehtml') and require Image::ExifTool::HTML and $escapeHTML = 1, next;
     ($a eq 'ex' or $a eq 'escapexml') and $escapeXML = 1, next;
-    if (/^echo(2)?$/i) {
-        next unless @ARGV;
-        $pass or push(@nextPass, "-$_", shift), next;
-        print {$1 ? \*STDERR : \*STDOUT} shift, "\n";
+    if (/^echo(\d)?$/i) {
+        my $n = $1 || 1;
+        my $arg = shift;
+        next unless defined $arg;
+        $n > 4 and Warn("Invalid -echo number\n"), next;
+        if ($n > 2) {
+            $n == 3 ? push(@echo3, $arg) : push(@echo4, $arg);
+        } else {
+            print {$n==2 ? \*STDERR : \*STDOUT} $arg, "\n";
+        }
         $helped = 1;
         next;
     }
@@ -664,7 +683,7 @@ for (;;) {
     # (-execute handled at top of loop)
     if (/^-?ext(ension)?$/i) {
         my $ext = shift;
-        defined $ext or Error("Expecting extension for -ext option\n"), next Command;
+        defined $ext or Error("Expecting extension for -ext option\n"), $badCmd=1, next;
         $ext =~ s/^\.//;    # remove leading '.' if it exists
         my $flag = /^-/ ? 0 : 1;
         $filterFlag |= (0x01 << $flag);
@@ -697,12 +716,12 @@ for (;;) {
     }
     if ($a eq 'geotag') {
         my $trkfile = shift;
-        $trkfile or Error("Expecting file name for -geotag option\n"), next Command;
+        $trkfile or Error("Expecting file name for -geotag option\n"), $badCmd=1, next;
         # allow wildcards in filename
         if ($trkfile =~ /[*?]/) {
             # CORE::glob() splits on white space, so use File::Glob if possible
             my @trks = eval('require File::Glob') ? File::Glob::bsd_glob($trkfile) : glob($trkfile);
-            @trks or Error("No matching file found for -geotag option\n"), next Command;
+            @trks or Error("No matching file found for -geotag option\n"), $badCmd=1, next;
             push @newValues, 'geotag='.shift(@trks) while @trks > 1;
             $trkfile = pop(@trks);
         }
@@ -724,13 +743,13 @@ for (;;) {
     }
     if (/^i(gnore)?$/i) {
         my $dir = shift;
-        defined $dir or Error("Expecting directory name for -i option\n"), next Command;
+        defined $dir or Error("Expecting directory name for -i option\n"), $badCmd=1, next;
         $ignore{$dir} = 1;
         next;
     }
     if ($a eq 'if') {
         my $cond = shift;
-        defined $cond or Error("Expecting expression for -if option\n"), next Command;
+        defined $cond or Error("Expecting expression for -if option\n"), $badCmd=1, next;
         $useMWG = 1 if $cond =~ /\$\{?mwg:/i;
         if (defined $condition) {
             $condition .= " and ($cond)";
@@ -784,7 +803,7 @@ for (;;) {
         $langs =~ tr/_/-/;  # display dashes instead of underlines in language codes
         $langs = $mainTool->Decode($langs, 'UTF8');
         $langs = Image::ExifTool::HTML::EscapeHTML($langs) if $escapeHTML;
-        $lang and Error("Invalid or unsupported language '$lang'.\n$langs"), next Command;
+        $lang and Error("Invalid or unsupported language '$lang'.\n$langs"), $badCmd=1, next;
         print $langs;
         $helped = 1;
         next;
@@ -799,7 +818,7 @@ for (;;) {
     /^(-n|printconv)$/i and $mainTool->Options(PrintConv => 1), next;
     if (/^o(ut)?$/i) {
         $outOpt = shift;
-        defined $outOpt or Error("Expected output file or directory name for -o option\n"), next Command;
+        defined $outOpt or Error("Expected output file or directory name for -o option\n"), $badCmd=1, next;
         CleanFilename($outOpt);
         next;
     }
@@ -819,11 +838,12 @@ for (;;) {
         my $ver = shift;
         unless (defined $ver and Image::ExifTool::IsFloat($ver)) {
             Error("Expecting version number for -require option\n");
-            next Command;
+            $badCmd = 1;
+            next;
         }
         unless ($Image::ExifTool::VERSION >= $ver) {
             Error("Requires ExifTool version $ver or later\n");
-            next Command;
+            $badCmd = 1;
         }
         next;
     }
@@ -833,7 +853,7 @@ for (;;) {
     /^scanforxmp$/i and $mainTool->Options(ScanForXMP => 1), next;
     if (/^sep(arator)?$/i) {
         $listSep = shift;
-        defined $listSep or Error("Expecting list item separator for -sep option\n"), next Command;
+        defined $listSep or Error("Expecting list item separator for -sep option\n"), $badCmd=1, next;
         $mainTool->Options(ListSep => $listSep);
         $joinLists = 1;
         # also split when writing values
@@ -897,7 +917,7 @@ for (;;) {
     }
     if ($a eq 'use') {
         my $module = shift;
-        $module or Error("Expecting module name for -use option\n"), next Command;
+        $module or Error("Expecting module name for -use option\n"), $badCmd=1, next;
         lc $module eq 'mwg' and $useMWG = 1, next;
         local $SIG{'__WARN__'} = sub { $evalWarning = $_[0] };
         unless (eval "require Image::ExifTool::$module" or
@@ -906,7 +926,7 @@ for (;;) {
         {
             delete $SIG{'__WARN__'};
             Error("Error using module $module\n");
-            next Command;
+            $badCmd = 1;
         }
         next;
     }
@@ -919,9 +939,16 @@ for (;;) {
         $textOverwrite = $2;
         next;
     }
+    if ($a eq 'wm' or $a eq 'writemode') {
+        my $wm = shift;
+        defined $wm or Error("Expecting argument for -$_ option\n"), $badCmd=1, next;
+        $wm =~ /^[wcg]*$/i or Error("Invalid argument for -$_ option\n"), $badCmd=1, next;
+        $mainTool->Options(WriteMode => $wm);
+        next;
+    }
     if (/^x$/ or $a eq 'exclude') {
         my $tag = shift;
-        defined $tag or Error("Expecting tag name for -x option\n"), next Command;
+        defined $tag or Error("Expecting tag name for -x option\n"), $badCmd=1, next;
         $tag =~ s/\ball\b/\*/ig;    # replace 'all' with '*' in tag names
         if ($setTagsFile) {
             push @{$setTags{$setTagsFile}}, "-$tag";
@@ -939,7 +966,7 @@ for (;;) {
     }
     /^z(ip)?$/i and $doUnzip = 1, $mainTool->Options(Compress => 1, Compact => 1), next;
     $_ eq '' and push(@files, '-'), next;   # read STDIN
-    length $_ eq 1 and $_ ne '*' and Error("Unknown option -$_\n"), next Command;
+    length $_ eq 1 and $_ ne '*' and Error("Unknown option -$_\n"), $badCmd=1, next;
     if (/^[^<]+(<?)=(.*)/s) {
         my $val = $2;
         if ($1 and length($val) and ($val eq '@' or not defined FilenameSPrintf($val))) {
@@ -1220,10 +1247,10 @@ if (@newValues) {
             $needSave = 1;
             next;
         }
-        my %opts = (
-            Protected => 1, # allow writing of 'unsafe' tags
-            Shift => 0,     # shift values if possible instead of adding/deleting
-        );
+        my %opts = ( Shift => 0 );  # shift values if possible instead of adding/deleting
+        # allow writing of 'unsafe' tags unless specified by wildcard
+        $opts{Protected} = 1 unless $tag =~ /[?*]/;
+
         if ($tag =~ s/<// and defined $newVal) {
             if (defined FilenameSPrintf($newVal)) {
                 SlurpFile($newVal, \$newVal) or next;
@@ -3386,6 +3413,7 @@ L<Processing control|/Processing control>
   -scanForXMP                      Brute force XMP scan
   -u          (-unknown)           Extract unknown tags
   -U          (-unknown2)          Extract unknown binary tags too
+  -wm MODE    (-writeMode)         Set tag write/create mode
   -z          (-zip)               Read/write compressed information
 
 L<Special features|/Special features>
@@ -3410,7 +3438,7 @@ L<Advanced options|/Advanced options>
 
   -common_args                     Define common arguments
   -config CFGFILE                  Specify configuration file name
-  -echo[2] TEXT                    Echo text to stdout or stderr
+  -echo[NUM] TEXT                  Echo text to stdout or stderr
   -execute[NUM]                    Execute multiple commands on one line
   -srcfile FMT                     Set different source file name
   -stay_open FLAG                  Keep reading -@ argfile even after EOF
@@ -3441,8 +3469,7 @@ match any single character and zero or more characters respectively.  These
 may not be used in a group name, with the exception that a group name of
 C<*> (or C<All>) may be used to extract all instances of a tag (as if B<-a>
 was used).  Note that arguments containing wildcards must be quoted on the
-command line of most systems to prevent shell globbing, and wildcards may
-not be used when writing/deleting tags.
+command line of most systems to prevent shell globbing.
 
 A C<#> may be appended to the tag name to disable the print conversion on a
 per-tag basis (see the B<-n> option).  This may also be used when writing or
@@ -3481,12 +3508,15 @@ and updated in any other location where a same-named tag already exists.
 The preferred group is the first group in the following list where I<TAG> is
 valid: 1) EXIF, 2) IPTC, 3) XMP.
 
-The special C<All> tag may be used in this syntax only if a I<VALUE> is NOT
-given.  This causes all meta information to be deleted (or all information
-in a group if C<-GROUP:All=> is used).  Note that not all groups are
+The wildcards C<*> and C<?> may be used in tag names to assign the same
+value to multiple tags.  When specified with wildcards, "unsafe" tags are
+not written.  A tag name of C<All> is eqivalent to C<*> (except that it
+doesn't require quoting, while arguments with wildcards do on systems with
+shell globbing), and is often used when deleting all metadata (ie. C<-All=>)
+or an entire group (ie. C<-GROUP:All=>).  Note that not all groups are
 deletable, and that the JPEG APP14 "Adobe" group is not removed by default
 with C<-All=> because it may affect the appearance of the image.  Use the
-B<-listd> option for a complete list of deletable groups.  Also, within an
+B<-listd> option for a complete list of deletable groups. Also, within an
 image some groups may be contained within others, and these groups are
 removed if the containing group is deleted:
 
@@ -3528,10 +3558,11 @@ entries, or to shift date/time values.
 
 Copy tag values from I<SRCFILE> to I<FILE>.  Tag names on the command line
 after this option specify the tags to be copied, or excluded from the copy.
-If no tags are specified, then all possible tags (see note 1 below) from the
-source file are copied to same-named tags in the preferred location of the
-output file (the same as specifying C<-all>).  More than one
-B<-tagsFromFile> option may be used to copy tags from multiple files.
+Wildcards are permitted in these tag names.  If no tags are specified, then
+all possible tags (see note 1 below) from the source file are copied to
+same-named tags in the preferred location of the output file (the same as
+specifying C<-all>).  More than one B<-tagsFromFile> option may be used to
+copy tags from multiple files.
 
 By default, this option will commute information between same-named tags in
 different groups and write each tag to the preferred group.  This allows
@@ -3561,15 +3592,15 @@ B<-tagsFromFile>, and causes the value of I<SRCTAG> to be copied from
 I<SRCFILE> and written to I<DSTTAG> in I<FILE>.  Note that this argument
 must be quoted to prevent shell redirection, and there is no C<=> sign as
 when assigning new values.  Source and/or destination tags may be prefixed
-by a group name and/or suffixed by C<#>.  Wildcards may be used in the
-source tag name only, with the exception that C<All> or C<*> may be used as
-a destination group or tag name to represent the same family 1 group or tag
-name as the source.  If no destination group is specified, the information
-is written to the preferred group.  Whitespace around the C<E<gt>> or
-C<E<lt>> is ignored.  As a convenience, C<-tagsFromFile @> is assumed for
-any redirected tags which are specified without a prior B<-tagsFromFile>
-option.  Copied tags may also be added or deleted from a list with arguments
-of the form E<quot>'-I<SRCTAG>+E<gt>I<DSTTAG>'E<quot> or
+by a group name and/or suffixed by C<#>.  Wildcards are allowed in both the
+source and destination tag names.  A destination group and/or tag name of
+C<All> or C<*> writes to the same family 1 group and/or tag name as the
+source.  If no destination group is specified, the information is written to
+the preferred group.  Whitespace around the C<E<gt>> or C<E<lt>> is ignored.
+As a convenience, C<-tagsFromFile @> is assumed for any redirected tags
+which are specified without a prior B<-tagsFromFile> option.  Copied tags
+may also be added or deleted from a list with arguments of the form
+E<quot>'-I<SRCTAG>+E<gt>I<DSTTAG>'E<quot> or
 E<quot>'-I<SRCTAG>-E<gt>I<DSTTAG>'E<quot>.
 
 An extension of the redirection feature allows strings involving tag names
@@ -3588,8 +3619,9 @@ Notes:
 
 1) Some tags (generally tags which may affect the appearance of the image)
 are considered "unsafe" to write, and are only copied if specified
-explicitly.  See the L<tag name documentation|Image::ExifTool::TagNames> for
-more details about "unsafe" tags.
+explicitly (ie. no wildcards).  See the
+L<tag name documentation|Image::ExifTool::TagNames> for more details about
+"unsafe" tags.
 
 2) Be aware of the difference between excluding a tag from being copied
 (--I<TAG>), and deleting a tag (-I<TAG>=).  Excluding a tag prevents it from
@@ -3957,7 +3989,7 @@ with this command:
 
 produces output like this:
 
-    -- Generated by ExifTool 9.12 --
+    -- Generated by ExifTool 9.15 --
     File: a.jpg - 2003:10:31 15:44:19
     (f/5.6, 1/60s, ISO 100)
     File: b.jpg - 2006:05:23 11:57:38
@@ -3971,6 +4003,20 @@ If a specified tag does not exist, a minor warning is issued and the line
 with the missing tag is not printed.  However, the B<-f> option may be used
 to set the value of missing tags to '-', or the B<-m> option may be used to
 ignore minor warnings and leave the missing values empty.
+
+An advanced translation feature allows arbitrary Perl expressions to be
+applied to the value of any tag by placing them inside the braces after a
+semicolon following the tag name.  The expressions act on the default input
+variable (C<$_>) and may contain translation (C<tr///>) and substitution
+(C<s///>) operations.  Braces within the expression must be balanced.  The
+example below prints the camera Make with spaces translated to underlines,
+and multiple consecutive underlines replaced by a single underline:
+
+    exiftool -p '${make;tr/ /_/;s/__+/_/g}' image.jpg
+
+A default expression of C<tr(/\\?*:|"E<lt>E<gt>)()d> is assumed if the
+expression is empty, and removes the characters / \ ? * : | < and > from the
+printed value.
 
 =item B<-php>
 
@@ -4190,7 +4236,7 @@ B<-o> option with an XMP extension for the output file.
 
 Allow (B<-a>) or suppress (B<--a>) duplicate tag names to be extracted.  By
 default, duplicate tags are suppressed unless the B<-ee> or B<-X> options
-are used or the Duplicates option is enabled in the configuration file.
+are used or the Duplicates option is enabled in the configuration file. 
 
 =item B<-e> (B<--composite>)
 
@@ -4213,7 +4259,7 @@ extension.  There may be multiple B<-ext> and B<--ext> options.  Extensions
 may begin with a leading '.', and case is not significant.  For example:
 
     exiftool -ext .JPG DIR            # process only JPG files
-    exiftool --ext crw --ext dng DIR  # supported files but CRW/DNG
+    exiftool --ext cr2 --ext dng DIR  # supported files but CR2/DNG
     exiftool --ext . DIR              # ignore if no extension
     exiftool -ext "*" DIR             # process all files
     exiftool -ext "*" --ext xml DIR   # process all but XML files
@@ -4439,6 +4485,16 @@ automatically from these formats.
 Extract values of unknown tags as well as unknown information from some
 binary data blocks.  This is the same as two B<-u> options.
 
+=item B<-wm> I<MODE> (B<-writeMode>)
+
+Set mode for writing/creating tags.  I<MODE> is a string of one or more
+characters from the list below.  Write mode is C<wcg> unless otherwise
+specified.
+
+    w - Write existing tags
+    c - Create new tags
+    g - create new Groups as necessary
+
 =item B<-z> (B<-zip>)
 
 When reading, causes information to be extracted from .gz and .bz2
@@ -4468,11 +4524,16 @@ example, the following two commands are equivalent:
 
 When the C<Geotime> value is converted to UTC, the local system timezone is
 assumed unless the date/time value contains a timezone.  Writing C<Geotime>
-causes the following 8 EXIF tags to be created:  GPSLatitude,
-GPSLatitudeRef, GPSLongitude, GPSLongitudeRef, GPSAltitude, GPSAltitudeRef,
-GPSDateStamp and GPSTimeStamp.  Alternately C<XMP:Geotime> may be written to
-create the following 5 XMP tags: GPSLatitude, GPSLongitude, GPSAltitude,
-GPSAltitudeRef and GPSDateTime.
+causes the following tags to be written (provided they can be calculated
+from the track log, and they are supported by the destination metadata
+format):  GPSLatitude, GPSLatitudeRef, GPSLongitude, GPSLongitudeRef,
+GPSAltitude, GPSAltitudeRef, GPSDateStamp, GPSTimeStamp, GPSDateTime,
+GPSTrack, GPSTrackRef, GPSSpeed, GPSSpeedRef, GPSImgDirection,
+GPSImgDirectionRef, GPSPitch and GPSRoll.  By default, tags are created in
+EXIF, and updated in XMP only if they already exist.  However,
+C<EXIF:Geotime> or C<XMP:Geotime> may be specified to write only EXIF or XMP
+tags respectively.  Note that GPSPitch and GPSRoll are non-standard, and
+require user-defined tags in order to be written.
 
 The C<Geosync> tag may be used to specify a time correction which is applied
 to each C<Geotime> value for synchronization with GPS time.  For example,
@@ -4663,10 +4724,12 @@ string ("") to disable loading of the config file.  See the sample
 configuration file and "config.html" in the full ExifTool distribution for
 more information about the ExifTool configuration file.
 
-=item B<-echo>[2] I<TEXT>
+=item B<-echo>[I<NUM>] I<TEXT>
 
-Echo text to stdout (B<-echo>) or stderr (B<-echo2>).  Text is output as
-the command line is parsed, before the processing of any input files.
+Echo text to stdout (B<-echo> or B<-echo1>) or stderr (B<-echo2>).  Text is
+output as the command line is parsed, before the processing of any input
+files.  I<NUM> may also be 3 or 4 to output text (to stdout or stderr
+respectively) after processing is complete.
 
 =item B<-execute>[I<NUM>]
 
@@ -4782,12 +4845,12 @@ directory, writing text output to C<.txt> files with the same names.
 
 Save thumbnail image from C<image.jpg> to a file called C<thumbnail.jpg>.
 
-=item exiftool -b -JpgFromRaw -w _JFR.JPG -ext CRW -r .
+=item exiftool -b -JpgFromRaw -w _JFR.JPG -ext NEF -r .
 
-Recursively extract JPG image from all Canon CRW files in the current
+Recursively extract JPG image from all Nikon NEF files in the current
 directory, adding C<_JFR.JPG> for the name of the output JPG files.
 
-=item exiftool -d '%r %a, %B %e, %Y' -DateTimeOriginal -S -s *.jpg
+=item exiftool -d '%r %a, %B %e, %Y' -DateTimeOriginal -S -s -ext jpg .
 
 Print formatted date/time for all JPG files in the current directory.
 
@@ -4846,7 +4909,7 @@ be used (ie. -Comment=E<34>This is a new commentE<34>).
 
 Write new comment to a JPG image (replaces any existing comment).
 
-=item exiftool -comment= -o newdir *.jpg
+=item exiftool -comment= -o newdir -ext jpg .
 
 Remove comment from all JPG images in the current directory, writing the
 modified images to a new directory.
@@ -4906,10 +4969,10 @@ Recursively delete all XMP-crss information from images in a directory.
 Set the thumbnail image from specified file (Note: The quotes are necessary
 to prevent shell redirection).
 
-=item exiftool '-JpgFromRawE<lt>=%d%f_JFR.JPG' -ext CRW -r .
+=item exiftool '-JpgFromRawE<lt>=%d%f_JFR.JPG' -ext NEF -r .
 
 Recursively write JPEG images with filenames ending in C<_JFR.JPG> to the
-JpgFromRaw tag of like-named files with extension C<.CRW> in the current
+JpgFromRaw tag of like-named files with extension C<.NEF> in the current
 directory.  (This is the inverse of the C<-JpgFromRaw> command of the
 L</READING EXAMPLES> section above.)
 
@@ -4980,9 +5043,9 @@ These examples demonstrate the ability to copy tag values between files.
 
 =over 5
 
-=item exiftool -tagsFromFile src.crw dst.jpg
+=item exiftool -tagsFromFile src.cr2 dst.jpg
 
-Copy the values of all writable tags from C<src.crw> to C<dst.jpg>, writing
+Copy the values of all writable tags from C<src.cr2> to C<dst.jpg>, writing
 the information to same-named tags in the preferred groups.
 
 =item exiftool -TagsFromFile src.jpg -all:all dst.jpg
@@ -5054,10 +5117,10 @@ Also included with the distribution are xmp2iptc.args (which performs the
 inverse conversion) and a few more .args files for other conversions between
 EXIF, IPTC and XMP.
 
-=item exiftool -tagsfromfile %d%f.CRW -r -ext JPG dir
+=item exiftool -tagsfromfile %d%f.CR2 -r -ext JPG dir
 
 Recursively rewrite all C<JPG> images in C<dir> with information copied from
-the corresponding C<CRW> images in the same directories.
+the corresponding C<CR2> images in the same directories.
 
 =item exiftool '-make+>keywords' image.jpg
 
@@ -5146,9 +5209,12 @@ C<2005/10/12/image.jpg>.
 
 Same effect as above except files are copied instead of moved.
 
-=item exiftool '-filename<%f_${focallength}.%e' dir
+=item exiftool '-filename<%f_${model;}.%e' dir
 
-Rename all files in C<dir> by adding FocalLength to the file name.
+Rename all files in C<dir> by adding the camera model name to the file name.
+The semicolon after the tag name inside the braces causes characters which
+are invalid in Windows file names to be deleted from the tag value (see the
+B<-p> option documentation for an explanation).
 
 =item exiftool '-FileName<CreateDate' -d %Y%m%d_%H%M%S%%-c.%%e dir
 
@@ -5166,7 +5232,7 @@ recursively renames all images in a directory by adding a C<CreateDate>
 timestamp to the start of the filename, then moves them into new directories
 named by date.
 
-=item exiftool '-FileName<${CreateDate}_$filenumber.jpg' -d %Y%m%d *.jpg
+=item exiftool '-FileName<${CreateDate}_$filenumber.jpg' -d %Y%m%d -ext jpg .
 
 Set the filename of all JPG images in the current directory from the
 CreateDate and FileNumber tags, in the form "20060507_118-1861.jpg".

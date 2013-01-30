@@ -21,7 +21,7 @@ use vars qw($VERSION $AUTOLOAD $lastFetched);
 use Image::ExifTool qw(:DataAccess :Utils);
 require Exporter;
 
-$VERSION = '1.31';
+$VERSION = '1.33';
 
 sub FetchObject($$$$);
 sub ExtractObject($$;$$);
@@ -71,6 +71,10 @@ my $pdfVer;         # version of PDF file being processed
     WRITE_PROC => \&Image::ExifTool::DummyWriteProc,
     CHECK_PROC => \&CheckPDF,
     WRITABLE => 'string',
+    # set PRIORITY to 0 so most recent Info dictionary takes precedence
+    # (Acrobat Pro bug? doesn't use same object/generation number for
+    #  new Info dictionary when doing incrmental update)
+    PRIORITY => 0,
     NOTES => q{
         As well as the tags listed below, the PDF specification allows for
         user-defined tags to exist in the Info dictionary.  These tags, which should
@@ -1955,12 +1959,15 @@ XRef:
 #
 # extract the information beginning with each of the main dictionaries
 #
+    my $i = 0;
+    my $num = (scalar @mainDicts) / 2;
     while (@mainDicts) {
         my $dict = shift @mainDicts;
         my $type = shift @mainDicts;
         if ($verbose) {
+            ++$i;
             my $n = scalar(@{$$dict{_tags}});
-            $exifTool->VPrint(0, "PDF dictionary with $n entries:\n");
+            $exifTool->VPrint(0, "PDF dictionary ($i of $num) with $n entries:\n");
         }
         ProcessDict($exifTool, $tagTablePtr, $dict, \%xref, 0, $type);
     }

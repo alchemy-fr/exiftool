@@ -52,7 +52,7 @@ use vars qw($VERSION %pentaxLensTypes);
 use Image::ExifTool::Exif;
 use Image::ExifTool::HP;
 
-$VERSION = '2.52';
+$VERSION = '2.53';
 
 sub CryptShutterCount($$);
 sub PrintFilter($$$);
@@ -76,6 +76,7 @@ sub PrintFilter($$$);
     '3 0' => 'Sigma', # (includes 'Sigma 30mm F1.4 EX DC' - PH)
     # (and 'Sigma 105mm F2.8 EX DG Macro', ref 24)
     # (and 'Sigma 18-50mm F2.8 EX Macro')
+    # (and 'Sigma 180mm F4.5 EX DG Macro')
     '3 17' => 'smc PENTAX-FA SOFT 85mm F2.8',
     '3 18' => 'smc PENTAX-F 1.7X AF ADAPTER',
     '3 19' => 'smc PENTAX-F 24-50mm F4',
@@ -181,6 +182,7 @@ sub PrintFilter($$$);
     '4 49' => 'Tamron SP AF 28-75mm F2.8 XR Di (A09)',
     '4 51' => 'smc PENTAX-D FA 50mm F2.8 Macro',
     '4 52' => 'smc PENTAX-D FA 100mm F2.8 Macro',
+    '4 56' => 'Samsung D-XENON 100mm F2.8 Macro', #Alan Robinson
     '4 75' => 'Tamron SP AF 70-200mm F2.8 Di LD [IF] Macro (A001)', #JD
     '4 229' => 'smc PENTAX-DA 18-55mm F3.5-5.6 AL II', #JD
     '4 230' => 'Tamron SP AF 17-50mm F2.8 XR Di II', #20
@@ -288,9 +290,17 @@ sub PrintFilter($$$);
     '8 255.4' => 'Sigma 50-200mm F4-5.6 DC OS', #26
     '9 0' => '645 Manual Lens', #PH (NC)
     '10 0' => '645 A Series Lens', #PH
+    '11 1' => 'smc PENTAX-FA 645 75mm F2.8', #PH
+    '11 2' => 'smc Pentax-FA 645 45mm F2.8', #PH
+    '11 3' => 'smc PENTAX-FA* 645 300mm F4 ED [IF]', #PH
     '11 4' => 'smc PENTAX-FA 645 45-85mm F4.5', #PH
+    '11 5' => 'smc PENTAX-FA 645 400mm F5.6 ED [IF]', #PH
+    '11 7' => 'smc PENTAX-FA 645 Macro 120mm F4', #PH
     '11 8' => 'smc PENTAX-FA 645 80-160mm F4.5', #PH
+    '11 9' => 'smc PENTAX-FA 645 200mm F4 [IF]', #PH
+    '11 10' => 'smc PENTAX-FA 645 150mm F2.8 [IF]', #PH
     '11 11' => 'smc PENTAX-FA 645 35mm F3.5 AL [IF]', #PH
+    '11 14' => 'smc PENTAX-FA 645 55-110mm F5.6', #PH
     '11 16' => 'smc PENTAX-FA 645 33-55mm F4.5 AL', #PH
     '11 17' => 'smc PENTAX-FA 645 150-300mm F5.6 ED [IF]', #PH
     '13 18' => 'smc PENTAX-D FA 645 55mm F2.8 AL [IF] SDM AW', #PH

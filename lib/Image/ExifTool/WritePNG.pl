@@ -205,10 +205,11 @@ sub AddChunks($$)
     foreach $tag (sort keys %$addTags) {
         my $tagInfo = $$addTags{$tag};
         my $nvHash = $exifTool->GetNewValueHash($tagInfo);
-        # (always create native PNG information, so don't check IsCreating())
-        next unless $exifTool->IsOverwriting($nvHash) > 0;
+        # (native PNG information is always preferred, so don't check IsCreating)
+        next unless $exifTool->IsOverwriting($nvHash);
         my $val = $exifTool->GetNewValues($nvHash);
         if (defined $val) {
+            next if $$nvHash{EditOnly};
             my $data;
             if ($$tagInfo{Table} eq \%Image::ExifTool::PNG::TextualData) {
                 $data = BuildTextChunk($exifTool, $tag, $tagInfo, $val, $$tagInfo{LangCode});

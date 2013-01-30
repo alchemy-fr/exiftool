@@ -14,7 +14,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.10';
+$VERSION = '1.11';
 
 sub ProcessAPP12($$$);
 sub ProcessDucky($$$);
@@ -179,7 +179,7 @@ sub WriteDucky($$$)
                     $isNew = 1;
                 }
             } else {
-                next unless Image::ExifTool::IsCreating($nvHash);
+                next unless $$nvHash{IsCreating};
                 $isNew = 1;
             }
             if ($isNew) {

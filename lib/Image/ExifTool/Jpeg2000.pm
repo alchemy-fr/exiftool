@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.20';
+$VERSION = '1.21';
 
 sub ProcessJpeg2000Box($$$);
 
@@ -103,6 +103,7 @@ my %j2cMarker = (
     GROUPS => { 2 => 'Image' },
     PROCESS_PROC => \&ProcessJpeg2000Box,
     WRITE_PROC => \&ProcessJpeg2000Box,
+    PREFERRED => 1, # always add these tags when writing
     NOTES => q{
         The tags below are extracted from JPEG 2000 images, however ExifTool
         currently writes only EXIF, IPTC and XMP tags in these images.
@@ -195,20 +196,21 @@ my %j2cMarker = (
     jp2c => 'ContiguousCodestream',
     jp2i => {
         Name => 'IntellectualProperty',
-        SubDirectory => {
-            TagTable => 'Image::ExifTool::XMP::Main',
-        },
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::Main' },
     },
    'xml '=> {
         Name => 'XML',
+        Writable => 'undef',
+        Flags => [ 'Binary', 'Protected' ],
+        List => 1,
         Notes => q{
-            this XML-based information is not actually XMP, but it is parsed using the
-            ExifTool XMP module.  Writing of this XML is not currently supported.  XMP
-            is written to the UUID-XMP box as per the XMP specification
+            by default, the XML data in this tag is parsed using the ExifTool XMP module
+            to to allow individual tags to be accessed when reading, but may be treated
+            as a block instead by specifying the "XML" tag, which is also how this tag
+            is written and copied.  This is a List-type tag because multiple XML blocks
+            may exist
         },
-        SubDirectory => {
-            TagTable => 'Image::ExifTool::XMP::Main',
-        },
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::Main' },
     },
     uuid => [
         {
@@ -494,15 +496,34 @@ my %j2cMarker = (
 
 #------------------------------------------------------------------------------
 # Create new JPEG 2000 boxes when writing
-# (Currently only supports adding certain UUID boxes)
+# (Currently only supports adding top-level Writable JPEG2000 tags and certain UUID boxes)
 # Inputs: 0) ExifTool object ref, 1) Output file or scalar ref
 # Returns: 1 on success
 sub CreateNewBoxes($$)
 {
     my ($exifTool, $outfile) = @_;
+    my $addTags = $$exifTool{AddJp2Tags};
     my $addDirs = $$exifTool{AddJp2Dirs};
+    delete $$exifTool{AddJp2Tags};
     delete $$exifTool{AddJp2Dirs};
-    my $dirName;
+    my ($tag, $dirName);
+    # add JPEG2000 tags
+    foreach $tag (sort keys %$addTags) {
+        my $tagInfo = $$addTags{$tag};
+        my $nvHash = $exifTool->GetNewValueHash($tagInfo);
+        # (native JPEG2000 information is always preferred, so don't check IsCreating)
+        next unless $$tagInfo{List} or $exifTool->IsOverwriting($nvHash) > 0;
+        next if $$nvHash{EditOnly};
+        my @vals = $exifTool->GetNewValues($nvHash);
+        my $val;
+        foreach $val (@vals) {
+            my $boxhdr = pack('N', length($val) + 8) . $$tagInfo{TagID};
+            Write($outfile, $boxhdr, $val) or return 0;
+            ++$$exifTool{CHANGED};
+            $exifTool->VerboseValue("+ Jpeg2000:$$tagInfo{Name}", $val);
+        }
+    }
+    # add UUID boxes
     foreach $dirName (sort keys %$addDirs) {
         next unless $uuid{$dirName};
         my $tagInfo;
@@ -642,11 +663,29 @@ sub ProcessJpeg2000Box($$$)
             my $tmpVal = substr($$dataPt, $valuePtr, $boxLen < 128 ? $boxLen : 128);
             $tagInfo = $exifTool->GetTagInfo($tagTablePtr, $boxID, \$tmpVal);
         }
-        # delete all UUID boxes if deleting all information
-        if ($outfile and $boxID eq 'uuid' and $exifTool->{DEL_GROUP}->{'*'}) {
-            $exifTool->VPrint(0, "  Deleting $$tagInfo{Name}\n");
-            ++$exifTool->{CHANGED};
-            next;
+        # delete all UUID boxes and any writable box if deleting all information
+        if ($outfile and $tagInfo) {
+            if ($boxID eq 'uuid' and $exifTool->{DEL_GROUP}->{'*'}) {
+                $exifTool->VPrint(0, "  Deleting $$tagInfo{Name}\n");
+                ++$exifTool->{CHANGED};
+                next;
+            } elsif ($$tagInfo{Writable}) {
+                my $isOverwriting;
+                if ($exifTool->{DEL_GROUP}->{Jpeg2000}) {
+                    $isOverwriting = 1;
+                } else {
+                    my $nvHash = $exifTool->GetNewValueHash($tagInfo);
+                    $isOverwriting = $exifTool->IsOverwriting($nvHash);
+                }
+                if ($isOverwriting) {
+                    my $val = substr($$dataPt, $valuePtr, $boxLen);
+                    $exifTool->VerboseValue("- Jpeg2000:$$tagInfo{Name}", $val);
+                    ++$exifTool->{CHANGED};
+                    next;
+                } elsif (not $$tagInfo{List}) {
+                    delete $$exifTool{AddJp2Tags}{$boxID};
+                }
+            }
         }
         if ($verbose) {
             $exifTool->VerboseInfo($boxID, $tagInfo,
@@ -695,13 +734,26 @@ sub ProcessJpeg2000Box($$$)
                 my $boxhdr = pack('N', length($newdir) + 8 + $prefixLen) . $boxID;
                 $boxhdr .= substr($$dataPt, $valuePtr, $prefixLen) if $prefixLen;
                 Write($outfile, $boxhdr, $newdir) or $err = 1;
-            } elsif (not $exifTool->ProcessDirectory(\%subdirInfo, $subTable, $$subdir{ProcessProc})) {
-                if ($subTable eq $tagTablePtr) {
-                    $err = 'JPEG 2000 format error';
-                } else {
-                    $err = "Unrecognized $$tagInfo{Name} box";
+            } else {
+                # extract writable directories if specified
+                if ($$tagInfo{Writable}) {
+                    my $lcTag = lc $$tagInfo{Name};
+                    if ($$exifTool{REQ_TAG_LOOKUP}{$lcTag} or
+                        ($exifTool->{OPTIONS}{Binary} and not $exifTool->{EXCL_TAG_LOOKUP}{$lcTag}))
+                    {
+                        $exifTool->FoundTag($tagInfo, substr($$dataPt, $valuePtr, $boxLen));
+                        next;
+                    }
                 }
-                last;
+                unless ($exifTool->ProcessDirectory(\%subdirInfo, $subTable, $$subdir{ProcessProc})) {
+                    if ($subTable eq $tagTablePtr) {
+                        $err = 'JPEG 2000 format error';
+                    } else {
+                        $err = "Unrecognized $$tagInfo{Name} box";
+                        next if $$tagInfo{Name} eq 'XML';
+                    }
+                    last;
+                }
             }
         } elsif ($$tagInfo{Format} and not $outfile) {
             # only save tag values if Format was specified
@@ -765,6 +817,7 @@ sub ProcessJP2($$)
         # save list of directories to create
         my %addDirs = %{$$exifTool{ADD_DIRS}};
         $$exifTool{AddJp2Dirs} = \%addDirs;
+        $$exifTool{AddJp2Tags} = $exifTool->GetNewTagInfoHash(\%Image::ExifTool::Jpeg2000::Main);
     } else {
         my ($buff, $fileType);
         # recognize JPX and JPM as unique types of JP2

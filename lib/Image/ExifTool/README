@@ -69,11 +69,9 @@ is an explanation of the meaning of each special key:
   table. If not specified, the Group 0 and 1 names will be set automatically
   according to the name of the module.
 
-  FORMAT : Specifies the default tag Format and corresponding pointer increment
-  for entries in a BinaryData table, and defaults to 'int8u' if not specified.
-  Format names starting with 'var_' cause subsequent tag ID's in BinaryData
-  tables to be incremented according to the size of the data (not including the
-  terminator).  The possible values of FORMAT are:
+  FORMAT : Specifies the default tag Format, and corresponding pointer increment
+  for entries in a BinaryData table.  Defaults to 'int8u' if not specified.  The
+  possible values of FORMAT are:
 
     int8s       - Signed 8-bit integer                    (EXIF 'SBYTE')
     int8u       - Unsigned 8-bit integer                  (EXIF 'BYTE')
@@ -98,14 +96,20 @@ is an explanation of the meaning of each special key:
     ifd         - Unsigned 32-bit integer sub-IFD pointer (EXIF 'IFD')
     ifd64       - Unsigned 64-bit integer sub-IFD pointer (BigTIFF 'IFD8')
     string      - Series of 8-bit ASCII characters        (EXIF 'ASCII')
-    pstring     - Pascal string [BinaryData tables only]
     undef       - Undefined-format binary data            (EXIF 'UNDEFINED')
     binary      - Binary data
-    var_string  - variable-length null-terminated ASCII string [BinaryData]
-    var_ustring - variable-length null-terminated UCS-2 string [BinaryData]
-    var_pstring - variable-length Pascal string                [BinaryData]
-    var_pstr32  - variable-length Pascal string /w 32-bit len  [BinaryData]
-    var_int16u  - variable-length undef data with int6u count  [BinaryData]
+
+  Additionally, the following variable-length Format types may be used in
+  individual tag information hashes of a BinaryData table.  The 'var_' formats
+  cause subsequent tag indices to be incremented according to the size of the
+  data, not including the terminator.  See "Format" below for more details.
+
+    pstring     - Pascal string
+    var_string  - variable-length null-terminated ASCII string
+    var_ustring - variable-length null-terminated UCS-2 string
+    var_pstring - variable-length Pascal string
+    var_pstr32  - variable-length Pascal string /w 32-bit len
+    var_int16u  - variable-length undef data with int6u count
 
   FIRST_ENTRY : Specifies the index for the first tag entry in a binary table.
   This value is only used if the Unknown option is set to 2 or higher, and

@@ -46,7 +46,7 @@ use Image::ExifTool qw(:Utils);
 use Image::ExifTool::Exif;
 require Exporter;
 
-$VERSION = '2.58';
+$VERSION = '2.59';
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(EscapeXML UnescapeXML);
 
@@ -1523,8 +1523,15 @@ my %sPantryItem = (
         %dateTimeInfo,
     },
     ImageDescription => { Writable => 'lang-alt' },
-    Make      => { Groups => { 2 => 'Camera' } },
-    Model     => { Groups => { 2 => 'Camera' }, Description => 'Camera Model Name' },
+    Make => {
+        Groups => { 2 => 'Camera' },
+        RawConv => '$$self{Make} ? $val : $$self{Make} = $val',
+    },
+    Model => {
+        Groups => { 2 => 'Camera' },
+        Description => 'Camera Model Name',
+        RawConv => '$$self{Model} ? $val : $$self{Model} = $val',
+    },
     Software  => { },
     Artist    => { Groups => { 2 => 'Author' } },
     Copyright => { Groups => { 2 => 'Author' }, Writable => 'lang-alt' },

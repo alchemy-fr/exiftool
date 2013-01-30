@@ -379,7 +379,7 @@ character sets.  Currently, the following character sets are supported:
   PDFDoc, RSymbol, ShiftJIS, Symbol, Thai, Turkish, Vietnam
 
 However, only some of these character sets are available to the user via
-ExifTool options; the multi-byte character sets are used only internally
+ExifTool options -- the multi-byte character sets are used only internally
 when decoding certain types of information.
 
 =head1 AUTHOR

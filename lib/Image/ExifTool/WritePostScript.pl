@@ -289,7 +289,7 @@ sub WriteNewTags($$$)
     foreach $tag (sort keys %$newTags) {
         my $tagInfo = $$newTags{$tag};
         my $nvHash = $exifTool->GetNewValueHash($tagInfo);
-        next unless Image::ExifTool::IsCreating($nvHash);
+        next unless $$nvHash{IsCreating};
         my $val = $exifTool->GetNewValues($nvHash);
         $exifTool->VerboseValue("+ PostScript:$$tagInfo{Name}", $val);
         Write($outfile, EncodeTag($tag, $val)) or $success = 0;

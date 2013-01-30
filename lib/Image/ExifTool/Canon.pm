@@ -80,7 +80,7 @@ sub ProcessSerialData($$$);
 sub ProcessFilters($$$);
 sub SwapWords($);
 
-$VERSION = '3.03';
+$VERSION = '3.04';
 
 # Note: Removed 'USM' from 'L' lenses since it is redundant - PH
 # (or is it?  Ref 32 shows 5 non-USM L-type lenses)
@@ -354,10 +354,14 @@ $VERSION = '3.03';
     489 => 'Canon EF 70-300mm f/4-5.6L IS USM', #Gerald Kapounek
     490 => 'Canon EF 8-15mm f/4L USM', #Klaus Reinfeld
     491 => 'Canon EF 300mm f/2.8L IS II USM', #42
+    492 => 'Canon EF 400mm f/2.8L IS II USM', #PH
+    493 => 'Canon EF 24-105mm f/4L IS USM', #PH
     494 => 'Canon EF 600mm f/4.0L IS II USM', #PH
     495 => 'Canon EF 24-70mm f/2.8L II USM', #PH
-    503 => 'Canon EF 24mm f/2.8 IS USM', #PH
+    496 => 'Canon EF 200-400mm f/4L IS USM', #PH
     502 => 'Canon EF 28mm f/2.8 IS USM', #PH
+    503 => 'Canon EF 24mm f/2.8 IS USM', #PH
+    505 => 'Canon EF 35mm f/2 IS USM', #PH
     4142 => 'Canon EF-S 18-135mm f/3.5-5.6 IS STM',
     4143 => 'Canon EF-M 18-55mm f/3.5-5.6 IS STM',
     4144 => 'Canon EF 40mm f/2.8 STM', #50
@@ -535,7 +539,10 @@ $VERSION = '3.03';
     0x3350000 => 'PowerShot SX160 IS',
     0x3360000 => 'PowerShot S110 (new)',
     0x3370000 => 'PowerShot SX500 IS',
+    0x3380000 => 'PowerShot N',
     0x3390000 => 'IXUS 245 HS / IXY 430F', # (apparently no PowerShot equivalent)
+    0x3430000 => 'PowerShot A2600',
+    0x3460000 => 'PowerShot ELPH 130 IS / IXUS 140', # IXY?
     0x4040000 => 'PowerShot G1',
     0x6040000 => 'PowerShot S100 / Digital IXUS / IXY Digital',
 
@@ -5404,9 +5411,9 @@ my %ciMaxFocal = (
             14 => 'Kabul',          # [+4:30]
             15 => 'Dubai',          # [+4]
             16 => 'Tehran',         # [+3:30]
-            17 => 'Moscow',         # [+4]
+            17 => 'Moscow',         # [+4] (+03:00,DST+0) (! changed to +4 permanent DST in 2011)
             18 => 'Cairo',          # [+2]
-            19 => 'Paris',          # [+1] (+02:00,DST+1)
+            19 => 'Paris',          # [+1] (+01:10,DST+0; +02:00,DST+1)
             20 => 'London',         # [0]  (+00:00,DST+0)
             21 => 'Azores',         # [-1]
             22 => 'Fernando de Noronha', # [-2]
@@ -6970,6 +6977,39 @@ sub LensWithTC($$)
         }
     }
     return $lens;
+}
+
+#------------------------------------------------------------------------------
+# Attempt to calculate sensor size for Canon cameras
+# Inputs: 0/1) rational values for FocalPlaneX/YResolution
+# Returns: Sensor diagonal size in mm, or undef
+# Notes: This algorithm is fairly reliable, but has been found to give incorrect
+#        values for some firmware versions of the EOS 20D, A310, SD40 and IXUS 65
+# (ref http://wyw.dcweb.cn/download.asp?path=&file=jhead-2.96-ccdwidth_hack.zip)
+sub CalcSensorDiag($$)
+{
+    my ($xres, $yres) = @_;
+    # most Canon cameras store the sensor size in the denominator
+    if ($xres and $yres) {
+        # assumptions: 1) numerators are image width/height * 1000
+        # 2) denominators are sensor width/height in inches * 1000
+        my @xres = split /[ \/]/, $xres;
+        my @yres = split /[ \/]/, $yres;
+        # verify assumptions as best we can:
+            # numerators are always divisible by 1000
+        if ($xres[0] % 1000 == 0 and $yres[0] % 1000 == 0 and
+            # at least 640x480 pixels (DC models - PH)
+            $xres[0] >= 640000 and $yres[0] >= 480000 and
+            # ... but not too big!
+            $xres[0] < 10000000 and $yres[0] < 10000000 and
+            # minimum sensor size is 0.061 inches (DC models - PH)
+            $xres[1] >= 61 and $xres[1] < 1500 and
+            $yres[1] >= 61 and $yres[1] < 1000)
+        {
+            return sqrt($xres[1]*$xres[1] + $yres[1]*$yres[1]) * 0.0254;
+        }
+    }
+    return undef;
 }
 
 #------------------------------------------------------------------------------

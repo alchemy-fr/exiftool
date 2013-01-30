@@ -243,7 +243,7 @@ Note that keys in the returned information hash and elements of the returned
 tag list are not necessarily the same as these tag names because group names
 are removed, the case may be changed, and an instance number may be added. 
 For this reason it is best to use either the keys of the returned hash or
-the elements of the tag array when accessing the tag values.
+the elements of the returned tag list when accessing the tag values.
 
 See L<Image::ExifTool::TagNames|Image::ExifTool::TagNames> for a complete
 list of ExifTool tag names.
@@ -772,7 +772,7 @@ structured tags may always be written.  Possible values are:
     0   - Read/copy flattened tags
     1   - Read/copy structured tags
     2   - Read/copy both flattened and structured tags, but flag
-          flattened tags as "unsafe" for copying
+          flattened tags as 'unsafe' for copying
 
 =item TextOut
 
@@ -794,6 +794,15 @@ parsed.  Level 1 prints the tag names and raw values.  Level 2 adds more
 details about the tags.  Level 3 adds a hex dump of the tag data, but with
 limits on the number of bytes dumped.  Levels 4 and 5 remove the dump limit
 on tag values and JPEG segment data respectively.
+
+=item WriteMode
+
+Set tag write/create mode.  Value is a string of one or more characters from
+list below.  Default is 'wcg'.
+
+    w - Write existing tags
+    c - Create new tags
+    g - create new Groups as necessary
 
 =item XMPAutoConv
 
@@ -1213,12 +1222,14 @@ a description of the structure serialization technique.)
 
 0) ExifTool object reference
 
-1) [optional] Tag key or tag name, or undef to clear all new values.  A tag
-name of '*' can be used when deleting tags to delete all tags, or all tags
-in a specified group.  The tag name may be prefixed by group name, separated
-by a colon (ie. 'EXIF:Artist'), which is equivalent to using a Group option
-argument.  Also, a '#' may be appended to the tag name (ie.
-'EXIF:Orientation#'), with the same effect as setting Type to 'ValueConv'.
+1) [optional] Tag key or tag name, or undef to clear all new values.  The
+tag name may be prefixed by group name, separated by a colon (ie.
+'EXIF:Artist'), which is equivalent to using a Group option argument.  Also,
+a '#' may be appended to the tag name (ie. 'EXIF:Orientation#'), with the
+same effect as setting Type to 'ValueConv'.  Wildcards ('*' and '?') may be
+used in the tag name to assign multiple tags simultaneously.  A tag name of
+'*' is special when deleting information, and will delete an entire group
+even if some individual tags in the group are not writable.
 
 2) [optional] New value for tag.  Undefined to delete tag from file.  May be
 a scalar, scalar reference, list reference to set a list of values, or hash
@@ -1248,12 +1259,14 @@ values are 0 or 1.  Default is 0.
 =item EditGroup
 
 Create tags in existing groups only.  Don't create new group.  Valid values
-are 0 and 1.  Default is 0.
+are 0 and 1.  Effectively removes the 'g' from the ExifTool WriteMode option
+for this tag only.  Default is 0.
 
 =item EditOnly
 
 Edit tag only if it already exists.  Don't create new tag.  Valid values are
-0 and 1.  Default is 0.
+0 and 1.  Effectively removes the 'c' from the ExifTool WriteMode option for
+this tag only.  Default is 0.
 
 =item Group
 
@@ -1335,8 +1348,8 @@ explicitly, either by group (with 'Adobe:*') or as a block (with 'Adobe').
 
 The following ExifTool options are effective in the call to L</SetNewValue>:
 
-Charset, Escape, IgnoreMinorErrors, Lang, ListSep, ListSplit, PrintConv and
-Verbose.
+Charset, Escape, IgnoreMinorErrors, Lang, ListSep, ListSplit, PrintConv,
+Verbose and WriteMode.
 
 =head2 SetNewValuesFromFile
 
@@ -1372,6 +1385,14 @@ in a specified file.
     # (without '>*.*' tags would be copied to the preferred EXIF IFD)
     $exifTool->SetNewValuesFromFile($file, 'EXIF:*>*:*');
 
+    # copy all tags with names starting with "gps" (note: this is
+    # different than "gps:*" because it will also copy XMP GPS tags)
+    $exifTool->SetNewValuesFromFile($file, 'gps*');
+
+    # set FileName from Model, translating questionable characters
+    $exifTool->SetNewValuesFromFile($file,
+        'filename<${model; tr(/\\\\?*:|"><)(_) }.jpg');
+
 =over 4
 
 =item Inputs:
@@ -1386,24 +1407,27 @@ sensitive, and may be prefixed by an optional family 0 or 1 group name,
 separated by a colon (ie. 'exif:iso').  A leading '-' indicates tags to be
 excluded (ie. '-comment'), or a trailing '#' causes the ValueConv value to
 be copied (same as setting the Type option to 'ValueConv' for this tag
-only).  An asterisk ('*') may be used for the tag name, and is useful when a
-group is specified to set all tags from a group (ie. 'XMP:*').  A special
-feature allows tag names of the form 'SRCTAG>DSTTAG' (or
-'DSTTAGE<lt>SRCTAG') to be specified to copy information to a tag with a
-different name or a specified group. Both 'SRCTAG' and 'DSTTAG' may use '*'
-and/or be prefixed by a group name (ie. 'modifyDate>fileModifyDate' or
-'*>xmp:*'), and/or suffixed by a '#' to disable print conversion.  Copied
-tags may also be added or deleted from a list with arguments of the form
-'SRCTAG+>DSTTAG' or 'SRCTAG->DSTTAG'.  Tags are evaluated in order, so
-exclusions apply only to tags included earlier in the list.  An extension of
-this feature allows the tag value to be set from an expression containing
-tag names with leading '$' symbols (ie. 'CommentE<lt>the file is
-$filename'). Braces '{}' may be used around the tag name to separate it from
-subsequent text, and a '$$' is used to to represent a '$' symbol.  (The
-behaviour for missing tags in expressions is defined by the
-L</MissingTagValue> option.)  Multiple options hash references may be passed
-to set different options for different tags. Options apply to subsequent
-tags in the argument list.
+only).  Wildcards ('*' and '?') may be used in the tag name.  A tag name of
+'*' is commonly used when a group is specified to copy all tags in the group
+(ie. 'XMP:*').  A special feature allows tag names of the form
+'SRCTAG>DSTTAG' (or 'DSTTAGE<lt>SRCTAG') to be specified to copy information
+to a tag with a different name or a specified group.  Both 'SRCTAG' and
+'DSTTAG' may contain wildcards and/or be prefixed by a group name (ie.
+'modifyDate>fileModifyDate' or '*>xmp:*'), and/or suffixed by a '#' to
+disable print conversion.  Copied tags may also be added or deleted from a
+list with arguments of the form 'SRCTAG+>DSTTAG' or 'SRCTAG->DSTTAG'.  Tags
+are evaluated in order, so exclusions apply only to tags included earlier in
+the list.  An extension of this feature allows the tag value to be set from
+an expression containing tag names with leading '$' symbols (ie.
+'CommentE<lt>the file is $filename').  Braces '{}' may be used around the
+tag name to separate it from subsequent text, and a '$$' is used to to
+represent a '$' symbol.  The behaviour for missing tags in expressions is
+defined by the L</MissingTagValue> option.  The tag value may be modified
+via changes to the default input variable ($_) in Perl expressions placed
+inside the braces and after a semicolon following the tag name.  Braces
+within the expression must be balanced.  Multiple options hash references
+may be passed to set different options for different tags.  Options apply to
+subsequent tags in the argument list.
 
 By default, this routine will commute information between same-named tags in
 different groups, allowing information to be translated between images with
@@ -1459,9 +1483,9 @@ behaviour and copy as flattened tags instead.
 
 =head2 GetNewValues
 
-Get list of new Raw values for the specified tag.  These are the values
-that will be written to file.  Only tags which support a 'List' may return
-more than one value.
+Get list of new Raw values for the specified tag.  These are the values that
+will be written to file.  Most tags return only a single value, but
+List-type tags may return multiple values.
 
     $rawVal = $exifTool->GetNewValues($tag);
 
@@ -2107,6 +2131,40 @@ Can the specified file be created?
 
 True if ExifTool can create files with this extension from scratch. 
 Currently, this can only be done with XMP, MIE, ICC, VRD and EXIF files.
+
+=back
+
+=head2 AddUserDefinedTags [static]
+
+Add user-defined tags to an existing tag table at run time.  This differs
+from the usual technique of creating user-defined tags via the
+%Image::ExifTool::UserDefined hash (see the ExifTool_config file in the
+Image::ExifTool distribution) because it allows tags to be added after the
+tag table has been initialized.
+
+    use Image::ExifTool ':Public';
+    my %tags = (
+        TestTagID1 => { Name => 'TestTagName1' },
+        TestTagID2 => { Name => 'TestTagName2' },
+    );
+    my $num = AddUserDefinedTags('Image::ExifTool::PDF::Info', %tags);
+
+=over 4
+
+=item Inputs:
+
+0) Destination tag table name
+
+1-N) Pairs of tag ID / tag information hash references for the new tags
+
+=item Return Value:
+
+The number of tags added.
+
+=item Notes
+
+Pre-existing tags with the same ID will be replaced in the destination
+table.
 
 =back
 

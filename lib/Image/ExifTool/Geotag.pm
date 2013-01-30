@@ -947,6 +947,7 @@ Category:       foreach $category (qw{pos track alt orient}) {
         my %opts;
         $opts{Replace} = 2 if defined $val; # remove existing new values
         $opts{Group} = $writeGroup if $writeGroup;
+
         # reset any GPS values we might have already set
         foreach (qw(GPSLatitude GPSLatitudeRef GPSLongitude GPSLongitudeRef
                     GPSAltitude GPSAltitudeRef GPSDateStamp GPSTimeStamp GPSDateTime

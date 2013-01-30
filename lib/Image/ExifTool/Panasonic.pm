@@ -29,7 +29,7 @@ use vars qw($VERSION %leicaLensTypes);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.69';
+$VERSION = '1.70';
 
 sub ProcessPanasonicType2($$$);
 sub WhiteBalanceConv($;$$);
@@ -738,14 +738,17 @@ my %shootingMode = (
     0x51 => {
         Name => 'LensType',
         Writable => 'string',
+        ValueConv => '$val=~s/ +$//; $val', # trim trailing spaces
     },
     0x52 => { #7 (DMC-L1)
         Name => 'LensSerialNumber',
         Writable => 'string',
+        ValueConv => '$val=~s/ +$//; $val', # trim trailing spaces
     },
     0x53 => { #7 (DMC-L1)
         Name => 'AccessoryType',
         Writable => 'string',
+        ValueConv => '$val=~s/ +$//; $val', # trim trailing spaces
     },
     # 0x54 - string[14]: "0000000"
     # 0x55 - int16u: 1
@@ -1377,6 +1380,7 @@ my %shootingMode = (
     0x303 => {
         Name => 'LensType',
         Writable => 'string',
+        ValueConv => '$val=~s/ +$//; $val', # trim trailing spaces
     },
     # 0x340 - same as 0x302
 );
@@ -1685,7 +1689,7 @@ sub ProcessLeicaTrailer($;$)
     delete $$exifTool{LeicaTrailer} if $trailPos;   # done after this
     unless ($len > 0) {
         $exifTool->Warn('Missing Leica MakerNote trailer', 1) if $trailPos;
-        undef $$exifTool{LeicaTrailer};
+        delete $$exifTool{LeicaTrailer};
         return undef;
     }
     my $oldPos = $raf->Tell();

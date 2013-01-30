@@ -35,92 +35,108 @@ use vars qw($VERSION);
 use Image::ExifTool::Exif;
 use Image::ExifTool::APP12;
 
-$VERSION = '1.97';
+$VERSION = '1.99';
 
 sub PrintLensInfo($$$);
 
 my %offOn = ( 0 => 'Off', 1 => 'On' );
 
 # lookup for Olympus LensType values
+# (as of ExifTool 9.15, this was the complete list of chipped lenses at www.four-thirds.org)
 my %olympusLensTypes = (
-    '0 0 0'  => 'None',
-    # Olympus lenses
-    '0 1 0'  => 'Olympus Zuiko Digital ED 50mm F2.0 Macro',
-    '0 1 1'  => 'Olympus Zuiko Digital 40-150mm F3.5-4.5', #8
-    '0 1 16' => 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6', #PH (E-P1 pre-production)
-    '0 2 0'  => 'Olympus Zuiko Digital ED 150mm F2.0',
-    '0 2 16' => 'Olympus M.Zuiko Digital 17mm F2.8 Pancake', #PH (E-P1 pre-production)
-    '0 3 0'  => 'Olympus Zuiko Digital ED 300mm F2.8',
-    '0 3 16' => 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6', #11
-    '0 4 16' => 'Olympus M.Zuiko Digital ED 9-18mm F4.0-5.6', #11
-    '0 5 0'  => 'Olympus Zuiko Digital 14-54mm F2.8-3.5',
-    '0 5 1'  => 'Olympus Zuiko Digital Pro ED 90-250mm F2.8', #9
-    '0 5 16' => 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6 L', #11 (E-PL1)
-    '0 6 0'  => 'Olympus Zuiko Digital ED 50-200mm F2.8-3.5',
-    '0 6 1'  => 'Olympus Zuiko Digital ED 8mm F3.5 Fisheye', #9
-    '0 6 16' => 'Olympus M.Zuiko Digital ED 40-150mm F4.0-5.6', #PH
-    '0 7 0'  => 'Olympus Zuiko Digital 11-22mm F2.8-3.5',
-    '0 7 1'  => 'Olympus Zuiko Digital 18-180mm F3.5-6.3', #6
-    '0 7 16' => 'Olympus M.Zuiko Digital ED 12mm F2.0', #PH
-    '0 8 1'  => 'Olympus Zuiko Digital 70-300mm F4.0-5.6', #7 (seen as release 1 - PH)
-    '0 8 16' => 'Olympus M.Zuiko Digital ED 75-300mm F4.8-6.7', #PH
-    '0 9 16' => 'Olympus M.Zuiko Digital 14-42mm F3.5-5.6 II', #PH (E-PL2)
-    '0 16 16'=> 'Olympus M.Zuiko Digital ED 12-50mm F3.5-6.3 EZ', #PH
-    '0 17 16'=> 'Olympus M.Zuiko Digital 45mm F1.8', #17
-    '0 19 16'=> 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6 II R', #PH
-    '0 20 16'=> 'Olympus M.Zuiko Digital ED 15-150mm II or 40-150mm R',
-    '0 20 16.1' => 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6 II', #11
-    '0 20 16.2' => 'Olympus M.Zuiko Digital ED 40-150mm F4.0-5.6 R', #19
-    '0 21 0' => 'Olympus Zuiko Digital ED 7-14mm F4.0',
-    '0 21 16'=> 'Olympus M.Zuiko Digital ED 75mm F1.8', #PH
-    '0 23 0' => 'Olympus Zuiko Digital Pro ED 35-100mm F2.0', #7
-    '0 24 0' => 'Olympus Zuiko Digital 14-45mm F3.5-5.6',
-    '0 32 0' => 'Olympus Zuiko Digital 35mm F3.5 Macro', #9
-    '0 34 0' => 'Olympus Zuiko Digital 17.5-45mm F3.5-5.6', #9
-    '0 35 0' => 'Olympus Zuiko Digital ED 14-42mm F3.5-5.6', #PH
-    '0 36 0' => 'Olympus Zuiko Digital ED 40-150mm F4.0-5.6', #PH
-    '0 48 0' => 'Olympus Zuiko Digital ED 50-200mm F2.8-3.5 SWD', #7
-    '0 49 0' => 'Olympus Zuiko Digital ED 12-60mm F2.8-4.0 SWD', #7
-    '0 50 0' => 'Olympus Zuiko Digital ED 14-35mm F2.0 SWD', #PH
-    '0 51 0' => 'Olympus Zuiko Digital 25mm F2.8', #PH
-    '0 52 0' => 'Olympus Zuiko Digital ED 9-18mm F4.0-5.6', #7
-    '0 53 0' => 'Olympus Zuiko Digital 14-54mm F2.8-3.5 II', #PH
+    Notes => q{
+        The numerical values below are given in hexadecimal.  (Prior to ExifTool
+        9.15 these were in decimal.)
+    },
+    '0 00 00' => 'None',
+    # Olympus lenses (also Kenko Tokina)
+    '0 01 00' => 'Olympus Zuiko Digital ED 50mm F2.0 Macro',
+    '0 01 01' => 'Olympus Zuiko Digital 40-150mm F3.5-4.5', #8
+    '0 01 10' => 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6', #PH (E-P1 pre-production)
+    '0 02 00' => 'Olympus Zuiko Digital ED 150mm F2.0',
+    '0 02 10' => 'Olympus M.Zuiko Digital 17mm F2.8 Pancake', #PH (E-P1 pre-production)
+    '0 03 00' => 'Olympus Zuiko Digital ED 300mm F2.8',
+    '0 03 10' => 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6', #11
+    '0 04 10' => 'Olympus M.Zuiko Digital ED 9-18mm F4.0-5.6', #11
+    '0 05 00' => 'Olympus Zuiko Digital 14-54mm F2.8-3.5',
+    '0 05 01' => 'Olympus Zuiko Digital Pro ED 90-250mm F2.8', #9
+    '0 05 10' => 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6 L', #11 (E-PL1)
+    '0 06 00' => 'Olympus Zuiko Digital ED 50-200mm F2.8-3.5',
+    '0 06 01' => 'Olympus Zuiko Digital ED 8mm F3.5 Fisheye', #9
+    '0 06 10' => 'Olympus M.Zuiko Digital ED 40-150mm F4.0-5.6', #PH
+    '0 07 00' => 'Olympus Zuiko Digital 11-22mm F2.8-3.5',
+    '0 07 01' => 'Olympus Zuiko Digital 18-180mm F3.5-6.3', #6
+    '0 07 10' => 'Olympus M.Zuiko Digital ED 12mm F2.0', #PH
+    '0 08 01' => 'Olympus Zuiko Digital 70-300mm F4.0-5.6', #7 (seen as release 1 - PH)
+    '0 08 10' => 'Olympus M.Zuiko Digital ED 75-300mm F4.8-6.7', #PH
+    '0 09 10' => 'Olympus M.Zuiko Digital 14-42mm F3.5-5.6 II', #PH (E-PL2)
+    '0 10 01' => 'Kenko Tokina Reflex 300mm F6.3 MF Macro', #20
+    '0 10 10' => 'Olympus M.Zuiko Digital ED 12-50mm F3.5-6.3 EZ', #PH
+    '0 11 10' => 'Olympus M.Zuiko Digital 45mm F1.8', #17
+    '0 12 10' => 'Olympus M.Zuiko Digital ED 60mm F2.8 Macro', #20
+    '0 13 10' => 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6 II R', #PH
+    '0 14 10' => 'Olympus M.Zuiko Digital ED 40-150mm F4.0-5.6 R', #19
+  # '0 14 10.1' => 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6 II', #11 (questionable & unconfirmed)
+    '0 15 00' => 'Olympus Zuiko Digital ED 7-14mm F4.0',
+    '0 15 10' => 'Olympus M.Zuiko Digital ED 75mm F1.8', #PH
+    '0 16 10' => 'Olympus M.Zuiko Digital 17mm F1.8', #20
+    '0 17 00' => 'Olympus Zuiko Digital Pro ED 35-100mm F2.0', #7
+    '0 18 00' => 'Olympus Zuiko Digital 14-45mm F3.5-5.6',
+    '0 20 00' => 'Olympus Zuiko Digital 35mm F3.5 Macro', #9
+    '0 22 00' => 'Olympus Zuiko Digital 17.5-45mm F3.5-5.6', #9
+    '0 23 00' => 'Olympus Zuiko Digital ED 14-42mm F3.5-5.6', #PH
+    '0 24 00' => 'Olympus Zuiko Digital ED 40-150mm F4.0-5.6', #PH
+    '0 30 00' => 'Olympus Zuiko Digital ED 50-200mm F2.8-3.5 SWD', #7
+    '0 31 00' => 'Olympus Zuiko Digital ED 12-60mm F2.8-4.0 SWD', #7
+    '0 32 00' => 'Olympus Zuiko Digital ED 14-35mm F2.0 SWD', #PH
+    '0 33 00' => 'Olympus Zuiko Digital 25mm F2.8', #PH
+    '0 34 00' => 'Olympus Zuiko Digital ED 9-18mm F4.0-5.6', #7
+    '0 35 00' => 'Olympus Zuiko Digital 14-54mm F2.8-3.5 II', #PH
     # Sigma lenses
-    '1 1 0'  => 'Sigma 18-50mm F3.5-5.6', #8
-    '1 1 16' => 'Sigma 30mm F2.8 EX DN', #20
-    '1 2 0'  => 'Sigma 55-200mm F4.0-5.6 DC',
-    '1 3 0'  => 'Sigma 18-125mm F3.5-5.6 DC',
-    '1 4 0'  => 'Sigma 18-125mm F3.5-5.6', #7
-    '1 5 0'  => 'Sigma 30mm F1.4', #10
-    '1 6 0'  => 'Sigma 50-500mm F4.0-6.3 EX DG APO HSM RF', #6
-    '1 7 0'  => 'Sigma 105mm F2.8 DG', #PH
-    '1 8 0'  => 'Sigma 150mm F2.8 DG HSM', #PH
-    '1 16 0' => 'Sigma 24mm F1.8 EX DG Aspherical Macro', #PH
-    '1 17 0' => 'Sigma 135-400mm F4.5-5.6 DG ASP APO RF', #11
-    '1 18 0' => 'Sigma 300-800mm F5.6 EX DG APO', #11
-    '1 19 0' => 'Sigma 30mm F1.4 EX DC HSM', #11
-    '1 20 0' => 'Sigma 50-500mm F4.0-6.3 EX DG APO HSM RF', #11
-    '1 21 0' => 'Sigma 10-20mm F4.0-5.6 EX DC HSM', #11
-    '1 22 0' => 'Sigma 70-200mm F2.8 EX DG Macro HSM II', #11
-    '1 23 0' => 'Sigma 50mm F1.4 EX DG HSM', #11
-    # Leica lenses (ref 11)
-    '2 1 0'  => 'Leica D Vario Elmarit 14-50mm F2.8-3.5 Asph.',
-    '2 1 16' => 'Lumix G Vario 14-45mm F3.5-5.6 Asph. Mega OIS', #16
-    '2 2 0'  => 'Leica D Summilux 25mm F1.4 Asph.',
-    '2 2 16' => 'Lumix G Vario 45-200mm F4-5.6 Mega OIS', #16
-    '2 3 0'  => 'Leica D Vario Elmar 14-50mm F3.8-5.6 Asph. Mega OIS', #11
-    '2 3 1'  => 'Leica D Vario Elmar 14-50mm F3.8-5.6 Asph.', #14 (L10 kit)
-    '2 3 16' => 'Lumix G Vario HD 14-140mm F4-5.8 Asph. Mega OIS', #16
-    '2 4 0'  => 'Leica D Vario Elmar 14-150mm F3.5-5.6', #13
-    '2 4 16' => 'Lumix G Vario 7-14mm F4 Asph.', #PH (E-P1 pre-production)
-    '2 5 16' => 'Lumix G 20mm F1.7 Asph.', #16
-    '2 6 16' => 'Leica DG Macro-Elmarit 45mm F2.8', #PH
-    '2 8 16' => 'Lumix G Fisheye 8mm F3.5', #PH
-    '2 9 16' => 'Lumix G Vario 100-300mm F4.0-5.6 OIS', #11
-    '2 16 16'=> 'Lumix G 14mm F2.5 Asph.', #17
-    '2 21 16'=> 'Lumix G X Vario 12-35mm F2.8 ASPH Power OIS', #PH
-    '3 1 0'  => 'Leica D Vario Elmarit 14-50mm F2.8-3.5 Asph.',
-    '3 2 0'  => 'Leica D Summilux 25mm F1.4 Asph.',
+    '1 01 00' => 'Sigma 18-50mm F3.5-5.6 DC', #8
+    '1 01 10' => 'Sigma 30mm F2.8 EX DN', #20
+    '1 02 00' => 'Sigma 55-200mm F4.0-5.6 DC',
+    '1 02 10' => 'Sigma 19mm F2.8 EX DN', #20
+    '1 03 00' => 'Sigma 18-125mm F3.5-5.6 DC',
+    '1 04 00' => 'Sigma 18-125mm F3.5-5.6', #7
+    '1 05 00' => 'Sigma 30mm F1.4', #10
+    '1 06 00' => 'Sigma 50-500mm F4.0-6.3 EX DG APO HSM RF', #6
+    '1 07 00' => 'Sigma 105mm F2.8 DG', #PH
+    '1 08 00' => 'Sigma 150mm F2.8 DG HSM', #PH
+    '1 09 00' => 'Sigma 18-50mm F2.8 EX DC Macro', #20
+    '1 10 00' => 'Sigma 24mm F1.8 EX DG Aspherical Macro', #PH
+    '1 11 00' => 'Sigma 135-400mm F4.5-5.6 DG ASP APO RF', #11
+    '1 12 00' => 'Sigma 300-800mm F5.6 EX DG APO', #11
+    '1 13 00' => 'Sigma 30mm F1.4 EX DC HSM', #11
+    '1 14 00' => 'Sigma 50-500mm F4.0-6.3 EX DG APO HSM RF', #11
+    '1 15 00' => 'Sigma 10-20mm F4.0-5.6 EX DC HSM', #11
+    '1 16 00' => 'Sigma 70-200mm F2.8 EX DG Macro HSM II', #11
+    '1 17 00' => 'Sigma 50mm F1.4 EX DG HSM', #11
+    # Panasonic/Leica lenses (ref 11)
+    '2 01 00' => 'Leica D Vario Elmarit 14-50mm F2.8-3.5 Asph.',
+    '2 01 10' => 'Lumix G Vario 14-45mm F3.5-5.6 Asph. Mega OIS', #16
+    '2 02 00' => 'Leica D Summilux 25mm F1.4 Asph.',
+    '2 02 10' => 'Lumix G Vario 45-200mm F4.0-5.6 Mega OIS', #16
+    '2 03 00' => 'Leica D Vario Elmar 14-50mm F3.8-5.6 Asph. Mega OIS', #11
+    '2 03 01' => 'Leica D Vario Elmar 14-50mm F3.8-5.6 Asph.', #14 (L10 kit)
+    '2 03 10' => 'Lumix G Vario HD 14-140mm F4.0-5.8 Asph. Mega OIS', #16
+    '2 04 00' => 'Leica D Vario Elmar 14-150mm F3.5-5.6', #13
+    '2 04 10' => 'Lumix G Vario 7-14mm F4.0 Asph.', #PH (E-P1 pre-production)
+    '2 05 10' => 'Lumix G 20mm F1.7 Asph.', #16
+    '2 06 10' => 'Leica DG Macro-Elmarit 45mm F2.8 Asph. Mega OIS', #PH
+    '2 07 10' => 'Lumix G Vario 14-42mm F3.5-5.6 Asph. Mega OIS', #20
+    '2 08 10' => 'Lumix G Fisheye 8mm F3.5', #PH
+    '2 09 10' => 'Lumix G Vario 100-300mm F4.0-5.6 Mega OIS', #11
+    '2 10 10' => 'Lumix G 14mm F2.5 Asph.', #17
+    '2 11 10' => 'Lumix G 12.5mm F12 3D', #20 (H-FT012)
+    '2 12 10' => 'Leica DG Summilux 25mm F1.4 Asph.', #20
+    '2 13 10' => 'Lumix G X Vario PZ 45-175mm F4.0-5.6 Asph. Power OIS', #20
+    '2 14 10' => 'Lumix G X Vario PZ 14-42mm F3.5-5.6 Asph. Power OIS', #20
+    '2 15 10' => 'Lumix G X Vario 12-35mm F2.8 Asph. Power OIS', #PH
+    '2 16 10' => 'Lumix G Vario 45-150mm F4.0-5.6 Asph. Mega OIS', #20
+    '2 17 10' => 'Lumix G X Vario 35-100mm F2.8 Power OIS', #PH
+    '3 01 00' => 'Leica D Vario Elmarit 14-50mm F2.8-3.5 Asph.',
+    '3 02 00' => 'Leica D Summilux 25mm F1.4 Asph.',
 );
 
 # lookup for Olympus camera types (ref PH)
@@ -514,10 +530,7 @@ my %indexInfo = (
         WriteCheck => '$self->CheckImage(\$val)',
         Binary => 1,
     },
-    0x0104 => { #11
-        Name => 'BodyFirmwareVersion',
-        Writable => 'string',
-    },
+    0x0104 => { Name => 'BodyFirmwareVersion',    Writable => 'string' }, #11
 #
 # end Konica/Minolta tags
 #
@@ -603,17 +616,15 @@ my %indexInfo = (
         PrintConv => '"$val mm"',
         PrintConvInv => '$val=~s/\s*mm$//;$val',
     },
-    0x0206 => { #6
-        Name => 'LensDistortionParams',
-        Writable => 'int16s',
-        Count => 6,
-    },
+    0x0206 => { Name => 'LensDistortionParams', Writable => 'int16s', Count => 6 }, #6
     0x0207 => { #PH (was incorrectly FirmwareVersion, ref 1,3)
         Name => 'CameraType',
         Writable => 'string',
         DataMember => 'CameraType',
         RawConv => '$self->{CameraType} = $val',
         SeparateTable => 'CameraType',
+        ValueConv => '$val =~ s/\s+$//; $val',  # ("SX151 " has trailing space)
+        ValueConvInv => '$val',
         PrintConv => \%olympusCameraTypes,
         Priority => 0,
         # 'NORMAL' for some models: u730,SP510UZ,u1000,FE240
@@ -628,32 +639,17 @@ my %indexInfo = (
         Name => 'CameraID',
         Format => 'string', # this really should have been a string
     },
-    0x020b => { #PH
-        Name => 'EpsonImageWidth',
-        Writable => 'int16u',
-    },
-    0x020c => { #PH
-        Name => 'EpsonImageHeight',
-        Writable => 'int16u',
-    },
-    0x020d => { #PH
-        Name => 'EpsonSoftware',
-        Writable => 'string',
-    },
+    0x020b => { Name => 'EpsonImageWidth',  Writable => 'int16u' }, #PH
+    0x020c => { Name => 'EpsonImageHeight', Writable => 'int16u' }, #PH
+    0x020d => { Name => 'EpsonSoftware',    Writable => 'string' }, #PH
     0x0280 => { #PH
         %Image::ExifTool::previewImageTagInfo,
         Notes => 'found in ERF and JPG images from some Epson models',
         Format => 'undef',
         Writable => 'int8u',
     },
-    0x0300 => { #6
-        Name => 'PreCaptureFrames',
-        Writable => 'int16u',
-    },
-    0x0301 => { #11
-        Name => 'WhiteBoard',
-        Writable => 'int16u',
-    },
+    0x0300 => { Name => 'PreCaptureFrames', Writable => 'int16u' }, #6
+    0x0301 => { Name => 'WhiteBoard',       Writable => 'int16u' }, #11
     0x0302 => { #6
         Name => 'OneTouchWB',
         Writable => 'int16u',
@@ -663,14 +659,8 @@ my %indexInfo = (
             2 => 'On (Preset)',
         },
     },
-    0x0303 => { #11
-        Name => 'WhiteBalanceBracket',
-        Writable => 'int16u',
-    },
-    0x0304 => { #11
-        Name => 'WhiteBalanceBias',
-        Writable => 'int16u',
-    },
+    0x0303 => { Name => 'WhiteBalanceBracket',  Writable => 'int16u' }, #11
+    0x0304 => { Name => 'WhiteBalanceBias',     Writable => 'int16u' }, #11
    # 0x0305 => 'PrintMaching', ? #11
     0x0403 => { #11
         Name => 'SceneMode',
@@ -719,14 +709,8 @@ my %indexInfo = (
             103 => 'HDR', #PH (XZ-2)
         },
     },
-    0x0404 => { #PH (D595Z, C7070WZ)
-        Name => 'SerialNumber',
-        Writable => 'string',
-    },
-    0x0405 => { #11
-        Name => 'Firmware',
-        Writable => 'string',
-    },
+    0x0404 => { Name => 'SerialNumber', Writable => 'string' }, #PH (D595Z, C7070WZ)
+    0x0405 => { Name => 'Firmware',     Writable => 'string' }, #11
     0x0e00 => {
         Name => 'PrintIM',
         Description => 'Print Image Matching',
@@ -819,18 +803,9 @@ my %indexInfo = (
         Name =>'ExposureCompensation',
         Writable => 'rational64s',
     },
-    0x1007 => { #6 (E-10, E-20 and C2500L - numbers usually around 30-40)
-        Name => 'SensorTemperature',
-        Writable => 'int16s',
-    },
-    0x1008 => { #6
-        Name => 'LensTemperature',
-        Writable => 'int16s',
-    },
-    0x1009 => { #11
-        Name => 'LightCondition',
-        Writable => 'int16u',
-    },
+    0x1007 => { Name => 'SensorTemperature',Writable => 'int16s' }, #6 (E-10, E-20 and C2500L - numbers usually around 30-40)
+    0x1008 => { Name => 'LensTemperature',  Writable => 'int16s' }, #6
+    0x1009 => { Name => 'LightCondition',   Writable => 'int16u' }, #11
     0x100a => { #11
         Name => 'FocusRange',
         Writable => 'int16u',
@@ -853,14 +828,8 @@ my %indexInfo = (
         PrintConv => '"$val mm"', #11
         PrintConvInv => '$val=~s/\s*mm$//; $val',
     },
-    0x100d => { #6
-        Name => 'ZoomStepCount',
-        Writable => 'int16u',
-    },
-    0x100e => { #6
-        Name => 'FocusStepCount',
-        Writable => 'int16u',
-    },
+    0x100d => { Name => 'ZoomStepCount',    Writable => 'int16u' }, #6
+    0x100e => { Name => 'FocusStepCount',   Writable => 'int16u' }, #6
     0x100f => { #6
         Name => 'Sharpness',
         Writable => 'int16u',
@@ -871,21 +840,14 @@ my %indexInfo = (
             2 => 'Soft',
         },
     },
-    0x1010 => { #6
-        Name => 'FlashChargeLevel',
-        Writable => 'int16u',
-    },
+    0x1010 => { Name => 'FlashChargeLevel', Writable => 'int16u' }, #6
     0x1011 => { #3
         Name => 'ColorMatrix',
         Writable => 'int16u',
         Format => 'int16s',
         Count => 9,
     },
-    0x1012 => { #3
-        Name => 'BlackLevel',
-        Writable => 'int16u',
-        Count => 4,
-    },
+    0x1012 => { Name => 'BlackLevel',       Writable => 'int16u', Count => 4 }, #3
     0x1013 => { #11
         Name => 'ColorTemperatureBG',
         Writable => 'int16u',
@@ -930,67 +892,24 @@ my %indexInfo = (
         ValueConv => '$val=~s/ .*//; $val / 256',
         ValueConvInv => '$val*=256;"$val 64"',
     },
-    0x1019 => { #11
-        Name => 'ColorMatrixNumber',
-        Writable => 'int16u',
-    },
+    0x1019 => { Name => 'ColorMatrixNumber',    Writable => 'int16u' }, #11
     # 0x101a is same as CameraID ("OLYMPUS DIGITAL CAMERA") for C2500L - PH
-    0x101a => { #3
-        Name => 'SerialNumber',
-        Writable => 'string',
-    },
+    0x101a => { Name => 'SerialNumber',         Writable => 'string' }, #3
     0x101b => { #11
         Name => 'ExternalFlashAE1_0',
         Writable => 'int32u',
         Unknown => 1, # (what are these?)
     },
-    0x101c => { #11
-        Name => 'ExternalFlashAE2_0',
-        Writable => 'int32u',
-        Unknown => 1,
-    },
-    0x101d => { #11
-        Name => 'InternalFlashAE1_0',
-        Writable => 'int32u',
-        Unknown => 1,
-    },
-    0x101e => { #11
-        Name => 'InternalFlashAE2_0',
-        Writable => 'int32u',
-        Unknown => 1,
-    },
-    0x101f => { #11
-        Name => 'ExternalFlashAE1',
-        Writable => 'int32u',
-        Unknown => 1,
-    },
-    0x1020 => { #11
-        Name => 'ExternalFlashAE2',
-        Writable => 'int32u',
-        Unknown => 1,
-    },
-    0x1021 => { #11
-        Name => 'InternalFlashAE1',
-        Writable => 'int32u',
-        Unknown => 1,
-    },
-    0x1022 => { #11
-        Name => 'InternalFlashAE2',
-        Writable => 'int32u',
-        Unknown => 1,
-    },
-    0x1023 => { #6
-        Name => 'FlashExposureComp',
-        Writable => 'rational64s',
-    },
-    0x1024 => { #11
-        Name => 'InternalFlashTable',
-        Writable => 'int16u',
-    },
-    0x1025 => { #11
-        Name => 'ExternalFlashGValue',
-        Writable => 'rational64s',
-    },
+    0x101c => { Name => 'ExternalFlashAE2_0',   Writable => 'int32u', Unknown => 1 }, #11
+    0x101d => { Name => 'InternalFlashAE1_0',   Writable => 'int32u', Unknown => 1 }, #11
+    0x101e => { Name => 'InternalFlashAE2_0',   Writable => 'int32u', Unknown => 1 }, #11
+    0x101f => { Name => 'ExternalFlashAE1',     Writable => 'int32u', Unknown => 1 }, #11
+    0x1020 => { Name => 'ExternalFlashAE2',     Writable => 'int32u', Unknown => 1 }, #11
+    0x1021 => { Name => 'InternalFlashAE1',     Writable => 'int32u', Unknown => 1 }, #11
+    0x1022 => { Name => 'InternalFlashAE2',     Writable => 'int32u', Unknown => 1 }, #11
+    0x1023 => { Name => 'FlashExposureComp',    Writable => 'rational64s' }, #6
+    0x1024 => { Name => 'InternalFlashTable',   Writable => 'int16u' }, #11
+    0x1025 => { Name => 'ExternalFlashGValue',  Writable => 'rational64s' }, #11
     0x1026 => { #6
         Name => 'ExternalFlashBounce',
         Writable => 'int16u',
@@ -999,14 +918,8 @@ my %indexInfo = (
             1 => 'Yes',
         },
     },
-    0x1027 => { #6
-        Name => 'ExternalFlashZoom',
-        Writable => 'int16u',
-    },
-    0x1028 => { #6
-        Name => 'ExternalFlashMode',
-        Writable => 'int16u',
-    },
+    0x1027 => { Name => 'ExternalFlashZoom',    Writable => 'int16u' }, #6
+    0x1028 => { Name => 'ExternalFlashMode',    Writable => 'int16u' }, #6
     0x1029 => { #3
         Name => 'Contrast',
         Writable => 'int16u',
@@ -1016,36 +929,13 @@ my %indexInfo = (
             2 => 'Low',
         },
     },
-    0x102a => { #3
-        Name => 'SharpnessFactor',
-        Writable => 'int16u',
-    },
-    0x102b => { #3
-        Name => 'ColorControl',
-        Writable => 'int16u',
-        Count => 6,
-    },
-    0x102c => { #3
-        Name => 'ValidBits',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x102d => { #3
-        Name => 'CoringFilter',
-        Writable => 'int16u',
-    },
-    0x102e => { #PH
-        Name => 'OlympusImageWidth',
-        Writable => 'int32u',
-    },
-    0x102f => { #PH
-        Name => 'OlympusImageHeight',
-        Writable => 'int32u',
-    },
-    0x1030 => { #11
-        Name => 'SceneDetect',
-        Writable => 'int16u',
-    },
+    0x102a => { Name => 'SharpnessFactor',      Writable => 'int16u' }, #3
+    0x102b => { Name => 'ColorControl',         Writable => 'int16u', Count => 6 }, #3
+    0x102c => { Name => 'ValidBits',            Writable => 'int16u', Count => 2 }, #3
+    0x102d => { Name => 'CoringFilter',         Writable => 'int16u' }, #3
+    0x102e => { Name => 'OlympusImageWidth',    Writable => 'int32u' }, #PH
+    0x102f => { Name => 'OlympusImageHeight',   Writable => 'int32u' }, #PH
+    0x1030 => { Name => 'SceneDetect',          Writable => 'int16u' }, #11
     0x1031 => { #11
         Name => 'SceneArea',
         Writable => 'int32u',
@@ -1060,10 +950,7 @@ my %indexInfo = (
         Binary => 1,
         Unknown => 1, # (but what does it mean?)
     },
-    0x1034 => { #3
-        Name => 'CompressionRatio',
-        Writable => 'rational64u',
-    },
+    0x1034 => { Name => 'CompressionRatio',    Writable => 'rational64u' }, #3
     0x1035 => { #6
         Name => 'PreviewImageValid',
         Writable => 'int32u',
@@ -1085,10 +972,7 @@ my %indexInfo = (
         Writable => 'int32u',
         Protected => 2,
     },
-    0x1038 => { #11
-        Name => 'AFResult',
-        Writable => 'int16u',
-    },
+    0x1038 => { Name => 'AFResult',             Writable => 'int16u' }, #11
     0x1039 => { #6
         Name => 'CCDScanMode',
         Writable => 'int16u',
@@ -1102,22 +986,10 @@ my %indexInfo = (
         Writable => 'int16u',
         PrintConv => \%offOn,
     },
-    0x103b => { #6
-        Name => 'FocusStepInfinity',
-        Writable => 'int16u',
-    },
-    0x103c => { #6
-        Name => 'FocusStepNear',
-        Writable => 'int16u',
-    },
-    0x103d => { #11
-        Name => 'LightValueCenter',
-        Writable => 'rational64s',
-    },
-    0x103e => { #11
-        Name => 'LightValuePeriphery',
-        Writable => 'rational64s',
-    },
+    0x103b => { Name => 'FocusStepInfinity',    Writable => 'int16u' }, #6
+    0x103c => { Name => 'FocusStepNear',        Writable => 'int16u' }, #6
+    0x103d => { Name => 'LightValueCenter',     Writable => 'rational64s' }, #11
+    0x103e => { Name => 'LightValuePeriphery',  Writable => 'rational64s' }, #11
     0x103f => { #11
         Name => 'FieldCount',
         Writable => 'int16u',
@@ -1603,16 +1475,16 @@ my %indexInfo = (
         Count => 6,
         Notes => q{
             6 numbers: 0. Make, 1. Unknown, 2. Model, 3. Sub-model, 4-5. Unknown.  Only
-            the Make, Model and Sub-model are used to determine the lens model
+            the Make, Model and Sub-model are used to identify the lens type
         },
         SeparateTable => 'LensType',
         # Have seen these values for the unknown numbers:
         # 1: 0
         # 4: 0, 2(Olympus lenses for which I have also seen 0 for this number)
         # 5: 0, 16(new Lumix lenses)
-        ValueConv => 'my @a = split(" ",$val); "$a[0] $a[2] $a[3]"',
+        ValueConv => 'my @a=split(" ",$val); sprintf("%x %.2x %.2x",@a[0,2,3])',
         # set unknown values to zero when writing
-        ValueConvInv => 'my @a=split(" ",$val); "$a[0] 0 $a[1] $a[2] 0 0"',
+        ValueConvInv => 'my @a=split(" ",$val); hex($a[0])." 0 ".hex($a[1]).hex($a[2])." 0 0"',
         PrintConv => \%olympusLensTypes,
     },
     # apparently the first 3 digits of the lens s/n give the type (ref 4):
@@ -1630,10 +1502,7 @@ my %indexInfo = (
         PrintConv => '$val=~s/\s+$//;$val',
         PrintConvInv => 'pack("A31",$val)', # pad with spaces to 31 chars
     },
-    0x203 => { #17
-        Name => 'LensModel',
-        Writable => 'string',
-    },
+    0x203 => { Name => 'LensModel',         Writable => 'string' }, #17
     0x204 => { #6
         Name => 'LensFirmwareVersion',
         Writable => 'int32u',
@@ -1656,14 +1525,8 @@ my %indexInfo = (
         PrintConv => 'sprintf("%.1f",$val)',
         PrintConvInv => '$val',
     },
-    0x207 => { #PH
-        Name => 'MinFocalLength',
-        Writable => 'int16u',
-    },
-    0x208 => { #PH
-        Name => 'MaxFocalLength',
-        Writable => 'int16u',
-    },
+    0x207 => { Name => 'MinFocalLength',    Writable => 'int16u' }, #PH
+    0x208 => { Name => 'MaxFocalLength',    Writable => 'int16u' }, #PH
     0x20a => { #9
         Name => 'MaxAperture', # (at current focal length)
         Writable => 'int16u',
@@ -1684,26 +1547,19 @@ my %indexInfo = (
         Count => 6,
         Notes => q{
             6 numbers: 0. Make, 1. Unknown, 2. Model, 3. Sub-model, 4-5. Unknown.  Only
-            the Make and Model are used to determine the extender model
+            the Make and Model are used to identify the extender
         },
-        ValueConv => 'my @a = split(" ",$val); "$a[0] $a[2]"',
-        ValueConvInv => 'my @a=split(" ",$val); "$a[0] 0 $a[1] 0 0 0"',
+        ValueConv => 'my @a=split(" ",$val); sprintf("%x %.2x",@a[0,2])',
+        ValueConvInv => 'my @a=split(" ",$val); hex($a[0])." 0 ".hex($a[1])." 0 0 0"',
         PrintConv => {
-            '0 0'   => 'None',
-            '0 4'   => 'Olympus Zuiko Digital EC-14 1.4x Teleconverter',
-            '0 8'   => 'Olympus EX-25 Extension Tube',
-            '0 16'  => 'Olympus Zuiko Digital EC-20 2.0x Teleconverter', #7
+            '0 00' => 'None',
+            '0 04' => 'Olympus Zuiko Digital EC-14 1.4x Teleconverter',
+            '0 08' => 'Olympus EX-25 Extension Tube',
+            '0 10' => 'Olympus Zuiko Digital EC-20 2.0x Teleconverter', #7
         },
     },
-    0x302 => { #4
-        Name => 'ExtenderSerialNumber',
-        Writable => 'string',
-        Count => 32,
-    },
-    0x303 => { #9
-        Name => 'ExtenderModel',
-        Writable => 'string',
-    },
+    0x302 => { Name => 'ExtenderSerialNumber',  Writable => 'string', Count => 32 }, #4
+    0x303 => { Name => 'ExtenderModel',         Writable => 'string' }, #9
     0x304 => { #6
         Name => 'ExtenderFirmwareVersion',
         Writable => 'int32u',
@@ -1746,11 +1602,7 @@ my %indexInfo = (
         PrintConv => '$val=sprintf("%x",$val);$val=~s/(.{3})$/\.$1/;$val',
         PrintConvInv => '$val=sprintf("%.3f",$val);$val=~s/\.//;hex($val)',
     },
-    0x1003 => { #4
-        Name => 'FlashSerialNumber',
-        Writable => 'string',
-        Count => 32,
-    },
+    0x1003 => { Name => 'FlashSerialNumber', Writable => 'string', Count => 32 }, #4
 );
 
 # Olympus camera settings IFD
@@ -1813,10 +1665,7 @@ my %indexInfo = (
             1027 => 'Spot+Shadow control', #6
         },
     },
-    0x203 => { #11 (some E-models only)
-        Name => 'ExposureShift',
-        Writable => 'rational64s',
-    },
+    0x203 => { Name => 'ExposureShift', Writable => 'rational64s' }, #11 (some E-models only)
     0x300 => { #6
         Name => 'MacroMode',
         Writable => 'int16u',
@@ -1913,10 +1762,7 @@ my %indexInfo = (
             },
         },
     },
-    0x401 => { #6
-        Name => 'FlashExposureComp',
-        Writable => 'rational64s',
-    },
+    0x401 => { Name => 'FlashExposureComp', Writable => 'rational64s' }, #6
     # 0x402 - FlashMode? bit0=TTL, bit2=SuperFP (ref 11)
     0x403 => { #11
         Name => 'FlashRemoteControl',
@@ -2134,10 +1980,7 @@ my %indexInfo = (
         Writable => 'int16u',
         PrintConv => \%offOn,
     },
-    0x50d => { #PH/4
-        Name => 'CompressionFactor',
-        Writable => 'rational64u',
-    },
+    0x50d => { Name => 'CompressionFactor', Writable => 'rational64u' }, #PH/4
     0x50f => { #6
         Name => 'Gradation',
         Writable => 'int16s',
@@ -2397,42 +2240,14 @@ my %indexInfo = (
         RawConv => '$val=~s/\0+$//; $val',  # (may be null terminated)
         Count => 4,
     },
-    0x100 => {
-        Name => 'RawDevExposureBiasValue',
-        Writable => 'rational64s',
-    },
-    0x101 => {
-        Name => 'RawDevWhiteBalanceValue',
-        Writable => 'int16u',
-    },
-    0x102 => {
-        Name => 'RawDevWBFineAdjustment',
-        Writable => 'int16s',
-    },
-    0x103 => {
-        Name => 'RawDevGrayPoint',
-        Writable => 'int16u',
-        Count => 3,
-    },
-    0x104 => {
-        Name => 'RawDevSaturationEmphasis',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x105 => {
-        Name => 'RawDevMemoryColorEmphasis',
-        Writable => 'int16u',
-    },
-    0x106 => {
-        Name => 'RawDevContrastValue',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x107 => {
-        Name => 'RawDevSharpnessValue',
-        Writable => 'int16s',
-        Count => 3,
-    },
+    0x100 => { Name => 'RawDevExposureBiasValue',   Writable => 'rational64s' },
+    0x101 => { Name => 'RawDevWhiteBalanceValue',   Writable => 'int16u' },
+    0x102 => { Name => 'RawDevWBFineAdjustment',    Writable => 'int16s' },
+    0x103 => { Name => 'RawDevGrayPoint',           Writable => 'int16u', Count => 3 },
+    0x104 => { Name => 'RawDevSaturationEmphasis',  Writable => 'int16s', Count => 3 },
+    0x105 => { Name => 'RawDevMemoryColorEmphasis', Writable => 'int16u' },
+    0x106 => { Name => 'RawDevContrastValue',       Writable => 'int16s', Count => 3 },
+    0x107 => { Name => 'RawDevSharpnessValue',      Writable => 'int16s', Count => 3 },
     0x108 => {
         Name => 'RawDevColorSpace',
         Writable => 'int16u',
@@ -2503,10 +2318,7 @@ my %indexInfo = (
         RawConv => '$val=~s/\0+$//; $val',  # (may be null terminated)
         Count => 4,
     },
-    0x100 => {
-        Name => 'RawDevExposureBiasValue',
-        Writable => 'rational64s',
-    },
+    0x100 => { Name => 'RawDevExposureBiasValue',   Writable => 'rational64s' },
     0x101 => {
         Name => 'RawDevWhiteBalance',
         Writable => 'int16u',
@@ -2515,38 +2327,13 @@ my %indexInfo = (
             2 => 'Gray Point',
         },
     },
-    0x102 => {
-        Name => 'RawDevWhiteBalanceValue',
-        Writable => 'int16u',
-    },
-    0x103 => {
-        Name => 'RawDevWBFineAdjustment',
-        Writable => 'int16s',
-    },
-    0x104 => {
-        Name => 'RawDevGrayPoint',
-        Writable => 'int16u',
-        Count => 3,
-    },
-    0x105 => {
-        Name => 'RawDevContrastValue',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x106 => {
-        Name => 'RawDevSharpnessValue',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x107 => {
-        Name => 'RawDevSaturationEmphasis',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x108 => {
-        Name => 'RawDevMemoryColorEmphasis',
-        Writable => 'int16u',
-    },
+    0x102 => { Name => 'RawDevWhiteBalanceValue',   Writable => 'int16u' },
+    0x103 => { Name => 'RawDevWBFineAdjustment',    Writable => 'int16s' },
+    0x104 => { Name => 'RawDevGrayPoint',           Writable => 'int16u', Count => 3 },
+    0x105 => { Name => 'RawDevContrastValue',       Writable => 'int16s', Count => 3 },
+    0x106 => { Name => 'RawDevSharpnessValue',      Writable => 'int16s', Count => 3 },
+    0x107 => { Name => 'RawDevSaturationEmphasis',  Writable => 'int16s', Count => 3 },
+    0x108 => { Name => 'RawDevMemoryColorEmphasis', Writable => 'int16u' },
     0x109 => {
         Name => 'RawDevColorSpace',
         Writable => 'int16u',
@@ -2586,21 +2373,9 @@ my %indexInfo = (
             512 => 'Sepia',
         },
     },
-    0x10d => {
-        Name => 'RawDevPMSaturation',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x10e => {
-        Name => 'RawDevPMContrast',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x10f => {
-        Name => 'RawDevPMSharpness',
-        Writable => 'int16s',
-        Count => 3,
-    },
+    0x10d => { Name => 'RawDevPMSaturation',    Writable => 'int16s', Count => 3 },
+    0x10e => { Name => 'RawDevPMContrast',      Writable => 'int16s', Count => 3 },
+    0x10f => { Name => 'RawDevPMSharpness',     Writable => 'int16s', Count => 3 },
     0x110 => {
         Name => 'RawDevPM_BWFilter',
         Writable => 'int16u',
@@ -2623,25 +2398,10 @@ my %indexInfo = (
             5 => 'Green',
         },
     },
-    0x112 => {
-        Name => 'RawDevGradation',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x113 => {
-        Name => 'RawDevSaturation3',
-        Writable => 'int16s',
-        Count => 3, #(NC)
-    },
-    0x119 => {
-        Name => 'RawDevAutoGradation',
-        Writable => 'int16u', #(NC)
-        PrintConv => \%offOn,
-    },
-    0x120 => {
-        Name => 'RawDevPMNoiseFilter',
-        Writable => 'int16u', #(NC)
-    },
+    0x112 => { Name => 'RawDevGradation',       Writable => 'int16s', Count => 3 },
+    0x113 => { Name => 'RawDevSaturation3',     Writable => 'int16s', Count => 3 }, #(NC Count)
+    0x119 => { Name => 'RawDevAutoGradation',   Writable => 'int16u', PrintConv => \%offOn },
+    0x120 => { Name => 'RawDevPMNoiseFilter',   Writable => 'int16u' }, #(NC format)
 );
 
 # Olympus Image processing IFD
@@ -2656,143 +2416,36 @@ my %indexInfo = (
         RawConv => '$val=~s/\0+$//; $val',  # (may be null terminated)
         Count => 4,
     },
-    0x100 => { #6
-        Name => 'WB_RBLevels',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x102 => { #11
-        Name => 'WB_RBLevels3000K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x103 => { #11
-        Name => 'WB_RBLevels3300K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x104 => { #11
-        Name => 'WB_RBLevels3600K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x105 => { #11
-        Name => 'WB_RBLevels3900K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x106 => { #11
-        Name => 'WB_RBLevels4000K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x107 => { #11
-        Name => 'WB_RBLevels4300K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x108 => { #11
-        Name => 'WB_RBLevels4500K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x109 => { #11
-        Name => 'WB_RBLevels4800K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x10a => { #11
-        Name => 'WB_RBLevels5300K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x10b => { #11
-        Name => 'WB_RBLevels6000K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x10c => { #11
-        Name => 'WB_RBLevels6600K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x10d => { #11
-        Name => 'WB_RBLevels7500K',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x10e => { #11
-        Name => 'WB_RBLevelsCWB1',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x10f => { #11
-        Name => 'WB_RBLevelsCWB2',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x110 => { #11
-        Name => 'WB_RBLevelsCWB3',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x111 => { #11
-        Name => 'WB_RBLevelsCWB4',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x113 => { #11
-        Name => 'WB_GLevel3000K',
-        Writable => 'int16u',
-    },
-    0x114 => { #11
-        Name => 'WB_GLevel3300K',
-        Writable => 'int16u',
-    },
-    0x115 => { #11
-        Name => 'WB_GLevel3600K',
-        Writable => 'int16u',
-    },
-    0x116 => { #11
-        Name => 'WB_GLevel3900K',
-        Writable => 'int16u',
-    },
-    0x117 => { #11
-        Name => 'WB_GLevel4000K',
-        Writable => 'int16u',
-    },
-    0x118 => { #11
-        Name => 'WB_GLevel4300K',
-        Writable => 'int16u',
-    },
-    0x119 => { #11
-        Name => 'WB_GLevel4500K',
-        Writable => 'int16u',
-    },
-    0x11a => { #11
-        Name => 'WB_GLevel4800K',
-        Writable => 'int16u',
-    },
-    0x11b => { #11
-        Name => 'WB_GLevel5300K',
-        Writable => 'int16u',
-    },
-    0x11c => { #11
-        Name => 'WB_GLevel6000K',
-        Writable => 'int16u',
-    },
-    0x11d => { #11
-        Name => 'WB_GLevel6600K',
-        Writable => 'int16u',
-    },
-    0x11e => { #11
-        Name => 'WB_GLevel7500K',
-        Writable => 'int16u',
-    },
-    0x11f => { #11
-        Name => 'WB_GLevel',
-        Writable => 'int16u',
-    },
+    0x100 => { Name => 'WB_RBLevels',       Writable => 'int16u', Count => 2 }, #6
+    0x102 => { Name => 'WB_RBLevels3000K',  Writable => 'int16u', Count => 2 }, #11
+    0x103 => { Name => 'WB_RBLevels3300K',  Writable => 'int16u', Count => 2 }, #11
+    0x104 => { Name => 'WB_RBLevels3600K',  Writable => 'int16u', Count => 2 }, #11
+    0x105 => { Name => 'WB_RBLevels3900K',  Writable => 'int16u', Count => 2 }, #11
+    0x106 => { Name => 'WB_RBLevels4000K',  Writable => 'int16u', Count => 2 }, #11
+    0x107 => { Name => 'WB_RBLevels4300K',  Writable => 'int16u', Count => 2 }, #11
+    0x108 => { Name => 'WB_RBLevels4500K',  Writable => 'int16u', Count => 2 }, #11
+    0x109 => { Name => 'WB_RBLevels4800K',  Writable => 'int16u', Count => 2 }, #11
+    0x10a => { Name => 'WB_RBLevels5300K',  Writable => 'int16u', Count => 2 }, #11
+    0x10b => { Name => 'WB_RBLevels6000K',  Writable => 'int16u', Count => 2 }, #11
+    0x10c => { Name => 'WB_RBLevels6600K',  Writable => 'int16u', Count => 2 }, #11
+    0x10d => { Name => 'WB_RBLevels7500K',  Writable => 'int16u', Count => 2 }, #11
+    0x10e => { Name => 'WB_RBLevelsCWB1',   Writable => 'int16u', Count => 2 }, #11
+    0x10f => { Name => 'WB_RBLevelsCWB2',   Writable => 'int16u', Count => 2 }, #11
+    0x110 => { Name => 'WB_RBLevelsCWB3',   Writable => 'int16u', Count => 2 }, #11
+    0x111 => { Name => 'WB_RBLevelsCWB4',   Writable => 'int16u', Count => 2 }, #11
+    0x113 => { Name => 'WB_GLevel3000K',    Writable => 'int16u' }, #11
+    0x114 => { Name => 'WB_GLevel3300K',    Writable => 'int16u' }, #11
+    0x115 => { Name => 'WB_GLevel3600K',    Writable => 'int16u' }, #11
+    0x116 => { Name => 'WB_GLevel3900K',    Writable => 'int16u' }, #11
+    0x117 => { Name => 'WB_GLevel4000K',    Writable => 'int16u' }, #11
+    0x118 => { Name => 'WB_GLevel4300K',    Writable => 'int16u' }, #11
+    0x119 => { Name => 'WB_GLevel4500K',    Writable => 'int16u' }, #11
+    0x11a => { Name => 'WB_GLevel4800K',    Writable => 'int16u' }, #11
+    0x11b => { Name => 'WB_GLevel5300K',    Writable => 'int16u' }, #11
+    0x11c => { Name => 'WB_GLevel6000K',    Writable => 'int16u' }, #11
+    0x11d => { Name => 'WB_GLevel6600K',    Writable => 'int16u' }, #11
+    0x11e => { Name => 'WB_GLevel7500K',    Writable => 'int16u' }, #11
+    0x11f => { Name => 'WB_GLevel',         Writable => 'int16u' }, #11
     0x200 => { #6
         Name => 'ColorMatrix',
         Writable => 'int16u',
@@ -2807,56 +2460,17 @@ my %indexInfo = (
     # 0x0250-0x0252 are sRGB color matrices
     # 0x0253-0x0255 are Adobe RGB color matrices
     # 0x0256-0x0258 are ProPhoto RGB color matrices
-    0x300 => { #11
-        Name => 'Enhancer',
-        Writable => 'int16u',
-    },
-    0x301 => { #11
-        Name => 'EnhancerValues',
-        Writable => 'int16u',
-        Count => 7,
-    },
-    0x310 => { #11
-        Name => 'CoringFilter',
-        Writable => 'int16u',
-    },
-    0x0311 => { #11
-        Name => 'CoringValues',
-        Writable => 'int16u',
-        Count => 7,
-    },
-    0x600 => { #11
-        Name => 'BlackLevel2',
-        Writable => 'int16u',
-        Count => 4,
-    },
-    0x610 => { #11
-        Name => 'GainBase',
-        Writable => 'int16u',
-    },
-    0x611 => { #4/6
-        Name => 'ValidBits',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x612 => { #11
-        Name => 'CropLeft',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x613 => { #11
-        Name => 'CropTop',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x614 => { #PH/11
-        Name => 'CropWidth',
-        Writable => 'int32u',
-    },
-    0x615 => { #PH/11
-        Name => 'CropHeight',
-        Writable => 'int32u',
-    },
+    0x300 => { Name => 'Enhancer',          Writable => 'int16u' }, #11
+    0x301 => { Name => 'EnhancerValues',    Writable => 'int16u', Count => 7 }, #11
+    0x310 => { Name => 'CoringFilter',      Writable => 'int16u' }, #11
+    0x311 => { Name => 'CoringValues',      Writable => 'int16u', Count => 7 }, #11
+    0x600 => { Name => 'BlackLevel2',       Writable => 'int16u', Count => 4 }, #11
+    0x610 => { Name => 'GainBase',          Writable => 'int16u' }, #11
+    0x611 => { Name => 'ValidBits',         Writable => 'int16u', Count => 2 }, #4/6
+    0x612 => { Name => 'CropLeft',          Writable => 'int16u', Count => 2 }, #11
+    0x613 => { Name => 'CropTop',           Writable => 'int16u', Count => 2 }, #11
+    0x614 => { Name => 'CropWidth',         Writable => 'int32u' }, #PH/11
+    0x615 => { Name => 'CropHeight',        Writable => 'int32u' }, #PH/11
     # 0x800 LensDistortionParams, float[9] (ref 11)
     # 0x801 LensShadingParams, int16u[16] (ref 11)
     # 0x1010-0x1012 are the processing options used in camera or in
@@ -2915,11 +2529,7 @@ my %indexInfo = (
             '9 9' => '3:4',
         },
     },
-    0x1113 => { #11
-        Name => 'AspectFrame',
-        Writable => 'int16u',
-        Count => 4,
-    },
+    0x1113 => { Name => 'AspectFrame',  Writable => 'int16u', Count => 4 }, #11
     0x1200 => { #11/PH
         Name => 'FacesDetected',
         Writable => 'int32u',
@@ -2938,11 +2548,7 @@ my %indexInfo = (
             of the face detect square
         },
     },
-    0x1202 => { #PH
-        Name => 'MaxFaces',
-        Writable => 'int32u',
-        Count => 3,
-    },
+    0x1202 => { Name => 'MaxFaces',     Writable => 'int32u', Count => 3 }, #PH
     0x1203 => { #PH
         Name => 'FaceDetectFrameSize',
         Writable => 'int16u',
@@ -2975,10 +2581,7 @@ my %indexInfo = (
         PrintConv => \%offOn,
         Unknown => 1, #6
     },
-    0x210 => { #11
-        Name => 'SceneDetect',
-        Writable => 'int16u',
-    },
+    0x210 => { Name => 'SceneDetect',       Writable => 'int16u' }, #11
     0x211 => { #11
         Name => 'SceneArea',
         Writable => 'int32u',
@@ -2992,22 +2595,10 @@ my %indexInfo = (
         Binary => 1,
         Unknown => 1, # (but what does it mean?)
     },
-    0x300 => { #6
-        Name => 'ZoomStepCount',
-        Writable => 'int16u',
-    },
-    0x301 => { #11
-        Name => 'FocusStepCount',
-        Writable => 'int16u',
-    },
-    0x303 => { #11
-        Name => 'FocusStepInfinity',
-        Writable => 'int16u',
-    },
-    0x304 => { #11
-        Name => 'FocusStepNear',
-        Writable => 'int16u',
-    },
+    0x300 => { Name => 'ZoomStepCount',     Writable => 'int16u' }, #6
+    0x301 => { Name => 'FocusStepCount',    Writable => 'int16u' }, #11
+    0x303 => { Name => 'FocusStepInfinity', Writable => 'int16u' }, #11
+    0x304 => { Name => 'FocusStepNear',     Writable => 'int16u' }, #11
     0x305 => { #4
         Name => 'FocusDistance',
         Writable => 'rational64u',
@@ -3068,11 +2659,13 @@ my %indexInfo = (
                     0x14 => 'Bottom-left (vertical)',
                     0x15 => 'Bottom-center (vertical)',
                     0x16 => 'Bottom-right (vertical)',
+                    0x1f => 'n/a', #PH (NC, E-3)
                 },
                 {
                     0x00 => 'Single Target',
                     0x40 => 'All Target',
                     0x80 => 'Dynamic Single Target',
+                    0xe0 => 'n/a', #PH (NC, E-3)
                 }
             ],
         },{ #PH (models with 7-point AF)
@@ -3141,10 +2734,7 @@ my %indexInfo = (
             1 => 'Direct',
         },
     },
-    0x1205 => { #11 (ref converts to mm using table)
-        Name => 'ExternalFlashZoom',
-        Writable => 'rational64u',
-    },
+    0x1205 => { Name => 'ExternalFlashZoom', Writable => 'rational64u' }, #11 (ref converts to mm using table)
     0x1208 => { #6
         Name => 'InternalFlash',
         Writable => 'int16u',
@@ -3208,61 +2798,17 @@ my %indexInfo = (
         RawConv => '$val=~s/\0+$//; $val',  # (may be null terminated)
         Count => 4,
     },
-    0x100 => {
-        Name => 'WB_RBLevelsUsed',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x110 => {
-        Name => 'WB_RBLevelsAuto',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x120 => {
-        Name => 'WB_RBLevelsShade',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x121 => {
-        Name => 'WB_RBLevelsCloudy',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x122 => {
-        Name => 'WB_RBLevelsFineWeather',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x123 => {
-        Name => 'WB_RBLevelsTungsten',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x124 => {
-        Name => 'WB_RBLevelsEveningSunlight',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x130 => {
-        Name => 'WB_RBLevelsDaylightFluor',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x131 => {
-        Name => 'WB_RBLevelsDayWhiteFluor',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x132 => {
-        Name => 'WB_RBLevelsCoolWhiteFluor',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x133 => {
-        Name => 'WB_RBLevelsWhiteFluorescent',
-        Writable => 'int16u',
-        Count => 2,
-    },
+    0x100 => { Name => 'WB_RBLevelsUsed',           Writable => 'int16u', Count => 2 },
+    0x110 => { Name => 'WB_RBLevelsAuto',           Writable => 'int16u', Count => 2 },
+    0x120 => { Name => 'WB_RBLevelsShade',          Writable => 'int16u', Count => 2 },
+    0x121 => { Name => 'WB_RBLevelsCloudy',         Writable => 'int16u', Count => 2 },
+    0x122 => { Name => 'WB_RBLevelsFineWeather',    Writable => 'int16u', Count => 2 },
+    0x123 => { Name => 'WB_RBLevelsTungsten',       Writable => 'int16u', Count => 2 },
+    0x124 => { Name => 'WB_RBLevelsEveningSunlight',Writable => 'int16u', Count => 2 },
+    0x130 => { Name => 'WB_RBLevelsDaylightFluor',  Writable => 'int16u', Count => 2 },
+    0x131 => { Name => 'WB_RBLevelsDayWhiteFluor',  Writable => 'int16u', Count => 2 },
+    0x132 => { Name => 'WB_RBLevelsCoolWhiteFluor', Writable => 'int16u', Count => 2 },
+    0x133 => { Name => 'WB_RBLevelsWhiteFluorescent',Writable => 'int16u', Count => 2 },
     0x200 => {
         Name => 'ColorMatrix2',
         Format => 'int16s',
@@ -3275,46 +2821,19 @@ my %indexInfo = (
     # 0x252 => 'ColorMatrixContrast', ?
     # 0x300 => sharpness-related
     # 0x301 => list of sharpness-related values
-    0x310 => {
-        Name => 'CoringFilter',
-        Writable => 'int16u',
-    },
-    0x311 => {
-        Name => 'CoringValues',
-        Writable => 'int16u',
-        Count => 11,
-    },
-    0x600 => {
-        Name => 'BlackLevel2',
-        Writable => 'int16u',
-        Count => 4,
-    },
+    0x310 => { Name => 'CoringFilter',      Writable => 'int16u' },
+    0x311 => { Name => 'CoringValues',      Writable => 'int16u', Count => 11 },
+    0x600 => { Name => 'BlackLevel2',       Writable => 'int16u', Count => 4 },
     0x601 => {
         Name => 'YCbCrCoefficients',
         Notes => 'stored as int16u[6], but extracted as rational32u[3]',
         Format => 'rational32u',
     },
-    0x611 => {
-        Name => 'ValidPixelDepth',
-        Writable => 'int16u',
-        Count => 2,
-    },
-    0x612 => { #11
-        Name => 'CropLeft',
-        Writable => 'int16u',
-    },
-    0x613 => { #11
-        Name => 'CropTop',
-        Writable => 'int16u',
-    },
-    0x614 => {
-        Name => 'CropWidth',
-        Writable => 'int32u',
-    },
-    0x615 => {
-        Name => 'CropHeight',
-        Writable => 'int32u',
-    },
+    0x611 => { Name => 'ValidPixelDepth',   Writable => 'int16u', Count => 2 },
+    0x612 => { Name => 'CropLeft',          Writable => 'int16u' }, #11
+    0x613 => { Name => 'CropTop',           Writable => 'int16u' }, #11
+    0x614 => { Name => 'CropWidth',         Writable => 'int32u' },
+    0x615 => { Name => 'CropHeight',        Writable => 'int32u' },
     0x1000 => {
         Name => 'LightSource',
         Writable => 'int16u',
@@ -3334,69 +2853,20 @@ my %indexInfo = (
         },
     },
     # the following 5 tags all have 3 values: val, min, max
-    0x1001 => {
-        Name => 'WhiteBalanceComp',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x1010 => {
-        Name => 'SaturationSetting',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x1011 => {
-        Name => 'HueSetting',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x1012 => {
-        Name => 'ContrastSetting',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x1013 => {
-        Name => 'SharpnessSetting',
-        Writable => 'int16s',
-        Count => 3,
-    },
+    0x1001 => { Name => 'WhiteBalanceComp',         Writable => 'int16s', Count => 3 },
+    0x1010 => { Name => 'SaturationSetting',        Writable => 'int16s', Count => 3 },
+    0x1011 => { Name => 'HueSetting',               Writable => 'int16s', Count => 3 },
+    0x1012 => { Name => 'ContrastSetting',          Writable => 'int16s', Count => 3 },
+    0x1013 => { Name => 'SharpnessSetting',         Writable => 'int16s', Count => 3 },
     # settings written by Camedia Master 4.x
-    0x2000 => {
-        Name => 'CMExposureCompensation',
-        Writable => 'rational64s',
-    },
-    0x2001 => {
-        Name => 'CMWhiteBalance',
-        Writable => 'int16u',
-    },
-    0x2002 => {
-        Name => 'CMWhiteBalanceComp',
-        Writable => 'int16s',
-    },
-    0x2010 => {
-        Name => 'CMWhiteBalanceGrayPoint',
-        Writable => 'int16u',
-        Count => 3,
-    },
-    0x2020 => {
-        Name => 'CMSaturation',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x2021 => {
-        Name => 'CMHue',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x2022 => {
-        Name => 'CMContrast',
-        Writable => 'int16s',
-        Count => 3,
-    },
-    0x2023 => {
-        Name => 'CMSharpness',
-        Writable => 'int16s',
-        Count => 3,
-    },
+    0x2000 => { Name => 'CMExposureCompensation',   Writable => 'rational64s' },
+    0x2001 => { Name => 'CMWhiteBalance',           Writable => 'int16u' },
+    0x2002 => { Name => 'CMWhiteBalanceComp',       Writable => 'int16s' },
+    0x2010 => { Name => 'CMWhiteBalanceGrayPoint',  Writable => 'int16u', Count => 3 },
+    0x2020 => { Name => 'CMSaturation',             Writable => 'int16s', Count => 3 },
+    0x2021 => { Name => 'CMHue',                    Writable => 'int16s', Count => 3 },
+    0x2022 => { Name => 'CMContrast',               Writable => 'int16s', Count => 3 },
+    0x2023 => { Name => 'CMSharpness',              Writable => 'int16s', Count => 3 },
 );
 
 # Olympus unknown information tags
@@ -3544,6 +3014,7 @@ my %indexInfo = (
             SG553 => 'SP-610UZ',
             SG554 => 'SZ-10',
             SG555 => 'SZ-20',
+            SG573 => 'SZ-14',
             SG575 => 'SP-620UZ',
         },
     },
@@ -3942,10 +3413,10 @@ sub ExtenderStatus($$$)
     my ($extender, $lensType, $maxAperture) = @_;
     my @info = split ' ', $extender;
     # validate that extender identifier is reasonable
-    return 0 unless @info >= 2 and $info[1];
-    # if it's not an EC-14 (id 0 4) then assume it was really attached
+    return 0 unless @info >= 2 and hex($info[1]);
+    # if it's not an EC-14 (id '0 04') then assume it was really attached
     # (other extenders don't seem to affect the reported max aperture)
-    return 1 if "$info[0] $info[1]" ne '0 4';
+    return 1 if "$info[0] $info[1]" ne '0 04';
     # get the maximum aperture for this lens (in $1)
     $lensType =~ / F(\d+(\.\d+)?)/ or return 1;
     # If the maximum aperture at the maximum focal length is greater than the

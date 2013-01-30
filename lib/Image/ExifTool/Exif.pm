@@ -50,7 +50,7 @@ use vars qw($VERSION $AUTOLOAD @formatSize @formatName %formatNumber %intFormat
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::MakerNotes;
 
-$VERSION = '3.47';
+$VERSION = '3.49';
 
 sub ProcessExif($$$);
 sub WriteExif($$$);
@@ -1544,12 +1544,14 @@ my %sampleFormat = (
     0x9102 => 'CompressedBitsPerPixel',
     0x9201 => {
         Name => 'ShutterSpeedValue',
+        Notes => 'displayed in seconds, but stored as an APEX value',
         Format => 'rational64s', # Leica M8 patch (incorrectly written as rational64u)
         ValueConv => 'abs($val)<100 ? 2**(-$val) : 0',
         PrintConv => 'Image::ExifTool::Exif::PrintExposureTime($val)',
     },
     0x9202 => {
         Name => 'ApertureValue',
+        Notes => 'displayed as an F number, but stored as an APEX value',
         ValueConv => '2 ** ($val / 2)',
         PrintConv => 'sprintf("%.1f",$val)',
     },
@@ -1564,6 +1566,7 @@ my %sampleFormat = (
     },
     0x9205 => {
         Name => 'MaxApertureValue',
+        Notes => 'displayed as an F number, but stored as an APEX value',
         Groups => { 2 => 'Camera' },
         ValueConv => '2 ** ($val / 2)',
         PrintConv => 'sprintf("%.1f",$val)',
@@ -2126,10 +2129,12 @@ my %sampleFormat = (
         # must set Writable here so this tag will be saved with MakerNotes option
         Writable => 'undef',
         WriteGroup => 'IFD0',
+        # (don't make Binary/Protected because we can't copy individual PrintIM tags anyway)
         Description => 'Print Image Matching',
         SubDirectory => {
             TagTable => 'Image::ExifTool::PrintIM::Main',
         },
+        PrintConvInv => '$val =~ /^PrintIM/ ? $val : undef',    # quick validation
     },
     0xc580 => { #20
         Name => 'USPTOOriginalContentType',
@@ -2632,7 +2637,7 @@ my %sampleFormat = (
            14 => 'ImageWidth',
            15 => 'ImageHeight',
         },
-        ValueConv => 'Image::ExifTool::Exif::CalcScaleFactor35efl(@val)',
+        ValueConv => 'Image::ExifTool::Exif::CalcScaleFactor35efl($self, @val)',
         PrintConv => 'sprintf("%.1f", $val)',
     },
     CircleOfConfusion => {
@@ -3017,18 +3022,20 @@ sub CalculateLV($$$)
 
 #------------------------------------------------------------------------------
 # Calculate scale factor for 35mm effective focal length (ref 26/PH)
-# Inputs: 0) Focal length
-#         1) Focal length in 35mm format
-#         2) Canon digital zoom factor
-#         3) Focal plane diagonal size (in mm)
-#         4) Sensor size (X and Y in mm)
-#         5/6) Focal plane X/Y size (in mm)
-#         7) focal plane resolution units (1=None,2=inches,3=cm,4=mm,5=um)
-#         8/9) Focal plane X/Y resolution
-#         10/11,12/13...) Image width/height in order of precedence (first valid pair is used)
+# Inputs: 0) ExifTool object ref
+#         1) Focal length
+#         2) Focal length in 35mm format
+#         3) Canon digital zoom factor
+#         4) Focal plane diagonal size (in mm)
+#         5) Sensor size (X and Y in mm)
+#         6/7) Focal plane X/Y size (in mm)
+#         8) focal plane resolution units (1=None,2=inches,3=cm,4=mm,5=um)
+#         9/10) Focal plane X/Y resolution
+#         11/12,13/14...) Image width/height in order of precedence (first valid pair is used)
 # Returns: 35mm conversion factor (or undefined if it can't be calculated)
 sub CalcScaleFactor35efl
 {
+    my $exifTool = shift;
     my $res = $_[7];    # save resolution units (in case they have been converted to string)
     my $sensXY = $_[4];
     Image::ExifTool::ToFloat(@_);
@@ -3040,6 +3047,15 @@ sub CalcScaleFactor35efl
     my $digz = shift || 1;
     my $diag = shift;
     my $sens = shift;
+    # calculate Canon sensor size using a dedicated algorithm
+    if ($$exifTool{Make} eq 'Canon') {
+        require Image::ExifTool::Canon;
+        my $canonDiag = Image::ExifTool::Canon::CalcSensorDiag(
+            $exifTool->{RATIONAL}{FocalPlaneXResolution},
+            $exifTool->{RATIONAL}{FocalPlaneYResolution},
+        );
+        $diag = $canonDiag if $canonDiag;
+    }
     unless ($diag and Image::ExifTool::IsFloat($diag)) {
         if ($sens and $sensXY =~ / (\d+(\.?\d*)?)$/) {
             $diag = sqrt($sens * $sens + $1 * $1);
@@ -3865,10 +3881,12 @@ sub ProcessExif($$$)
                         if ($exifTool->Options('FastScan')) {
                             $exifTool->Warn('Ignored Leica MakerNote trailer');
                         } else {
+                            require Image::ExifTool::Fixup;
                             $$exifTool{LeicaTrailer} = {
                                 TagInfo => $tagInfo || $tmpInfo,
                                 Offset  => $base + $valuePtr + $dataPos,
                                 Size    => $size,
+                                Fixup   => new Image::ExifTool::Fixup,
                             };
                         }
                     } else {

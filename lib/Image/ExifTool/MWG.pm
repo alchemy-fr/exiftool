@@ -58,7 +58,7 @@ sub OverwriteStringList($$$$);
         ignored when reading, as per the MWG recommendations.  Instead, a "Warning"
         tag is generated when non-standard metadata is encountered.  This feature
         may be disabled by setting C<$Image::ExifTool::MWG::strict = 0> in the
-        ExifTool config file (or from your Perl script when using the API).  Note
+        L<ExifTool config file|../config.html> (or from your Perl script when using the API).  Note
         that the behaviour when writing is not changed:  ExifTool always creates new
         records only in the standard location, but writes new tags to any
         EXIF/IPTC/XMP records that exist.

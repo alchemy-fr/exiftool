@@ -14,7 +14,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::GPS;
 
-$VERSION = '1.38';
+$VERSION = '1.39';
 
 sub ProcessMIE($$);
 sub ProcessMIEGroup($$$);
@@ -1154,6 +1154,7 @@ sub WriteMIEGroup($$$)
                     my $isOverwriting;
                     my $isList = $$newInfo{List};
                     if ($isList) {
+                        last if $$nvHash{CreateOnly};
                         $isOverwriting = -1;    # force processing list elements individually
                     } else {
                         $isOverwriting = $exifTool->IsOverwriting($nvHash);
@@ -1223,6 +1224,7 @@ sub WriteMIEGroup($$$)
                         # write the old value now
                         Write($outfile, $toWrite, $oldHdr, $oldVal) or $err = 1;
                         $toWrite = '';
+                        next MieElement;
                     }
                     unless (@newVals) {
                         # unshift the new tag info to write it later
@@ -1232,8 +1234,9 @@ sub WriteMIEGroup($$$)
                 } else {
                     # write new value if creating, or if List and list existed, or
                     # if tag was previously deleted
-                    next unless Image::ExifTool::IsCreating($nvHash) or
-                        ($newTag eq $lastTag and ($$newInfo{List} or $deletedTag eq $lastTag));
+                    next unless $$nvHash{IsCreating} or
+                        (($newTag eq $lastTag and ($$newInfo{List} or $deletedTag eq $lastTag)
+                        and not $$nvHash{EditOnly}));
                 }
                 # get the new value to write (undef to delete)
                 push @newVals, $exifTool->GetNewValues($nvHash);

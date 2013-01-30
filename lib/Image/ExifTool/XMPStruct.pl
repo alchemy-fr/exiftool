@@ -325,16 +325,18 @@ Key:
 # Inputs: 0) ExifTool ref, 1) capture hash ref, 2) structure path ref,
 #         3) new value hash ref, 4) reference to change counter
 # Returns: 0) delete flag, 1) list index of deleted structure if adding to list
+#          2) flag set if structure existed
 # Notes: updates path to new base path for structure to be added
 sub DeleteStruct($$$$$)
 {
     my ($exifTool, $capture, $pathPt, $nvHash, $changed) = @_;
-    my ($deleted, $added, $p, $pp, $val, $delPath);
+    my ($deleted, $added, $existed, $p, $pp, $val, $delPath);
     my (@structPaths, @matchingPaths, @delPaths);
 
     # find all existing elements belonging to this structure
     ($pp = $$pathPt) =~ s/ \d+/ \\d\+/g;
     @structPaths = sort grep(/^$pp(\/|$)/, keys %$capture);
+    $existed = 1 if @structPaths;
     # delete only structures with matching fields if necessary
     if ($$nvHash{DelValue}) {
         if (@{$$nvHash{DelValue}}) {
@@ -393,37 +395,34 @@ sub DeleteStruct($$$$$)
             $deleted = 1;
             ++$$changed;
         }
-        $delPath or warn("Internal error 1 in DeleteStruct\n"), return(undef,undef);
+        $delPath or warn("Internal error 1 in DeleteStruct\n"), return(undef,undef,$existed);
         $$pathPt = $delPath;    # return path of first element deleted
-    } else {
-        my $tagInfo = $$nvHash{TagInfo};
-        if ($$tagInfo{List}) {
-            # NOTE: we don't yet properly handle lang-alt elements!!!!
-            if (@structPaths) {
-                $structPaths[-1] =~ /^($pp)/ or warn("Internal error 2 in DeleteStruct\n"), return(undef,undef);
-                my $path = $1;
-                # delete any improperly formatted xmp
-                if ($$capture{$path}) {
-                    my $cap = $$capture{$path};
-                    # an error unless this was an empty structure
-                    $exifTool->Error("Improperly structured XMP ($path)",1) if ref $cap ne 'ARRAY' or $$cap[0];
-                    delete $$capture{$path};
-                }
-                # (match last index to put in same lang-alt list for Bag of lang-alt items)
-                $path =~ m/.* (\d+)/g or warn("Internal error 3 in DeleteStruct\n"), return(undef,undef);
-                $added = $1;
-                # add after last item in list
-                my $len = length $added;
-                my $pos = pos($path) - $len;
-                my $nxt = substr($added, 1) + 1;
-                substr($path, $pos, $len) = length($nxt) . $nxt;
-                $$pathPt = $path;
-            } else {
-                $added = '10';
+    } elsif ($$nvHash{TagInfo}{List}) {
+        # NOTE: we don't yet properly handle lang-alt elements!!!!
+        if (@structPaths) {
+            $structPaths[-1] =~ /^($pp)/ or warn("Internal error 2 in DeleteStruct\n"), return(undef,undef,$existed);
+            my $path = $1;
+            # delete any improperly formatted xmp
+            if ($$capture{$path}) {
+                my $cap = $$capture{$path};
+                # an error unless this was an empty structure
+                $exifTool->Error("Improperly structured XMP ($path)",1) if ref $cap ne 'ARRAY' or $$cap[0];
+                delete $$capture{$path};
             }
+            # (match last index to put in same lang-alt list for Bag of lang-alt items)
+            $path =~ m/.* (\d+)/g or warn("Internal error 3 in DeleteStruct\n"), return(undef,undef,$existed);
+            $added = $1;
+            # add after last item in list
+            my $len = length $added;
+            my $pos = pos($path) - $len;
+            my $nxt = substr($added, 1) + 1;
+            substr($path, $pos, $len) = length($nxt) . $nxt;
+            $$pathPt = $path;
+        } else {
+            $added = '10';
         }
     }
-    return($deleted, $added);
+    return($deleted, $added, $existed);
 }
 
 #------------------------------------------------------------------------------

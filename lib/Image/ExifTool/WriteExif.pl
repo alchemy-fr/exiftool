@@ -396,6 +396,7 @@ my %writeTable = (
     0x9000 => {             # ExifVersion
         Writable => 'undef',
         Mandatory => 1,
+        PrintConvInv => '$val=~tr/.//d; $val=~/^\d{4}$/ ? $val : undef',
     },
     0x9003 => {             # DateTimeOriginal
         Writable => 'string',
@@ -520,6 +521,7 @@ my %writeTable = (
     0xa000 => {             # FlashpixVersion
         Writable => 'undef',
         Mandatory => 1,
+        PrintConvInv => '$val=~tr/.//d; $val=~/^\d{4}$/ ? $val : undef',
     },
     0xa001 => {             # ColorSpace
         Writable => 'int16u',
@@ -1976,6 +1978,7 @@ Entry:  for (;;) {
                                         TagInfo => $oldInfo || $tmpInfo,
                                         Offset  => $base + $valuePtr + $dataPos,
                                         Size    => $oldSize,
+                                        Fixup   => new Image::ExifTool::Fixup,
                                     },
                                     $invalidPreview = 2;
                                     # remove SubDirectory to prevent processing (for now)
@@ -2158,7 +2161,7 @@ Entry:  for (;;) {
                     if ($isNew > 0) {
                         # don't create new entry unless requested
                         if ($nvHash) {
-                            next unless Image::ExifTool::IsCreating($nvHash);
+                            next unless $$nvHash{IsCreating};
                             if ($$newInfo{IsOverwriting}) {
                                 my $proc = $$newInfo{IsOverwriting};
                                 $isOverwriting = &$proc($exifTool, $nvHash, $val, \$newVal);
@@ -2246,7 +2249,7 @@ Entry:  for (;;) {
                         # convert to binary format
                         $newValue = WriteValue($newVal, $newFormName, $newCount);
                         unless (defined $newValue) {
-                            $exifTool->Warn("Error writing $dirName:$$newInfo{Name}");
+                            $exifTool->Warn("Invalid value for $dirName:$$newInfo{Name}");
                             goto NoOverwrite; # GOTO!
                         }
                         if (length $newValue) {
@@ -2752,10 +2755,8 @@ NoOverwrite:            next if $isNew > 0;
                                 $subFixup->{Start} += $hdrLen;
                             }
                             $newValuePt = \$newValue;
-                        }
-                        unless (defined $$newValuePt) {
-                            $exifTool->Error("Error writing $dirName:$$newInfo{Name}");
-                            return undef;
+                        } else {
+                            $newValuePt = \$oldValue;
                         }
                         unless (length $$newValuePt) {
                             # don't delete a previously empty makernote directory
@@ -2922,8 +2923,10 @@ NoOverwrite:            next if $isNew > 0;
                         $$exifTool{GENERATE_PREVIEW_INFO}))
                     {
                         # hold onto the PreviewImage until we can determine if it fits
-                        $exifTool->{PREVIEW_INFO} or $exifTool->{PREVIEW_INFO} = { };
-                        $exifTool->{PREVIEW_INFO}{Data} = $$newValuePt;
+                        $exifTool->{PREVIEW_INFO} or $exifTool->{PREVIEW_INFO} = {
+                            Data => $$newValuePt,
+                            Fixup => new Image::ExifTool::Fixup,
+                        };
                         $exifTool->{PREVIEW_INFO}{ChangeBase} = 1 if $$newInfo{ChangeBase};
                         if ($$newInfo{IsOffset} and $$newInfo{IsOffset} eq '2') {
                             $exifTool->{PREVIEW_INFO}{NoBaseShift} = 1;
@@ -3384,10 +3387,16 @@ NoOverwrite:            next if $isNew > 0;
                     if ($$tagInfo{Name} eq 'PreviewImageStart') {
                         if ($$exifTool{FILE_TYPE} eq 'JPEG' and not $$tagInfo{MakerPreview}) {
                             # hold onto the PreviewImage until we can determine if it fits
-                            $exifTool->{PREVIEW_INFO} or $exifTool->{PREVIEW_INFO} = { };
-                            $exifTool->{PREVIEW_INFO}{Data} = $buff;
+                            $exifTool->{PREVIEW_INFO} or $exifTool->{PREVIEW_INFO} = {
+                                Data => $buff,
+                                Fixup => new Image::ExifTool::Fixup,
+                            };
                             if ($$tagInfo{IsOffset} and $$tagInfo{IsOffset} eq '2') {
                                 $exifTool->{PREVIEW_INFO}{NoBaseShift} = 1;
+                            }
+                            if ($offset >= 0 and $offset+$size <= $dataLen) {
+                                # set flag indicating this preview wasn't in a trailer
+                                $exifTool->{PREVIEW_INFO}{WasContained} = 1;
                             }
                             $buff = '';
                         } elsif ($$exifTool{TIFF_TYPE} eq 'ARW' and $$exifTool{Model}  eq 'DSLR-A100') {
@@ -3480,11 +3489,7 @@ NoOverwrite:            next if $isNew > 0;
             $fixup->ApplyFixup(\$newData);
         }
         # save fixup for adjusting Leica trailer offset if necessary
-        if ($$exifTool{LeicaTrailer}) {
-            my $trail = $$exifTool{LeicaTrailer};
-            $$trail{Fixup} or $$trail{Fixup} = new Image::ExifTool::Fixup;
-            $$trail{Fixup}->AddFixup($fixup);
-        }
+        $$exifTool{LeicaTrailer}{Fixup}->AddFixup($fixup) if $$exifTool{LeicaTrailer};
         # save fixup for PreviewImage in JPEG file if necessary
         my $previewInfo = $exifTool->{PREVIEW_INFO};
         if ($previewInfo) {
@@ -3501,12 +3506,13 @@ NoOverwrite:            next if $isNew > 0;
                 $newPos += ($previewInfo->{BaseShift} || 0);
                 if ($previewInfo->{Relative}) {
                     # calculate our base by looking at how far the pointer got shifted
-                    $newPos -= $fixup->GetMarkerPointers(\$newData, 'PreviewImage');
+                    $newPos -= ($fixup->GetMarkerPointers(\$newData, 'PreviewImage') || 0);
                 }
                 $fixup->SetMarkerPointers(\$newData, 'PreviewImage', $newPos);
                 $newData .= $$pt;
+                # set flag to delete old preview unless it was contained in the EXIF
+                $exifTool->{DEL_PREVIEW} = 1 unless $exifTool->{PREVIEW_INFO}{WasContained};       
                 delete $exifTool->{PREVIEW_INFO};   # done with our preview data
-                $exifTool->{DEL_PREVIEW} = 1;       # set flag to delete old preview
             } else {
                 # Doesn't fit, or we still don't know, so save fixup information
                 # and put the preview at the end of the file

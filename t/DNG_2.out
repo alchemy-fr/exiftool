@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.07
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.13
 [File, System, Image] FileName - File Name: DNG.dng
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 13 kB
 [File, System, Time] FileModifyDate - File Modification Date/Time: 2006:02:26 09:30:53-05:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2012:11:19 15:30:55-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2012:11:17 09:18:25-05:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2013:01:08 12:16:55-05:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2013:01:06 00:31:41-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: DNG
 [File, File, Image] MIMEType - MIME Type: image/x-adobe-dng
@@ -318,9 +318,9 @@
 [Composite, Composite, Camera] WB_RGGBLevels - WB RGGB Levels: 2002 1185 1187 2364
 [Composite, Composite, Camera] BlueBalance - Blue Balance: 1.993255
 [Composite, Composite, Camera] CircleOfConfusion - Circle Of Confusion: 0.019 mm
-[Composite, Composite, Image] FOV - Field Of View: 23.7 deg
-[Composite, Composite, Camera] FocalLength35efl - Focal Length: 55.0 mm (35 mm equivalent: 85.9 mm)
-[Composite, Composite, Camera] HyperfocalDistance - Hyperfocal Distance: 19.66 m
-[Composite, Composite, Camera] Lens35efl - Lens: 18.0 - 55.0 mm (35 mm equivalent: 28.1 - 85.9 mm)
+[Composite, Composite, Image] FOV - Field Of View: 22.8 deg
+[Composite, Composite, Camera] FocalLength35efl - Focal Length: 55.0 mm (35 mm equivalent: 89.2 mm)
+[Composite, Composite, Camera] HyperfocalDistance - Hyperfocal Distance: 20.42 m
+[Composite, Composite, Camera] Lens35efl - Lens: 18.0 - 55.0 mm (35 mm equivalent: 29.2 - 89.2 mm)
 [Composite, Composite, Image] LightValue - Light Value: 7.9
 [Composite, Composite, Camera] RedBalance - Red Balance: 1.688027

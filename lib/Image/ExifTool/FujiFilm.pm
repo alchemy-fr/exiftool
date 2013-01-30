@@ -24,7 +24,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.38';
+$VERSION = '1.39';
 
 sub ProcessFujiDir($$$);
 sub ProcessFaceRec($$$);
@@ -588,10 +588,25 @@ my %faceCategories = (
     0 => {
         Name => 'RawImageWidth',
         Format => 'int32u',
+        RawConv => '$val < 10000 ? $$self{FujiWidth} = $val : undef', #5
         ValueConv => '$$self{FujiLayout} ? ($val / 2) : $val',
     },
-    4 => {
+    4 => [
+        {
+            Name => 'RawImageWidth',
+            Condition => 'not $$self{FujiWidth}',
+            Format => 'int32u',
+            ValueConv => '$$self{FujiLayout} ? ($val / 2) : $val',
+        },
+        {
+            Name => 'RawImageHeight',
+            Format => 'int32u',
+            ValueConv => '$$self{FujiLayout} ? ($val * 2) : $val',
+        },
+    ],
+    8 => {
         Name => 'RawImageHeight',
+        Condition => 'not $$self{FujiWidth}',
         Format => 'int32u',
         ValueConv => '$$self{FujiLayout} ? ($val * 2) : $val',
     },

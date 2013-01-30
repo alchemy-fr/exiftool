@@ -1,7 +1,7 @@
 # Before "make install", this script should be runnable with "make test".
 # After "make install" it should work as "perl t/Writer.t".
 
-BEGIN { $| = 1; print "1..45\n"; $Image::ExifTool::noConfig = 1; }
+BEGIN { $| = 1; print "1..50\n"; $Image::ExifTool::noConfig = 1; }
 END {print "not ok 1\n" unless $loaded;}
 
 # test 1: Load the module(s)
@@ -286,6 +286,8 @@ my $testfile;
     ++$testnum;
     my $exifTool = new Image::ExifTool;
     my @copyTags = qw(exififd:all -lightSource ifd0:software);
+    # also test new regular expression feature (ExifTool 9.15)
+    push @copyTags, 'comment<${ make ; tr{ ,.}{_}; s{__}{_} } {cool, huh?}';
     $exifTool->SetNewValuesFromFile('t/images/Olympus.jpg', @copyTags);
     $testfile = "t/${testname}_${testnum}_failed.jpg";
     unlink $testfile;
@@ -757,8 +759,6 @@ my $testOK;
 {
     ++$testnum;
     my $exifTool = new Image::ExifTool;
-    $testfile = "t/${testname}_${testnum}_failed.xmp";
-    unlink $testfile;
     my @writeInfo = (
         ['XMP:ApertureValue' => '-0.1', Shift => 1], # increment
         ['XMP:FNumber' => '28/10', DelValue => 1], # conditional delete
@@ -779,6 +779,109 @@ my $testOK;
     writeInfo($exifTool, 't/images/Writer.jpg', $testfile);
     $exifTool->Options(CharsetEXIF => undef);
     my $info = $exifTool->ImageInfo($testfile, 'artist');
+    if (check($exifTool, $info, $testname, $testnum)) {
+        unlink $testfile;
+    } else {
+        print 'not ';
+    }
+    print "ok $testnum\n";
+}
+
+# test 46: Test writing with wildcards
+{
+    ++$testnum;
+    my $exifTool = new Image::ExifTool;
+    my $testfile = "t/${testname}_${testnum}_failed.jpg";
+    unlink $testfile;
+    $exifTool->SetNewValue('A*' => '7');
+    writeInfo($exifTool, 't/images/Writer.jpg', $testfile);
+    my $info = $exifTool->ImageInfo($testfile);
+    if (check($exifTool, $info, $testname, $testnum)) {
+        unlink $testfile;
+    } else {
+        print 'not ';
+    }
+    print "ok $testnum\n";
+}
+
+# test 47: Test various WriteMode settings
+{
+    ++$testnum;
+    my $exifTool = new Image::ExifTool;
+    my $testfile = "t/${testname}_${testnum}_failed.jpg";
+    unlink $testfile;                               # Should the tag be written?
+    $exifTool->Options(WriteMode => 'w');           # --- write existing tags only:
+    $exifTool->SetNewValue(ISO => 150);             # yes (already exists)
+    $exifTool->SetNewValue(ImageDescription => 'N');# no  (doesn't already exist)
+    $exifTool->Options(WriteMode => 'c');           # --- create new tags only:
+    $exifTool->SetNewValue(ApertureValue => 8.0);   # no  (already exists)
+    $exifTool->SetNewValue(UserComment => 'No');    # no  (exists, albeit empty)
+    $exifTool->SetNewValue(Artist => 'Phil');       # yes (doesn't already exist)
+    $exifTool->SetNewValue('XMP:Subject' => 'No');  # no  (shouldn't create new group)
+    $exifTool->Options(WriteMode => 'cg');          # --- also create new groups:
+    $exifTool->SetNewValue('IPTC:Keywords' => 'Y'); # yes (should create new group)
+    $exifTool->Options(Composite => 0, FastScan => 2);
+    writeInfo($exifTool, 't/images/Canon.jpg', $testfile);
+    my $info = $exifTool->ImageInfo($testfile, '-time:all');
+    if (check($exifTool, $info, $testname, $testnum)) {
+        unlink $testfile;
+    } else {
+        print 'not ';
+    }
+    print "ok $testnum\n";
+}
+
+# tests 48-49: More WriteMode 'cg' tests, and test AddUserDefinedTags()
+{
+    ++$testnum;
+    my $testfile = "t/${testname}_${testnum}_failed.jpg";
+    unlink $testfile;
+    my $exifTool = new Image::ExifTool;
+    $exifTool->Options(WriteMode => 'cg');
+    $exifTool->SetNewValue('XMP-dc:Title' => 'A');
+    $exifTool->SetNewValue('XMP:Subject' => 'A');
+    $exifTool->SetNewValue('XMP:LocationCreated' => '{city=A}');
+    $exifTool->SetNewValue('XMP:Flash' => '{fired=true}');
+    $exifTool->SetNewValue('IPTC:Keywords' => 'A');
+    $exifTool->SetNewValue('IPTC:City' => 'A');
+    $exifTool->SetNewValue('EXIF:Artist' => 'A');
+    writeInfo($exifTool, 't/images/Writer.jpg', $testfile);
+    my $info = $exifTool->ImageInfo($testfile, '-time:all', '-filename');
+    unless (check($exifTool, $info, $testname, $testnum)) {
+        print 'not ';
+    }
+    print "ok $testnum\n";
+
+    ++$testnum;
+    my $testfile2 = "t/${testname}_${testnum}_failed.jpg";
+    unlink $testfile2;
+    $exifTool->SetNewValue();
+    $exifTool->SetNewValue('XMP-dc:Title' => 'B');
+    $exifTool->SetNewValue('XMP:Subject' => 'B');
+    $exifTool->SetNewValue('XMP:LocationCreated' => '{city=B}');
+    $exifTool->SetNewValue('XMP:Flash' => '{fired=false}');
+    $exifTool->SetNewValue('IPTC:Keywords' => 'B');
+    $exifTool->SetNewValue('IPTC:City' => 'B');
+    $exifTool->SetNewValue('EXIF:Artist' => 'B');
+    if (writeInfo($exifTool, $testfile, $testfile2, 1)) {
+        unlink $testfile;
+        unlink $testfile2;
+    } else {
+        $info = $exifTool->ImageInfo($testfile2, '-time:all', '-filename');
+        check($exifTool, $info, $testname, $testnum, $testnum-1);
+        print 'not ';
+    }
+    print "ok $testnum\n";
+
+    ++$testnum;
+    $testfile = "t/${testname}_${testnum}_failed.xmp";
+    unlink $testfile;
+    Image::ExifTool::AddUserDefinedTags('Image::ExifTool::XMP::dc', test => {} );
+    $exifTool->SetNewValue();
+    $exifTool->SetNewValue('XMP-dc:Title' => 'A');
+    $exifTool->SetNewValue('XMP-dc:Test' => 'B');
+    writeInfo($exifTool, undef, $testfile);
+    $info = $exifTool->ImageInfo($testfile, 'xmp:all');
     if (check($exifTool, $info, $testname, $testnum)) {
         unlink $testfile;
     } else {

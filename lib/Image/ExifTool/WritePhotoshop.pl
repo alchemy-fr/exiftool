@@ -196,7 +196,7 @@ sub WritePhotoshop($$$)
                 # (we already know we want to create this tag)
             } else {
                 # don't add this tag unless specified
-                next unless Image::ExifTool::IsCreating($nvHash);
+                next unless $$nvHash{IsCreating};
             }
             next unless defined $value;     # next if tag is being deleted
             $exifTool->VerboseValue("+ Photoshop:$$tagInfo{Name}", $value);

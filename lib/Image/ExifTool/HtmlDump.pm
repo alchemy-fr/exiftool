@@ -13,7 +13,7 @@ use vars qw($VERSION);
 use Image::ExifTool;    # only for FinishTiffDump()
 use Image::ExifTool::HTML qw(EscapeHTML);
 
-$VERSION = '1.30';
+$VERSION = '1.31';
 
 sub DumpTable($$$;$$$$$);
 sub Open($$$;@);
@@ -60,10 +60,12 @@ my $htmlHeader2 = <<_END_PART_2_;
     visibility: hidden;
     position: absolute;
     background: #ffffdd;
-    opacity: 0.8;
+    zoom: 1;
     -moz-opacity: 0.8;
-    filter: alpha(opacity=80);
+    -khtml-opacity: 0.8;
     -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=80)';
+    filter: alpha(opacity=80);
+    opacity: 0.8;
     z-index: 2;
 }
 /* table styles */

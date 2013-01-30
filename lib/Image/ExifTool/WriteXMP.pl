@@ -826,12 +826,15 @@ sub WriteXMP($$;$)
         my $nvHash = $exifTool->GetNewValueHash($tagInfo);
         my $overwrite = $exifTool->IsOverwriting($nvHash);
         my $writable = $$tagInfo{Writable} || '';
-        my (%attrs, $deleted, $added);
+        my (%attrs, $deleted, $added, $existed);
         # delete existing entry if necessary
         if ($isStruct) {
             require 'Image/ExifTool/XMPStruct.pl';
-            ($deleted, $added) = DeleteStruct($exifTool, \%capture, \$path, $nvHash, \$changed);
+            ($deleted, $added, $existed) = DeleteStruct($exifTool, \%capture, \$path, $nvHash, \$changed);
+            next unless $deleted or $added or $exifTool->IsOverwriting($nvHash);
+            next if $existed and $$nvHash{CreateOnly};
         } elsif ($cap) {
+            next if $$nvHash{CreateOnly};   # (necessary for List-type tags)
             # take attributes from old values if they exist
             %attrs = %{$$cap[1]};
             if ($overwrite) {
@@ -849,7 +852,7 @@ sub WriteXMP($$;$)
                     if ($writable eq 'lang-alt') {
                         unless (defined $addLang) {
                             # add to lang-alt list by default if creating this tag from scratch
-                            $addLang = Image::ExifTool::IsCreating($nvHash) ? 1 : 0;
+                            $addLang = $$nvHash{IsCreating} ? 1 : 0;
                         }
                         # get original language code (lc for comparisons)
                         $oldLang = lc($$attrs{'xml:lang'} || 'x-default');
@@ -921,7 +924,7 @@ sub WriteXMP($$;$)
                     $added = $1;
                 }
             } else {
-                # are never overwriting, so we must be adding to a list
+                # we are never overwriting, so we must be adding to a list
                 # match the last index unless this is a list of lang-alt lists
                 my $pat = $writable eq 'lang-alt' ? '.* (\d+)(.*? \d+)' : '.* (\d+)';
                 if ($path =~ m/$pat/g) {
@@ -964,9 +967,9 @@ sub WriteXMP($$;$)
         }
         # check to see if we want to create this tag
         # (create non-avoided tags in XMP data files by default)
-        my $isCreating = (Image::ExifTool::IsCreating($nvHash) or $isStruct or
+        my $isCreating = ($$nvHash{IsCreating} or (($isStruct or
                           ($preferred and not $$tagInfo{Avoid} and
-                            not defined $$nvHash{Shift}));
+                            not defined $$nvHash{Shift})) and not $$nvHash{EditOnly}));
 
         # don't add new values unless...
             # ...tag existed before and was deleted, or we added it to a list

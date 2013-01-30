@@ -32,7 +32,7 @@ use Image::ExifTool::XMP;
 use Image::ExifTool::Canon;
 use Image::ExifTool::Nikon;
 
-$VERSION = '2.54';
+$VERSION = '2.55';
 @ISA = qw(Exporter);
 
 sub NumbersFirst;
@@ -275,7 +275,7 @@ details.
 
 ExifTool will extract XMP information even if it is not listed in these
 tables, but other tags are not writable unless added as user-defined tags in
-the ExifTool config file.  For example, the C<pdfx> namespace doesn't have a
+the L<ExifTool config file|../config.html>.  For example, the C<pdfx> namespace doesn't have a
 predefined set of tag names because it is used to store application-defined
 PDF information, so although this information will be extracted, it is only
 writable if the corresponding user-defined tags have been created.
@@ -448,8 +448,8 @@ be written without modifying the file itself.
 The values of the composite tags are B<Derived From> the values of other
 tags.  These are convenience tags which are calculated after all other
 information is extracted.  User-defined Composite tags, useful for
-custom-formatting of tag values, may created in the ExifTool configuration
-file.
+custom-formatting of tag values, may created in the L<ExifTool configuration
+file|../config.html>.
 },
     Shortcuts => q{
 Shortcut tags are convenience tags that represent one or more other tag
@@ -1446,7 +1446,7 @@ sub NumbersFirst
 }
 
 #------------------------------------------------------------------------------
-# Convert pod documentation to pod
+# Convert our pod-like documentation to pod
 # (funny, I know, but the pod headings must be hidden to prevent confusing
 #  the pod parser)
 # Inputs: 0-N) documentation strings
@@ -1457,11 +1457,12 @@ sub Doc2Pod($;@)
     $doc .= shift while @_;
     $doc =~ s/\n~/\n=/g;
     $doc =~ s/L<[^>]+?\|(http[^>]+)>/L<$1>/g; # POD doesn't support text for http links
+    $doc =~ s/L<([^>]+?)\|[^>]+\.html>/$1/g;  # remove relative HTML links
     return $doc;
 }
 
 #------------------------------------------------------------------------------
-# Convert pod documentation to html
+# Convert our pod-like documentation to html
 # Inputs: 0) string
 sub Doc2Html($)
 {
@@ -1483,10 +1484,9 @@ sub Doc2Html($)
     # (a relative POD link turns into a relative HTML link)
     $doc =~ s{L&lt;([^&]+?)\|/\w+ ([^/&|]+) Tags&gt;}{<a href="#$2">$1</a>}sg;
     # L<sample config file|../config.html> --> <a href="../config.html">sample config file</a>
-    # (these should only be used for Notes which do not propagate to TagNames.pod)
     $doc =~ s/L&lt;([^&]+?)\|(.+?)&gt;/<a href="$2">$1<\/a>/sg;
     # L<http://some.web.site/> --> <a href="http://some.web.site">http://some.web.site</a>
-    $doc =~ s/L&lt;(.*?)&gt;/<a href="$1">$1<\/a>/sg;
+    $doc =~ s/L&lt;(http.*?)&gt;/<a href="$1">$1<\/a>/sg;
     return $doc;
 }
 

@@ -389,6 +389,7 @@ t/ExifTool_22.out
 t/ExifTool_23.out
 t/ExifTool_24.out
 t/ExifTool_25.out
+t/ExifTool_26.out
 t/ExifTool_3.out
 t/ExifTool_4.out
 t/ExifTool_5.out
@@ -653,6 +654,10 @@ t/Writer_42.out
 t/Writer_43.out
 t/Writer_44.out
 t/Writer_45.out
+t/Writer_46.out
+t/Writer_47.out
+t/Writer_48.out
+t/Writer_50.out
 t/Writer_6.out
 t/Writer_7.out
 t/Writer_9.out

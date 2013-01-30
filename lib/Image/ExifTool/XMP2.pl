@@ -1072,7 +1072,7 @@ my %sSubVersion = (
     NAMESPACE => 'digiKam',
     NOTES => 'DigiKam namespace tags.',
     CaptionsAuthorNames    => { Writable => 'lang-alt' },
-    CaptionsDateTimeStamps => { Writable => 'lang-alt' },
+    CaptionsDateTimeStamps => { Writable => 'lang-alt', Groups => { 2 => 'Time' } },
     TagsList               => { List => 'Seq' },
     ColorLabel             => { },
     PickLabel              => { },

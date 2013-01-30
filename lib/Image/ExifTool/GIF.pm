@@ -19,7 +19,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.09';
+$VERSION = '1.10';
 
 # road map of directory locations in GIF images
 my %gifMap = (
@@ -117,8 +117,8 @@ sub ProcessGIF($$)
     my $raf = $$dirInfo{RAF};
     my $verbose = $exifTool->Options('Verbose');
     my $out = $exifTool->Options('TextOut');
-    my ($a, $s, $ch, $length, $buff, $comment);
-    my ($err, $newComment, $setComment);
+    my ($a, $s, $ch, $length, $buff);
+    my ($err, $newComment, $setComment, $nvComment);
     my ($addDirs, %doneDir);
     my ($frameCount, $delayTime) = (0, 0);
 
@@ -137,16 +137,8 @@ sub ProcessGIF($$)
         $addDirs = $exifTool->{ADD_DIRS};
         # determine if we are editing the File:Comment tag
         my $delGroup = $exifTool->{DEL_GROUP};
-        if ($$delGroup{File}) {
-            $setComment = 1;
-            if ($$delGroup{File} == 2) {
-                $newComment = $exifTool->GetNewValues('Comment');
-            }
-        } else {
-            my $nvHash;
-            $newComment = $exifTool->GetNewValues('Comment', \$nvHash);
-            $setComment = 1 if $nvHash;
-        }
+        $newComment = $exifTool->GetNewValues('Comment', \$nvComment);
+        $setComment = 1 if $nvComment or $$delGroup{File};
         # change to GIF 89a if adding comment, XMP or ICC_Profile
         $buff = 'GIF89a' if $$addDirs{XMP} or $$addDirs{ICC_Profile} or defined $newComment;
         Write($outfile, $buff, $s) or $err = 1;
@@ -162,32 +154,34 @@ sub ProcessGIF($$)
         $raf->Read($buff, $length) == $length or return 0; # skip color table
         Write($outfile, $buff) or $err = 1 if $outfile;
     }
-    # write the comment first if necessary
-    if ($outfile and defined $newComment) {
-        # write comment marker
-        Write($outfile, "\x21\xfe") or $err = 1;
-        $verbose and print $out "  + Comment = $newComment\n";
-        my $len = length($newComment);
-        # write out the comment in 255-byte chunks, each
-        # chunk beginning with a length byte
-        my $n;
-        for ($n=0; $n<$len; $n+=255) {
-            my $size = $len - $n;
-            $size > 255 and $size = 255;
-            my $str = substr($newComment,$n,$size);
-            Write($outfile, pack('C',$size), $str) or $err = 1;
-        }
-        Write($outfile, "\0") or $err = 1;  # empty chunk as terminator
-        undef $newComment;
-        ++$exifTool->{CHANGED};     # increment file changed flag
-    }
 #
 # loop through GIF blocks
 #
 Block:
     for (;;) {
         last unless $raf->Read($ch, 1);
+        # write out any new metadata now if this isn't an extension block
         if ($outfile and ord($ch) != 0x21) {
+            # write the comment first if necessary
+            if (defined $newComment and $$nvComment{IsCreating}) {
+                # write comment marker
+                Write($outfile, "\x21\xfe") or $err = 1;
+                $verbose and print $out "  + Comment = $newComment\n";
+                my $len = length($newComment);
+                # write out the comment in 255-byte chunks, each
+                # chunk beginning with a length byte
+                my $n;
+                for ($n=0; $n<$len; $n+=255) {
+                    my $size = $len - $n;
+                    $size > 255 and $size = 255;
+                    my $str = substr($newComment,$n,$size);
+                    Write($outfile, pack('C',$size), $str) or $err = 1;
+                }
+                Write($outfile, "\0") or $err = 1;  # empty chunk as terminator
+                undef $newComment;
+                undef $nvComment;   # delete any other extraneous comments
+                ++$exifTool->{CHANGED};     # increment file changed flag
+            }
             # add application extension containing XMP block if necessary
             # (this will place XMP before the first non-extension block)
             if (exists $$addDirs{XMP} and not defined $doneDir{XMP}) {
@@ -278,31 +272,56 @@ Block:
 
         if ($a == 0xfe) {                           # comment extension
 
-            if ($setComment) {
-                ++$exifTool->{CHANGED}; # increment the changed flag
-            } else {
-                Write($outfile, $ch, $s) or $err = 1 if $outfile;
-            }
+            my $comment = '';
             while ($length) {
                 last unless $raf->Read($buff, $length) == $length;
                 if ($verbose > 2 and not $outfile) {
                     Image::ExifTool::HexDump(\$buff, undef, Out => $out);
                 }
                 # add buffer to comment string
-                $comment = defined $comment ? $comment . $buff : $buff;
+                $comment .= $buff;
                 last unless $raf->Read($ch, 1);  # read next block header
                 $length = ord($ch);  # get next block size
-
-                # write or delete comment
-                next unless $outfile;
-                if ($setComment) {
-                    $verbose and print $out "  - Comment = $buff\n";
-                } else {
-                    Write($outfile, $buff, $ch) or $err = 1;
-                }
             }
             last if $length;    # was a read error if length isn't zero
-            unless ($outfile) {
+            if ($outfile) {
+                my $isOverwriting;
+                if ($setComment) {
+                    if ($nvComment) {
+                        $isOverwriting = $exifTool->IsOverwriting($nvComment,$comment);
+                        # get new comment again (may have been shifted)
+                        $newComment = $exifTool->GetNewValues($nvComment) if defined $newComment;
+                    } else {
+                        # group delete, or deleting additional comments after writing one
+                        $isOverwriting = 1;
+                    }
+                }
+                if ($isOverwriting) {
+                    ++$exifTool->{CHANGED};     # increment file changed flag
+                    $exifTool->VerboseValue('- Comment', $comment);
+                    $comment = $newComment;
+                    $exifTool->VerboseValue('+ Comment', $comment) if defined $comment;
+                    undef $nvComment;   # just delete remaining comments
+                } else {
+                    undef $setComment;  # leave remaining comments alone
+                }
+                if (defined $comment) {
+                    # write comment marker
+                    Write($outfile, "\x21\xfe") or $err = 1;
+                    my $len = length($comment);
+                    # write out the comment in 255-byte chunks, each
+                    # chunk beginning with a length byte
+                    my $n;
+                    for ($n=0; $n<$len; $n+=255) {
+                        my $size = $len - $n;
+                        $size > 255 and $size = 255;
+                        my $str = substr($comment,$n,$size);
+                        Write($outfile, pack('C',$size), $str) or $err = 1;
+                    }
+                    Write($outfile, "\0") or $err = 1;  # empty chunk as terminator
+                }
+                undef $newComment;  # don't write the new comment again
+            } else {
                 $rtnVal = 1;
                 $exifTool->FoundTag('Comment', $comment) if $comment;
                 undef $comment;
@@ -470,8 +489,6 @@ Block:
     unless ($outfile) {
         $exifTool->HandleTag($tagTablePtr, 'FrameCount', $frameCount) if $frameCount > 1;
         $exifTool->HandleTag($tagTablePtr, 'Duration', $delayTime/100) if $delayTime;
-        # for historical reasons, the GIF Comment tag is in the Extra table
-        $exifTool->FoundTag('Comment', $comment) if $comment;
     }
 
     # set return value to -1 if we only had a write error

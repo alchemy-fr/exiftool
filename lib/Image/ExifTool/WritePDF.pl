@@ -431,11 +431,13 @@ sub WritePDF($$)
             }
             # don't write this out if we deleted all values
             delete $$infoDict{$tagID} unless @vals;
+        } elsif ($$nvHash{EditOnly}) {
+            next;
         }
         # decide whether we want to write this tag
-        # (always create native PDF information, so don't check IsCreating())
+        # (native PDF information is always preferred, so don't check IsCreating)
         next unless $deleted or $$tagInfo{List} or not exists $$infoDict{$tagID};
-
+        
         # add new values to existing ones
         my @newVals = $exifTool->GetNewValues($nvHash);
         if (@newVals) {

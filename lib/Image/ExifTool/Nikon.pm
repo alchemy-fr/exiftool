@@ -55,7 +55,7 @@ use vars qw($VERSION %nikonLensIDs %nikonTextEncoding);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '2.68';
+$VERSION = '2.70';
 
 sub LensIDConv($$$);
 sub ProcessNikonAVI($$$);
@@ -268,7 +268,7 @@ sub PrintAFPointsInv($$);
     'AF 54 44 44 0C 0C B1 06' => 'AF-S Nikkor 35mm f/1.4G',
     'B0 4C 50 50 14 14 B2 06' => 'AF-S Nikkor 50mm f/1.8G',
     'B1 48 48 48 24 24 B3 06' => 'AF-S DX Micro Nikkor 40mm f/2.8G', #27
-    'B2 48 5C 80 30 30 B4 0E' => 'AF-S Nikkor 70-200mm f/4 ED VR', #David Puschel
+    'B2 48 5C 80 30 30 B4 0E' => 'AF-S Nikkor 70-200mm f/4G ED VR', #David Puschel
     'B3 4C 62 62 14 14 B5 06' => 'AF-S Nikkor 85mm f/1.8G',
     'B4 40 37 62 2C 34 B6 0E' => 'AF-S VR Zoom-Nikkor 24-85mm f/3.5-4.5G IF-ED', #30
     'B5 4C 3C 3C 14 14 B7 06' => 'AF-S Nikkor 28mm f/1.8G', #30
@@ -450,6 +450,7 @@ sub PrintAFPointsInv($$);
     '45 41 37 72 2C 3C 48 02' => 'Tamron SP AF 24-135mm f/3.5-5.6 AD Aspherical (IF) Macro (190D)',
     '33 54 3C 5E 24 24 62 02' => 'Tamron SP AF 28-75mm f/2.8 XR Di LD Aspherical (IF) Macro (A09)',
     'FA 54 3C 5E 24 24 84 06' => 'Tamron SP AF 28-75mm f/2.8 XR Di LD Aspherical (IF) Macro (A09NII)', #JD
+    'FA 54 3C 5E 24 24 DF 06' => 'Tamron SP AF 28-75mm F/2.8 XR Di LD Aspherical (IF) Macro (A09NII)',
     '10 3D 3C 60 2C 3C D2 02' => 'Tamron AF 28-80mm f/3.5-5.6 Aspherical (177D)',
     '45 3D 3C 60 2C 3C 48 02' => 'Tamron AF 28-80mm f/3.5-5.6 Aspherical (177D)',
     '00 48 3C 6A 24 24 00 02' => 'Tamron SP AF 28-105mm f/2.8 LD Aspherical IF (176D)',
@@ -949,7 +950,7 @@ my %binaryDataAttrs = (
         Name => 'PictureControlData',
         Writable => 'undef',
         Permanent => 0,
-        Binary => 1,
+        Flags => [ 'Binary', 'Protected' ],
         SubDirectory => { TagTable => 'Image::ExifTool::Nikon::PictureControl' },
     },
     0x0024 => { #JD
@@ -1120,8 +1121,7 @@ my %binaryDataAttrs = (
     0x008c => {
         Name => 'ContrastCurve', #JD
         Writable => 'undef',
-        Protected => 1,
-        Binary => 1,
+        Flags => [ 'Binary', 'Protected' ],
     },
     0x008d => { Name => 'ColorHue' ,        Writable => 'string' }, #2
     # SceneMode takes on the following values: PORTRAIT, PARTY/INDOOR, NIGHT PORTRAIT,
@@ -1311,8 +1311,7 @@ my %binaryDataAttrs = (
     0x0096 => {
         Name => 'NEFLinearizationTable', # same table as DNG LinearizationTable (ref JD)
         Writable => 'undef',
-        Protected => 1,
-        Binary => 1,
+        Flags => [ 'Binary', 'Protected' ],
     },
     0x0097 => [ #4
         # (NOTE: these are byte-swapped by NX when byte order changes)
@@ -1640,7 +1639,7 @@ my %binaryDataAttrs = (
         Name => 'PictureControlData',
         Writable => 'undef',
         Permanent => 0,
-        Binary => 1,
+        Flags => [ 'Binary', 'Protected' ],
         SubDirectory => { TagTable => 'Image::ExifTool::Nikon::PictureControl' },
     },
     0x0e00 => {
@@ -1658,8 +1657,8 @@ my %binaryDataAttrs = (
         Name => 'NikonCaptureData',
         Writable => 'undef',
         Permanent => 0,
-        Drop => 1, # (may be too large for JPEG images)
-        Binary => 1,
+        # (Drop because may be too large for JPEG images)
+        Flags => [ 'Binary', 'Protected', 'Drop' ],
         Notes => q{
             this data is dropped when copying Nikon MakerNotes since it may be too large
             to fit in the EXIF segment of a JPEG image, but it may be copied as a block
@@ -1714,13 +1713,11 @@ my %binaryDataAttrs = (
         Name => 'NikonCaptureEditVersions',
         Writable => 'undef',
         Permanent => 0,
-        Binary => 1,
-        Drop => 1,
+        Flags => [ 'Binary', 'Protected', 'Drop' ],
     }],
     0x0e1d => { #JD
         Name => 'NikonICCProfile',
-        Binary => 1,
-        Protected => 1,
+        Flags => [ 'Binary', 'Protected' ],
         Writable => 'undef', # must be defined here so tag will be extracted if specified
         WriteCheck => q{
             require Image::ExifTool::ICC_Profile;
@@ -1735,7 +1732,7 @@ my %binaryDataAttrs = (
         Name => 'NikonCaptureOutput',
         Writable => 'undef',
         Permanent => 0,
-        Binary => 1,
+        Flags => [ 'Binary', 'Protected' ],
         SubDirectory => {
             TagTable => 'Image::ExifTool::Nikon::CaptureOutput',
             Validate => '$val =~ /^0100/',
@@ -4878,7 +4875,8 @@ my %nikonFocalConversions = (
     },
     NCTH => { Name => 'ThumbnailImage', Format => 'undef', Binary => 1 },
     NCVW => { Name => 'PreviewImage',   Format => 'undef', Binary => 1 },
-    # NCDB - 0 bytes long, or 4 null bytes, or 328 bytes for Nikon D3200
+    # NCDB - 0 bytes long, or 4 null bytes, or 328 bytes for Nikon D3200/D5200
+    # (when 328 bytes, the first 4 bytes are the long integer 328)
 );
 
 # Nikon NCTG tags from MOV videos (ref PH)
@@ -4916,7 +4914,7 @@ my %nikonFocalConversions = (
         PrintConv => 'int($val * 1000 + 0.5) / 1000',
     },
     # 0x17 - rational62u: same value as FrameRate
-    # 0x18 - int16u: 1
+    # 0x18 - int16u: 1, 2
     # 0x21 - int16u: 1, 2
     0x22 => {
         Name => 'FrameWidth',
@@ -5085,7 +5083,7 @@ my %nikonFocalConversions = (
     },
     0x2000023 => {
         Name => 'PictureControlData',
-        Binary => 1,
+        Flags => [ 'Binary', 'Protected' ],
         SubDirectory => { TagTable => 'Image::ExifTool::Nikon::PictureControl' },
     },
     0x2000024 => {
@@ -5152,7 +5150,7 @@ my %nikonFocalConversions = (
             7 => 'Nikon:LensType',
         },
         # construct lens ID string as per ref 11
-        ValueConv => 'uc(join(" ",(unpack("H*",pack("C*",@raw)) =~ /../g)))',
+        ValueConv => 'sprintf("%.2X"." %.2X"x7, @raw)',
         PrintConv => \%nikonLensIDs,
     },
     AutoFocus => {
@@ -5295,21 +5293,20 @@ sub LensIDConv($$$)
         return join(' or ', @user) if @user;
         return join(' or ', @vals);
     }
-    my $regex = $val;
     # Sigma has been changing the LensID on some new lenses
-    # and some Sigma lenses the LensFStops changes! (argh!)
-    $regex =~ s/^\w+ \w+/.. ../;
-    my @ids = sort grep /^$regex$/, keys %$conv;
+    # and with some Sigma lenses the LensFStops changes! (argh!)
+    my $pat = $val;
+    $pat =~ s/^\w+ \w+/.. ../;
+    my @ids = sort grep /^$pat$/, keys %$conv;
     if (@ids) {
-        # first try different LensType
-        ($regex = $val) =~ s/^\w+/../;
-        my @good = grep /^$regex$/, @ids;
-        return "Unknown ($val) $$conv{$good[0]} ?" if @good;
-        # then try different LensFStops
-        ($regex = $val) =~ s/^(\w+) (\w+)/$1 ../;
-        my $fstops = $2;
-        @good = grep /^$regex$/, @ids;
+        # first try different LensFStops (2nd value)
+        ($pat = $val) =~ s/ \w+/ ../;
+        my @good = grep /^$pat$/, @ids;
         return $$conv{$good[0]} if @good;
+        # then try different LensType (1st value)
+        ($pat = $val) =~ s/^\w+/../;
+        @good = grep /^$pat$/, @ids;
+        return "Unknown ($val) $$conv{$good[0]} ?" if @good;
     }
     return undef;
 }

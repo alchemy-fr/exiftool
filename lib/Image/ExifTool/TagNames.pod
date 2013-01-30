@@ -3678,7 +3678,7 @@ This information is found in the PSD file header.
   0x0e0e   NikonCaptureOffsets                  Nikon CaptureOffsets
   0x0e10   NikonScanIFD                         Nikon Scan
   0x0e13   NikonCaptureEditVersions             NikonCapture
-           NikonCaptureEditVersions             undef
+           NikonCaptureEditVersions             undef!
   0x0e1d   NikonICCProfile                      ICC_Profile
   0x0e1e   NikonCaptureOutput                   Nikon CaptureOutput
   0x0e22   NEFBitDepth                          int16u[4]!
@@ -7660,6 +7660,9 @@ well as newer tags and values added by later models.
   0x0515   FocusDisplayAIServoAndMF             int32s
   0x0516   OrientationLinkedAFPoint             int32s
   0x0517   MultiControllerWhileMetering         int32s
+  0x0518   AccelerationTracking                 int32s
+  0x0519   AIServoFirstImagePriority            int32s
+  0x051a   AIServoSecondImagePriority           int32s
   0x060f   MirrorLockup                         int32s
   0x0610   ContinuousShootingSpeed              int32s[3]
   0x0611   ContinuousShotLimit                  int32s[2]
@@ -8027,7 +8030,9 @@ RAF-format information.
   Index1   Tag Name                             Writable
   ------   --------                             --------
       0    RawImageWidth                        N
-      4    RawImageHeight                       N
+      4    RawImageWidth                        N
+           RawImageHeight                       N
+      8    RawImageHeight                       N
 
 =head3 FujiFilm IFD Tags
 
@@ -10197,9 +10202,9 @@ These tags are used in Panasonic/Leica cameras.
   0x004c   PanasonicImageHeight                 int32u
   0x004d   AFPointPosition                      rational64u[2]
   0x004e   FaceDetInfo                          Panasonic FaceDetInfo
-  0x0051   LensType                             string
-  0x0052   LensSerialNumber                     string
-  0x0053   AccessoryType                        string
+  0x0051   LensType                             N
+  0x0052   LensSerialNumber                     N
+  0x0053   AccessoryType                        N
   0x0059   Transform                            undef[4]
   0x005d   IntelligentExposure                  int16u
   0x0061   FaceRecInfo                          Panasonic FaceRecInfo
@@ -10369,7 +10374,7 @@ This information is written by the S2 (as a trailer in JPEG images).
   ------   --------                             --------
   0x0300   PreviewImage                         undef
   0x0301   UnknownBlock?                        N
-  0x0303   LensType                             string
+  0x0303   LensType                             N
 
 =head3 Panasonic Type2 Tags
 
@@ -12245,7 +12250,10 @@ property tables, even though they are only listed in the SummaryInfo table.
 =head2 MPF Tags
 
 These tags are part of the CIPA Multi-Picture Format specification, and are
-found in the APP2 "MPF" segment of JPEG images.  See
+found in the APP2 "MPF" segment of JPEG images.  MPImage data referenced
+from this segment is stored as a JPEG trailer.  The MPF tags are not
+writable, however the MPG segment may be deleted as a group (with "MPF:All")
+but then the JPEG trailer should also be deleted (with "Trailer:All").  See
 L<http://www.cipa.jp/english/hyoujunka/kikaku/pdf/DC-007_E.pdf> for the
 official specification.
 
@@ -15865,6 +15873,7 @@ ID3 version 2.2 tags.  (These are the tags written by iTunes 5.0.)
   'PIC-1'  PictureFormat                        N
   'PIC-2'  PictureType                          N
   'PIC-3'  PictureDescription                   N
+  'POP'    Popularimeter                        N
   'RVA'    RelativeVolumeAdjustment             N
   'SLT'    SynLyrics                            ID3 SynLyrics
   'TAL'    Album                                N
@@ -15941,7 +15950,9 @@ ID3 version 2.3 tags
   'COMM'   Comment                              N
   'IPLS'   InvolvedPeople                       N
   'MCDI'   MusicCDIdentifier                    N
+  'OWNE'   Ownership                            N
   'PCNT'   PlayCounter                          N
+  'POPM'   Popularimeter                        N
   'PRIV'   Private                              ID3 Private
   'SYLT'   SynLyrics                            ID3 SynLyrics
   'TALB'   Album                                N
@@ -16026,8 +16037,10 @@ ID3 version 2.4 tags
   'COMM'   Comment                              N
   'ITNU'   iTunesU?                             N
   'MCDI'   MusicCDIdentifier                    N
+  'OWNE'   Ownership                            N
   'PCNT'   PlayCounter                          N
   'PCST'   Podcast?                             N
+  'POPM'   Popularimeter                        N
   'PRIV'   Private                              ID3 Private
   'RVA2'   RelativeVolumeAdjustment             N
   'SYLT'   SynLyrics                            ID3 SynLyrics

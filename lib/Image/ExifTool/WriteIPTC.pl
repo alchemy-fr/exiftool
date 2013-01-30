@@ -506,10 +506,10 @@ sub DoWriteIPTC($$$)
                     $doSet = 1 unless $found & 0x04;
                 } elsif ($$tagInfo{List}) {
                     # ...tag is List and it existed before or we are creating it
-                    $doSet = 1 if $found or Image::ExifTool::IsCreating($nvHash);
+                    $doSet = 1 if $found ? not $$nvHash{CreateOnly} : $$nvHash{IsCreating};
                 } else {
                     # ...tag didn't exist before and we are creating it
-                    $doSet = 1 if not $found and Image::ExifTool::IsCreating($nvHash);
+                    $doSet = 1 if not $found and $$nvHash{IsCreating};
                 }
                 if ($doSet) {
                     @values = $exifTool->GetNewValues($nvHash);

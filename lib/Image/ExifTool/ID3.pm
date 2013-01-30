@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.36';
+$VERSION = '1.37';
 
 sub ProcessID3v2($$$);
 sub ProcessPrivate($$$);
@@ -379,7 +379,10 @@ my %genre = (
         SeparateTable => 1,
     },
     'PIC-3' => { Name => 'PictureDescription', Groups => { 2 => 'Image' } },
-  # POP => 'Popularimeter',
+    POP => {
+        Name => 'Popularimeter',
+        PrintConv => '$val=~s/^(.*?) (\d+) (\d+)$/$1 Rating=$2 Count=$3/s; $val',
+    },
     SLT => {
         Name => 'SynLyrics',
         SubDirectory => { TagTable => 'Image::ExifTool::ID3::SynLyrics' },
@@ -470,9 +473,12 @@ my %id3v2_common = (
   # LINK => 'LinkedInformation',
     MCDI => { Name => 'MusicCDIdentifier', Binary => 1 },
   # MLLT => 'MPEGLocationLookupTable',
-  # OWNE => 'Ownership', # enc(1), _price, 00, _date(8), Seller
+    OWNE => 'Ownership',
     PCNT => 'PlayCounter',
-  # POPM => 'Popularimeter', # _email, 00, rating(1), counter(4-N)
+    POPM => {
+        Name => 'Popularimeter',
+        PrintConv => '$val=~s/^(.*?) (\d+) (\d+)$/$1 Rating=$2 Count=$3/s; $val',
+    },
   # POSS => 'PostSynchronization',
     PRIV => {
         Name => 'Private',
@@ -1078,7 +1084,8 @@ sub ProcessID3v2($$$)
             next;
         }
 #
-# decode data in this frame
+# decode data in this frame (it is bad form to hard-code these, but the ID3 frame formats
+# are so variable that it would be more work to define format types for each of them)
 #
         my $lang;
         my $valLen = length($val);  # actual value length (after decompression, etc)
@@ -1119,11 +1126,8 @@ sub ProcessID3v2($$$)
             $val = DecodeString($exifTool, substr($val,4), Get8u(\$val,0));
         } elsif ($id =~ /^(CNT|PCNT)$/) {
             $valLen >= 4 or $exifTool->Warn("Short $id frame"), next;
-            my $cnt = unpack('N', $val);
-            my $i;
-            for ($i=4; $i<$valLen; ++$i) {
-                $cnt = $cnt * 256 + unpack("x${i}C", $val);
-            }
+            my ($cnt, @xtra) = unpack('NC*', $val);
+            $cnt = ($cnt << 8) + $_ foreach @xtra;
             $val = $cnt;
         } elsif ($id =~ /^(PIC|APIC)$/) {
             $valLen >= 4 or $exifTool->Warn("Short $id frame"), next;
@@ -1144,6 +1148,22 @@ sub ProcessID3v2($$$)
                 $exifTool->HandleTag($tagTablePtr, "$id-$i", $attr);
                 ++$i;
             }
+        } elsif ($id eq 'POP' or $id eq 'POPM') {
+            # _email, 00, rating(1), counter(4-N)
+            $valLen >= 6 or $exifTool->Warn("Short $id frame"), next;
+            my ($email, $dat) = ($val =~ /^([^\0]*)\0(.*)$/s);
+            unless (defined $dat and length($dat) >= 5) {
+                $exifTool->Warn("Invalid $id frame");
+                next;
+            }
+            my ($rating, $cnt, @xtra) = unpack('CNC*', $dat);
+            $cnt = ($cnt << 8) + $_ foreach @xtra;
+            $val = "$email $rating $cnt";
+        } elsif ($id eq 'OWNE') {
+            # enc(1), _price, 00, _date(8), Seller
+            my @strs = DecodeString($exifTool, $val);
+            $strs[1] =~ s/^(\d{4})(\d{2})(\d{2})/$1:$2:$3 /s if $strs[1]; # format date
+            $val = "@strs";
         } elsif ($id eq 'RVA' or $id eq 'RVAD') {
             my @dat = unpack('C*', $val);
             my $flag = shift @dat;

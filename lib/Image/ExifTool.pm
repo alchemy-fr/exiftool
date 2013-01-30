@@ -27,7 +27,7 @@ use vars qw($VERSION $RELEASE @ISA @EXPORT_OK %EXPORT_TAGS $AUTOLOAD @fileTypes
             %mimeType $swapBytes $swapWords $currentByteOrder %unpackStd
             %jpegMarker %specialTags);
 
-$VERSION = '9.12';
+$VERSION = '9.15';
 $RELEASE = '';
 @ISA = qw(Exporter);
 %EXPORT_TAGS = (
@@ -35,6 +35,7 @@ $RELEASE = '';
     Public => [qw(
         ImageInfo GetTagName GetShortcuts GetAllTags GetWritableTags
         GetAllGroups GetDeleteGroups GetFileType CanWrite CanCreate
+        AddUserDefinedTags
     )],
     # exports not part of the public API, but used by ExifTool modules:
     DataAccess => [qw(
@@ -72,6 +73,7 @@ sub GetWritableTags(;$);
 sub GetAllGroups($);
 sub GetNewGroups($);
 sub GetDeleteGroups();
+sub AddUserDefinedTags($%);
 # non-public routines below
 sub InsertTagValues($$$;$);
 sub IsWritable($);
@@ -786,7 +788,7 @@ my %allGroupsExifTool = ( 0 => 'ExifTool', 1 => 'ExifTool', 2 => 'ExifTool' );
 %specialTags = (
     TABLE_NAME     =>1, SHORT_NAME =>1, PROCESS_PROC =>1, WRITE_PROC =>1, CHECK_PROC =>1,
     GROUPS         =>1, FORMAT     =>1, FIRST_ENTRY  =>1, TAG_PREFIX =>1, PRINT_CONV =>1,
-    WRITABLE       =>1, TABLE_DESC =>1, NOTES        =>1, IS_OFFSET  =>1, IS_SUBDIR  =>1, 
+    WRITABLE       =>1, TABLE_DESC =>1, NOTES        =>1, IS_OFFSET  =>1, IS_SUBDIR  =>1,
     EXTRACT_UNKNOWN=>1, NAMESPACE  =>1, PREFERRED    =>1, SRC_TABLE  =>1, PRIORITY   =>1,
     WRITE_GROUP    =>1, LANG_INFO  =>1, VARS         =>1, DATAMEMBER =>1, SET_GROUP1 =>1,
 );
@@ -1530,6 +1532,7 @@ sub ClearOptions($)
         TextOut     => \*STDOUT,# file for Verbose/HtmlDump output
         Unknown     => 0,       # flag to get values of unknown tags (0-2)
         Verbose     => 0,       # print verbose messages (0-5, higher # = more verbose)
+        WriteMode   => 'wcg',   # enable all write modes by default
         XMPAutoConv => 1,       # automatic conversion of unknown XMP tag values
     };
     # keep necessary member variables in sync with options
@@ -1577,15 +1580,15 @@ sub ExtractInfo($;@)
     } else {
         if (defined $_[0] or $options->{HtmlDump}) {
             %saveOptions = %$options;       # save original options
-    
+
             # require duplicates for html dump
             $self->Options(Duplicates => 1) if $options->{HtmlDump};
-    
+
             if (defined $_[0]) {
                 # only initialize filename if called with arguments
                 $self->{FILENAME} = undef;  # name of file (or '' if we didn't open it)
                 $self->{RAF} = undef;       # RandomAccess object reference
-    
+
                 $self->ParseArguments(@_);  # initialize from our arguments
             }
         }
@@ -2582,12 +2585,14 @@ COMPOSITE_TAG:
                             push @deferredTags, $tag;
                             next COMPOSITE_TAG;
                         }
-                        my ($i, $key, @keys);
-                        for ($i=0; ; ++$i) {
-                            $key = $name;
-                            $key .= " ($i)" if $i;
-                            last unless defined $$rawValue{$key};
-                            push @keys, $key;
+                        # (CAREFUL! keys may not be sequential if one was deleted)
+                        my ($i, @keys);
+                        my $key = $name;
+                        my $last = ($$self{DUPL_TAG}{$name} || 0);
+                        for ($i=0;;) {
+                            push @keys, $key if defined $$rawValue{$key};
+                            last if ++$i > $last;
+                            $key = "$name ($i)";
                         }
                         # find first matching tag
                         $key = $self->GroupMatches($reqGroup, \@keys);
@@ -3213,7 +3218,7 @@ GR_TAG: foreach $tag (@$rtnTags) {
         $rtnTags = \@tags;
         last;
     }
-    $self->{FOUND_TAGS} = $rtnTags;     # save found tags 
+    $self->{FOUND_TAGS} = $rtnTags;     # save found tags
 
     # return reference to found tag keys (and list of indices of tags to extract by value)
     return wantarray ? ($rtnTags, \@byValue, \@wildTags) : $rtnTags;
@@ -4088,7 +4093,7 @@ sub Printable($;$)
         # limit to 2048 characters if verbose < 5
         $maxLen = 2048 if $maxLen > 2048 and $verbose < 5;
     }
-    
+
     # limit length if necessary
     $outStr = substr($outStr,0,$maxLen-6) . '[snip]' if length($outStr) > $maxLen;
     return $outStr;
@@ -4844,7 +4849,8 @@ sub ProcessJPEG($$)
                 }
                 if ($start and $plen and
                     $start + $plen > $self->{EXIF_POS} + length($self->{EXIF_DATA}) and
-                    $self->{REQ_TAG_LOOKUP}{previewimage})
+                    ($self->{REQ_TAG_LOOKUP}{previewimage} or
+                    ($self->{OPTIONS}{Binary} and not $self->{EXCL_TAG_LOOKUP}{previewimage})))
                 {
                     $$self{PreviewImageStart} = $start;
                     $$self{PreviewImageLength} = $plen;
@@ -5287,7 +5293,7 @@ sub ProcessJPEG($$)
         } elsif ($marker == 0x51) {         # SIZ (J2C)
             my ($w, $h) = unpack('x2N2', $$segDataPt);
             $self->FoundTag('ImageWidth', $w);
-            $self->FoundTag('ImageHeight', $h);            
+            $self->FoundTag('ImageHeight', $h);
         } elsif (($marker & 0xf0) != 0xe0) {
             undef $dumpType;    # only dump unknown APP segments
         }
@@ -5585,7 +5591,7 @@ sub DoProcessTIFF($$;$)
             if ($$self{TIFF_TYPE} eq 'ARW' and not $err) {
                 # write any required ARW trailer and patch other ARW quirks
                 require Image::ExifTool::Sony;
-                my $errStr = Image::ExifTool::Sony::FinishARW($self, $dirInfo, \$newData, 
+                my $errStr = Image::ExifTool::Sony::FinishARW($self, $dirInfo, \$newData,
                                                               $dirInfo{ImageData});
                 $errStr and $self->Error($errStr);
                 delete $dirInfo{ImageData}; # (was copied by FinishARW)
@@ -5779,19 +5785,9 @@ sub GetTagTable($)
         if (%UserDefined and $UserDefined{$tableName}) {
             my $tagID;
             foreach $tagID (TagTableKeys($UserDefined{$tableName})) {
-                my $tagInfo = $UserDefined{$tableName}{$tagID};
-                if (ref $tagInfo eq 'HASH') {
-                    $$tagInfo{Name} or $$tagInfo{Name} = ucfirst($tagID);
-                } else {
-                    $tagInfo = { Name => $tagInfo };
-                }
-                if ($$table{WRITABLE} and not defined $$tagInfo{Writable} and
-                    not $$tagInfo{SubDirectory})
-                {
-                    $$tagInfo{Writable} = $$table{WRITABLE};
-                }
+                next if $specialTags{$tagID};
                 delete $$table{$tagID}; # replace any existing entry
-                AddTagToTable($table, $tagID, $tagInfo);
+                AddTagToTable($table, $tagID, $UserDefined{$tableName}{$tagID}, 1);
             }
         }
         # remember order we loaded the tables in
@@ -5968,13 +5964,16 @@ sub GetTagInfo($$$;$$$)
 #------------------------------------------------------------------------------
 # Add new tag to table (must use this routine to add new tags to a table)
 # Inputs: 0) reference to tag table, 1) tag ID
-#         2) [optional] reference to tag information hash
+#         2) [optional] reference to tag information hash or simply tag name
+#         3) [optional] flag to avoid adding prefix when generating tag name
 # Notes: - will not overwrite existing entry in table
 # - info need contain no entries when this routine is called
-sub AddTagToTable($$;$)
+sub AddTagToTable($$;$$)
 {
-    my ($tagTablePtr, $tagID, $tagInfo) = @_;
-    $tagInfo or $tagInfo = { };
+    my ($tagTablePtr, $tagID, $tagInfo, $noPrefix) = @_;
+
+    # generate tag info hash if necessary
+    $tagInfo = $tagInfo ? { Name => $tagInfo } : { } unless ref $tagInfo eq 'HASH';
 
     # define necessary entries in information hash
     if ($$tagInfo{Groups}) {
@@ -6001,7 +6000,7 @@ sub AddTagToTable($$;$)
         $name = ucfirst $name;          # start with uppercase
         # make sure name is a reasonable length
         my $prefix = $$tagTablePtr{TAG_PREFIX};
-        if ($prefix) {
+        if ($prefix and not $noPrefix) {
             # make description to prevent tagID from getting mangled by MakeDescription()
             $$tagInfo{Description} = MakeDescription($prefix, $name);
             $name = "${prefix}_$name";
@@ -6078,7 +6077,7 @@ sub HandleTag($$$$;%)
             if ($$subdir{Start}) {
                 my $valuePtr = 0;
                 #### eval Start ($valuePtr)
-                my $off = eval $$subdir{Start};                
+                my $off = eval $$subdir{Start};
                 $subdirStart += $off;
                 $subdirLen -= $off;
             }
@@ -6215,6 +6214,7 @@ sub FoundTag($$$)
         }
         if ($priority >= $oldPriority and not $self->{DOC_NUM} and not $noListDel) {
             # move existing tag out of the way since this tag is higher priority
+            # (NOTE: any new members added here must also be added to DeleteTag())
             $self->{MOVED_KEY} = $nextTag;  # used in BuildCompositeTags()
             $self->{PRIORITY}{$nextTag} = $self->{PRIORITY}{$tag};
             $$valueHash{$nextTag} = $$valueHash{$tag};
@@ -6226,6 +6226,7 @@ sub FoundTag($$$)
                     delete $self->{$_}{$tag};
                 }
             }
+            delete $self->{BOTH}{$tag};
             # update tag key for list if necessary
             $self->{LIST_TAGS}{$oldInfo} = $nextTag if $self->{LIST_TAGS}{$oldInfo};
         } else {
@@ -6292,6 +6293,9 @@ sub DeleteTag($$)
     delete $self->{FILE_ORDER}{$tag};
     delete $self->{TAG_INFO}{$tag};
     delete $self->{TAG_EXTRA}{$tag};
+    delete $self->{PRIORITY}{$tag};
+    delete $self->{RATIONAL}{$tag};
+    delete $self->{BOTH}{$tag};
 }
 
 #------------------------------------------------------------------------------
