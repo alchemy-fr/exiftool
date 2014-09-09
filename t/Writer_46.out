@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.13
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.40
 [File, System, Image] FileName - File Name: Writer_46_failed.jpg
 [File, System, Image] Directory - Directory: t
-[File, System, Image] FileSize - File Size: 6.8 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2013:01:07 14:13:57-05:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2013:01:07 14:13:57-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2013:01:07 14:13:57-05:00
+[File, System, Image] FileSize - File Size: 6.9 kB
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2013:10:30 08:24:02-04:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2013:10:30 08:24:02-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2013:10:30 08:24:02-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -34,7 +34,7 @@
 [IPTC, IPTC, Other] 152 - Audio Sampling Resolution: 07
 [IPTC, IPTC, Other] 153 - Audio Duration: 000007
 [IPTC, IPTC, Other] 154 - Audio Outcue: 7
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 9.13
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 9.40
 [XMP, XMP-iptcExt, Author] AddlModelInfo - Additional Model Information: 7
 [XMP, XMP-iptcExt, Author] ArtworkOrObjectAOCopyrightNotice - Artwork Copyright Notice: 7
 [XMP, XMP-iptcExt, Author] ArtworkOrObjectAOCreator - Artwork Creator: 7
@@ -48,6 +48,7 @@
 [XMP, XMP-aas, Image] AffineX - Affine X: 7
 [XMP, XMP-aas, Image] AffineY - Affine Y: 7
 [XMP, XMP-apple-fi, Image] AngleInfoRoll - Angle Info Roll: 7
+[XMP, XMP-apple-fi, Image] AngleInfoYaw - Angle Info Yaw: 7
 [XMP, XMP-aux, Camera] ApproximateFocusDistance - Approximate Focus Distance: 7
 [XMP, XMP-cc, Author] attributionName - Attribution Name: 7
 [XMP, XMP-cc, Author] attributionURL - Attribution URL: 7
@@ -73,5 +74,6 @@
 [XMP, XMP-crs, Image] AutoExposure - Auto Exposure: True
 [XMP, XMP-crs, Image] AutoLateralCA - Auto Lateral CA: 7
 [XMP, XMP-crs, Image] AutoShadows - Auto Shadows: True
+[XMP, XMP-crs, Image] AutoWhiteVersion - Auto White Version: 7
 [Composite, Composite, Image] Aperture - Aperture: 7.0
 [Composite, Composite, Image] ImageSize - Image Size: 8x8

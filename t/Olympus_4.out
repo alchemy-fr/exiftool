@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.07
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.31
 [File, System, Image] FileName - File Name: OlympusE1.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 7.2 kB
 [File, System, Time] FileModifyDate - File Modification Date/Time: 2006:01:04 14:02:27-05:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2012:11:19 15:31:02-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2012:11:17 09:18:25-05:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2013:05:30 08:55:04-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2013:05:25 07:37:29-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -172,7 +172,7 @@
 [MakerNotes, Olympus, Camera] 4612 - External Flash Bounce: Bounce or Off
 [MakerNotes, Olympus, Camera] 4613 - External Flash Zoom: 0
 [MakerNotes, Olympus, Camera] 4616 - Internal Flash: Off
-[MakerNotes, Olympus, Camera] 5376 - Sensor Temperature: 20
+[MakerNotes, Olympus, Camera] 5376 - Sensor Temperature: 20 C
 [PrintIM, PrintIM, Printing] PrintIMVersion - PrintIM Version: 0250
 [Composite, Composite, Image] Aperture - Aperture: 4.5
 [Composite, Composite, Camera] BlueBalance - Blue Balance: 1.132813

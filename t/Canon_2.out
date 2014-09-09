@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.07
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.57
 [File, System, Image] FileName - File Name: Canon1DmkIII.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 8.1 kB
 [File, System, Time] FileModifyDate - File Modification Date/Time: 2008:01:18 14:10:05-05:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2012:11:20 07:47:34-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2012:11:17 09:18:25-05:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2014:04:11 11:40:05-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2014:04:05 08:42:17-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -205,6 +205,8 @@
 [MakerNotes, Canon, Image] 12 - WB Bracket Value AB: 0
 [MakerNotes, Canon, Image] 13 - WB Bracket Value GM: 0
 [MakerNotes, Canon, Image] 19 - Live View Shooting: Off
+[MakerNotes, Canon, Image] 20 - Focus Distance Upper: 2.19 m
+[MakerNotes, Canon, Image] 21 - Focus Distance Lower: 1.13 m
 [MakerNotes, Canon, Camera] 149 - Lens Model: EF16-35mm f/2.8L II USM
 [MakerNotes, Canon, Camera] 150 - Internal Serial Number: G002669
 [MakerNotes, Canon, Camera] 151 - Dust Removal Data: (Binary data 1024 bytes)
@@ -217,7 +219,7 @@
 [MakerNotes, CanonCustom, Camera] 259 - ISO Speed Range: Disable; Max 3200; Min 100
 [MakerNotes, CanonCustom, Camera] 260 - AEB Auto Cancel: On
 [MakerNotes, CanonCustom, Camera] 261 - AEB Sequence: 0,-,+
-[MakerNotes, CanonCustom, Camera] 262 - AEB Shot Count: 7
+[MakerNotes, CanonCustom, Camera] 262 - AEB Shot Count: 7 shots
 [MakerNotes, CanonCustom, Camera] 263 - Spot Meter Link To AF Point: Disable (use center AF point)
 [MakerNotes, CanonCustom, Camera] 264 - Safety Shift: Disable
 [MakerNotes, CanonCustom, Camera] 265 - Usable Shooting Modes: Disable; Flags 0xfc
@@ -320,6 +322,7 @@
 [MakerNotes, Canon, Camera] 49 - Color Temp Kelvin: 5210
 [MakerNotes, Canon, Camera] 50 - WB RGGB Levels Flash: 2422 1024 1024 1295
 [MakerNotes, Canon, Camera] 54 - Color Temp Flash: 6777
+[MakerNotes, Canon, Camera] 231 - Average Black Level: 1024 1024 1024 1024
 [MakerNotes, Canon, Camera] 640 - Raw Measured RGGB: 294111 455756 464315 279659
 [MakerNotes, Canon, Camera] 16400 - Custom Picture Style File Name: 
 [MakerNotes, Canon, Camera] 1 - AF Micro Adj Mode: Disable

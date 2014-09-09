@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.07
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.43
 [File, System, Image] FileName - File Name: Pentax.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 2.7 kB
 [File, System, Time] FileModifyDate - File Modification Date/Time: 2008:03:28 13:40:33-04:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2012:11:19 15:31:03-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2012:11:17 09:18:25-05:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2013:12:01 10:59:58-05:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2013:12:08 06:32:51-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -74,7 +74,7 @@
 [MakerNotes, Pentax, Time] 7 - Time: 12:01:23
 [MakerNotes, Pentax, Camera] 8 - Quality: Better
 [MakerNotes, Pentax, Camera] 12 - Flash Mode: Off, Did not fire; Internal
-[MakerNotes, Pentax, Camera] 13 - Focus Mode: AF-S
+[MakerNotes, Pentax, Camera] 13 - Focus Mode: AF-S (Focus-priority)
 [MakerNotes, Pentax, Camera] 14 - AF Point Selected: Center
 [MakerNotes, Pentax, Camera] 18 - Exposure Time: 1/100
 [MakerNotes, Pentax, Camera] 19 - F Number: 13.0
@@ -114,6 +114,7 @@
 [MakerNotes, Pentax, Camera] 2 - SR Half Press Time: 1.53 s
 [MakerNotes, Pentax, Camera] 3 - SR Focal Length: 10 mm
 [MakerNotes, Pentax, Camera] 93 - Shutter Count: 1648
+[MakerNotes, Pentax, Camera] 98 - Raw Development Process: 1 (K10D,K200D,K2000,K-m)
 [MakerNotes, Pentax, Camera] 512 - Black Point: 0 0 0 0
 [MakerNotes, Pentax, Camera] 513 - White Point: 13568 8192 8192 9088
 [MakerNotes, Pentax, Camera] 0 - Picture Mode 2: Aperture Priority
@@ -151,6 +152,7 @@
 [MakerNotes, Pentax, Camera] 4 - AEB Xv: 0
 [MakerNotes, Pentax, Camera] 5 - AE Min Exposure Time: 1/3862
 [MakerNotes, Pentax, Camera] 6 - AE Program Mode: Av, B or X
+[MakerNotes, Pentax, Camera] 8 - AE Aperture Steps: 28
 [MakerNotes, Pentax, Camera] 9 - AE Max Aperture: 4.0
 [MakerNotes, Pentax, Camera] 10 - AE Max Aperture 2: 4.0
 [MakerNotes, Pentax, Camera] 11 - AE Min Aperture: 23

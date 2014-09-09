@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.07
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.66
 [File, System, Image] FileName - File Name: FotoStation.jpg
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 4.2 kB
 [File, System, Time] FileModifyDate - File Modification Date/Time: 2006:10:28 14:44:59-04:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2012:11:19 15:30:56-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2012:11:17 09:18:25-05:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2014:06:23 08:55:47-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2014:06:20 08:02:49-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -24,16 +24,16 @@
 [FotoStation, FotoStation, Image] 8 - Crop Right: 83.035%
 [FotoStation, FotoStation, Image] 9 - Crop Bottom: 77.817%
 [FotoStation, FotoStation, Image] 11 - Crop Rotation: 0
-[IPTC, IPTC, Other] 0 - Application Record Version: 2
-[IPTC, IPTC, Other] 7 - Edit Status: Edit Status
-[IPTC, IPTC, Other] 10 - Urgency: 1 (most urgent)
-[IPTC, IPTC, Other] 15 - Category: Cat
-[IPTC, IPTC, Other] 120 - Caption-Abstract: Caption *** Local Caption *** Local Caption
-[IPTC, IPTC, Other] 40 - Special Instructions: Special Instructions
-[IPTC, IPTC, Other] 75 - Object Cycle: Unknown (Afternoon)
-[IPTC, IPTC, Other] 103 - Original Transmission Reference: OTR
-[IPTC, IPTC, Image] 200 - Object Preview File Format: Unknown (Custom Field 01)
-[IPTC, IPTC, Image] 201 - Object Preview File Version: Custom Field 02
-[IPTC, IPTC, Image] 202 - Object Preview Data: (Binary data 15 bytes)
-[IPTC, IPTC, Other] 230 - Document Notes: Document Notes
+[IPTC, IPTC2, Other] 0 - Application Record Version: 2
+[IPTC, IPTC2, Other] 7 - Edit Status: Edit Status
+[IPTC, IPTC2, Other] 10 - Urgency: 1 (most urgent)
+[IPTC, IPTC2, Other] 15 - Category: Cat
+[IPTC, IPTC2, Other] 120 - Caption-Abstract: Caption *** Local Caption *** Local Caption
+[IPTC, IPTC2, Other] 40 - Special Instructions: Special Instructions
+[IPTC, IPTC2, Other] 75 - Object Cycle: Unknown (Afternoon)
+[IPTC, IPTC2, Other] 103 - Original Transmission Reference: OTR
+[IPTC, IPTC2, Image] 200 - Object Preview File Format: Unknown (Custom Field 01)
+[IPTC, IPTC2, Image] 201 - Object Preview File Version: Custom Field 02
+[IPTC, IPTC2, Image] 202 - Object Preview Data: (Binary data 15 bytes)
+[IPTC, IPTC2, Other] 230 - Document Notes: Document Notes
 [Composite, Composite, Image] ImageSize - Image Size: 8x8

@@ -13,6 +13,7 @@
 #               6) http://www.optimasc.com/products/fileid/xmp-extensions.pdf
 #               9) http://www.w3.org/TR/SVG11/
 #               11) http://www.extensis.com/en/support/kb_article.jsp?articleNumber=6102211
+#               12) XMPSpecificationPart3_May2013, page 58
 #------------------------------------------------------------------------------
 
 package Image::ExifTool::XMP;
@@ -139,6 +140,7 @@ my %sTimecode = (
     copyright       => { Avoid => 1, Groups => { 2 => 'Author' } }, # (deprecated)
     director        => { },
     directorPhotography => { },
+    discNumber      => { }, #12
     duration        => { Struct => \%sTime },
     engineer        => { },
     fileDataRate    => { Writable => 'rational' },
@@ -156,10 +158,12 @@ my %sTimecode = (
     },
     logComment      => { },
     loop            => { Writable => 'boolean' },
+    lyrics          => { }, #12
     numberOfBeats   => { Writable => 'real' },
     markers         => { Struct => \%sMarker, List => 'Seq' },
     metadataModDate => { Groups => { 2 => 'Time' }, %dateTimeInfo },
     outCue          => { Struct => \%sTime },
+    partOfCompilation=>{ }, #12
     projectName     => { },
     projectRef => {
         Struct => {
@@ -391,35 +395,20 @@ my %plusImageSupplier = (
     },
     Version  => { Name => 'PLUSVersion' },
     Licensee => {
+        FlatName => '',
         Struct => \%plusLicensee,
         List => 'Seq',
     },
-    LicenseeLicenseeID   => { Flat => 1, Name => 'LicenseeID' },
-    LicenseeLicenseeName => { Flat => 1, Name => 'LicenseeName' },
     EndUser => {
+        FlatName => '',
         Struct => \%plusEndUser,
         List => 'Seq',
     },
-    EndUserEndUserID    => { Flat => 1, Name => 'EndUserID' },
-    EndUserEndUserName  => { Flat => 1, Name => 'EndUserName' },
     Licensor => {
+        FlatName => '',
         Struct => \%plusLicensor,
         List => 'Seq',
     },
-    LicensorLicensorID              => { Flat => 1, Name => 'LicensorID' },
-    LicensorLicensorName            => { Flat => 1, Name => 'LicensorName' },
-    LicensorLicensorStreetAddress   => { Flat => 1, Name => 'LicensorStreetAddress' },
-    LicensorLicensorExtendedAddress => { Flat => 1, Name => 'LicensorExtendedAddress' },
-    LicensorLicensorCity            => { Flat => 1, Name => 'LicensorCity' },
-    LicensorLicensorRegion          => { Flat => 1, Name => 'LicensorRegion' },
-    LicensorLicensorPostalCode      => { Flat => 1, Name => 'LicensorPostalCode' },
-    LicensorLicensorCountry         => { Flat => 1, Name => 'LicensorCountry' },
-    LicensorLicensorTelephoneType1  => { Flat => 1, Name => 'LicensorTelephoneType1' },
-    LicensorLicensorTelephone1      => { Flat => 1, Name => 'LicensorTelephone1' },
-    LicensorLicensorTelephoneType2  => { Flat => 1, Name => 'LicensorTelephoneType2' },
-    LicensorLicensorTelephone2      => { Flat => 1, Name => 'LicensorTelephone2' },
-    LicensorLicensorEmail           => { Flat => 1, Name => 'LicensorEmail' },
-    LicensorLicensorURL             => { Flat => 1, Name => 'LicensorURL' },
     LicensorNotes               => { Writable => 'lang-alt' },
     MediaSummaryCode            => { },
     LicenseStartDate            => { %dateTimeInfo, Groups => { 2 => 'Time'} },
@@ -566,23 +555,23 @@ my %plusImageSupplier = (
     },
     CopyrightRegistrationNumber => { },
     FirstPublicationDate        => { %dateTimeInfo, Groups => { 2 => 'Time'} },
-    CopyrightOwner              => { Struct => \%plusCopyrightOwner, List => 'Seq' },
-    CopyrightOwnerCopyrightOwnerID   => { Flat => 1, Name => 'CopyrightOwnerID' },
-    CopyrightOwnerCopyrightOwnerName => { Flat => 1, Name => 'CopyrightOwnerName' },
-    CopyrightOwnerImageID            => { },
+    CopyrightOwner => {
+        FlatName => '',
+        Struct => \%plusCopyrightOwner,
+        List => 'Seq',
+    },
+    CopyrightOwnerImageID   => { },
     ImageCreator => {
+        FlatName => '',
         Struct => \%plusImageCreator,
         List => 'Seq',
     },
-    ImageCreatorImageCreatorID   => { Flat => 1, Name => 'ImageCreatorID' },
-    ImageCreatorImageCreatorName => { Flat => 1, Name => 'ImageCreatorName' },
-    ImageCreatorImageID          => { },
+    ImageCreatorImageID     => { },
     ImageSupplier => {
+        FlatName => '',
         Struct => \%plusImageSupplier,
         List => 'Seq',
     },
-    ImageSupplierImageSupplierID   => { Flat => 1, Name => 'ImageSupplierID' },
-    ImageSupplierImageSupplierName => { Flat => 1, Name => 'ImageSupplierName' },
     ImageSupplierImageID    => { },
     LicenseeImageID         => { },
     LicenseeImageNotes      => { Writable => 'lang-alt' },
@@ -916,7 +905,7 @@ my %sSubVersion = (
     author     => { Avoid => 1, Groups => { 2 => 'Author' } },
     caption    => { Avoid => 1 },
     categories => { Avoid => 1 },
-    datetime   => { Avoid => 1, Groups => { 2 => 'Time' }, %dateTimeInfo },
+    datetime   => { Name => 'DateTime', Avoid => 1, Groups => { 2 => 'Time' }, %dateTimeInfo },
     keywords   => { Avoid => 1, List => 'Bag' },
     notes      => { Avoid => 1 },
     rating     => { Avoid => 1, Writable => 'real' }, # integer?
@@ -1039,7 +1028,10 @@ my %sSubVersion = (
     GROUPS => { 1 => 'XMP-mediapro', 2 => 'Image' },
     NAMESPACE => 'mediapro',
     NOTES => 'iView MediaPro namespace tags.',
-    Event       => { },
+    Event       => {
+        Avoid => 1,
+        Notes => 'avoided due to conflict with XMP-iptcExt:Event',
+    },
     Location    => {
         Avoid => 1,
         Groups => { 2 => 'Location' },
@@ -1057,12 +1049,14 @@ my %sSubVersion = (
     %xmpTableDefaults,
     GROUPS => { 1 => 'XMP-expressionmedia', 2 => 'Image' },
     NAMESPACE => 'expressionmedia',
-    NOTES => 'Microsoft Expression Media namespace tags.',
-    CatalogSets => {
-        List => 'Bag',
-        Avoid => 1,
-        Notes => 'avoided due to conflict with XMP-mediapro:CatalogSets',
+    NOTES => q{
+        Microsoft Expression Media namespace tags.  These tags are avoided when
+        writing due to name conflicts with tags in other schemas.
     },
+    Event       => { Avoid => 1 },
+    Status      => { Avoid => 1 },
+    People      => { Avoid => 1, List => 'Bag' },
+    CatalogSets => { Avoid => 1, List => 'Bag' },
 );
 
 # DigiKam namespace tags (ref PH)
@@ -1138,156 +1132,6 @@ my %sSubVersion = (
     Highlights => { Writable => 'real', Avoid => 1 },
 );
 
-# MWG structures
-my %sExtensions = (
-    STRUCT_NAME => 'Extensions',
-    NAMESPACE   => undef, # variable namespace
-    NOTES => q{
-        This structure may contain any top-level XMP tags, but none have been
-        pre-defined in ExifTool.  Since no flattened tags have been pre-defined,
-        RegionExtensions is writable only as a structure (ie.
-        C<{xmp-dc:creator=me,rating=5}>).  Fields for this structure are identified
-        using the standard ExifTool tag name (with optional leading group name,
-        and/or trailing language code, and/or trailing C<#> symbol to disable print
-        conversion).
-    },
-);
-my %sRegionStruct = (
-    STRUCT_NAME => 'RegionStruct',
-    NAMESPACE   => 'mwg-rs',
-    Area => { Struct => \%sArea },
-    Type => {
-        PrintConv => {
-            Face => 'Face',
-            Pet => 'Pet',
-            Focus => 'Focus',
-            BarCode => 'BarCode',
-        },
-    },
-    Name        => { },
-    Description => { },
-    FocusUsage  => {
-        PrintConv => {
-            EvaluatedUsed => 'Evaluated, Used',
-            EvaluatedNotUsed => 'Evaluated, Not Used',
-            NotEvaluatedNotUsed => 'Not Evaluated, Not Used',
-        },
-    },
-    BarCodeValue=> { },
-    Extensions  => { Struct => \%sExtensions },
-    seeAlso => { Namespace => 'rdfs', Resource => 1 },
-);
-my %sKeywordStruct;
-%sKeywordStruct = (
-    STRUCT_NAME => 'KeywordStruct',
-    NAMESPACE   => 'mwg-kw',
-    Keyword   => { },
-    Applied   => { Writable => 'boolean' },
-    Children  => { Struct => \%sKeywordStruct, List => 'Bag' },
-);
-
-# MWG 2.0 region namespace tags
-%Image::ExifTool::XMP::mwg_rs = (
-    %xmpTableDefaults,
-    GROUPS => { 1 => 'XMP-mwg-rs', 2 => 'Image' },
-    NAMESPACE => 'mwg-rs',
-    NOTES => q{
-        Image region metadata defined by the MWG 2.0 specification.  See
-        L<http://www.metadataworkinggroup.org/> for the official specification.
-    },
-    Regions => {
-        Name => 'RegionInfo',
-        Struct => {
-            STRUCT_NAME => 'RegionInfo',
-            NAMESPACE   => 'mwg-rs',
-            RegionList => { Struct => \%sRegionStruct, List => 'Bag' },
-            AppliedToDimensions => { Struct => \%sDimensions },
-        },
-    },
-    RegionsAppliedToDimensions  => { Flat => 1, Name => 'RegionAppliedToDimensions' },
-    RegionsAppliedToDimensionsW => { Flat => 1, Name => 'RegionAppliedToDimensionsW' },
-    RegionsAppliedToDimensionsH => { Flat => 1, Name => 'RegionAppliedToDimensionsH' },
-    RegionsAppliedToDimensionsUnit=>{Flat => 1, Name => 'RegionAppliedToDimensionsUnit' },
-    RegionsRegionList           => { Flat => 1, Name => 'RegionList' },
-    RegionsRegionListArea       => { Flat => 1, Name => 'RegionArea' },
-    RegionsRegionListAreaX      => { Flat => 1, Name => 'RegionAreaX' },
-    RegionsRegionListAreaY      => { Flat => 1, Name => 'RegionAreaY' },
-    RegionsRegionListAreaW      => { Flat => 1, Name => 'RegionAreaW' },
-    RegionsRegionListAreaH      => { Flat => 1, Name => 'RegionAreaH' },
-    RegionsRegionListAreaD      => { Flat => 1, Name => 'RegionAreaD' },
-    RegionsRegionListAreaUnit   => { Flat => 1, Name => 'RegionAreaUnit' },
-    RegionsRegionListType       => { Flat => 1, Name => 'RegionType' },
-    RegionsRegionListName       => { Flat => 1, Name => 'RegionName' },
-    RegionsRegionListDescription=> { Flat => 1, Name => 'RegionDescription' },
-    RegionsRegionListFocusUsage => { Flat => 1, Name => 'RegionFocusUsage' },
-    RegionsRegionListBarCodeValue=>{ Flat => 1, Name => 'RegionBarCodeValue' },
-    RegionsRegionListExtensions => { Flat => 1, Name => 'RegionExtensions' },
-    RegionsRegionListSeeAlso    => { Flat => 1, Name => 'RegionSeeAlso' },
-);
-
-# MWG 2.0 hierarchical keyword namespace tags
-%Image::ExifTool::XMP::mwg_kw = (
-    %xmpTableDefaults,
-    GROUPS => { 1 => 'XMP-mwg-kw', 2 => 'Image' },
-    NAMESPACE => 'mwg-kw',
-    NOTES => q{
-        Hierarchical keywords metadata defined by the MWG 2.0 specification. 
-        ExifTool unrolls keyword structures to an arbitrary depth of 6 to allow
-        individual levels to be accessed with different tag names, and to avoid
-        infinite recursion.  See L<http://www.metadataworkinggroup.org/> for the
-        official specification.
-    },
-    # arbitrarily define only the first 6 levels of the keyword hierarchy
-    Keywords => {
-        Name => 'KeywordInfo',
-        Struct => {
-            STRUCT_NAME => 'KeywordInfo',
-            NAMESPACE   => 'mwg-kw',
-            Hierarchy => { Struct => \%sKeywordStruct, List => 'Bag' },
-        },
-    },
-    KeywordsHierarchy => { Name => 'HierarchicalKeywords', Flat => 1 },
-    KeywordsHierarchyKeyword  => { Name => 'HierarchicalKeywords1', Flat => 1 },
-    KeywordsHierarchyApplied  => { Name => 'HierarchicalKeywords1Applied', Flat => 1 },
-    KeywordsHierarchyChildren => { Name => 'HierarchicalKeywords1Children', Flat => 1 },
-    KeywordsHierarchyChildrenKeyword  => { Name => 'HierarchicalKeywords2', Flat => 1 },
-    KeywordsHierarchyChildrenApplied  => { Name => 'HierarchicalKeywords2Applied', Flat => 1 },
-    KeywordsHierarchyChildrenChildren => { Name => 'HierarchicalKeywords2Children', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenKeyword  => { Name => 'HierarchicalKeywords3', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenApplied  => { Name => 'HierarchicalKeywords3Applied', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenChildren => { Name => 'HierarchicalKeywords3Children', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenChildrenKeyword  => { Name => 'HierarchicalKeywords4', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenChildrenApplied  => { Name => 'HierarchicalKeywords4Applied', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenChildrenChildren => { Name => 'HierarchicalKeywords4Children', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenChildrenChildrenKeyword  => { Name => 'HierarchicalKeywords5', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenChildrenChildrenApplied  => { Name => 'HierarchicalKeywords5Applied', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenChildrenChildrenChildren => { Name => 'HierarchicalKeywords5Children', Flat => 1, NoSubStruct => 1 }, # break infinite recursion
-    KeywordsHierarchyChildrenChildrenChildrenChildrenChildrenKeyword => { Name => 'HierarchicalKeywords6', Flat => 1 },
-    KeywordsHierarchyChildrenChildrenChildrenChildrenChildrenApplied => { Name => 'HierarchicalKeywords6Applied', Flat => 1 },
-);
-
-# MWG 2.0 collections namespace tags
-%Image::ExifTool::XMP::mwg_coll = (
-    %xmpTableDefaults,
-    GROUPS => { 1 => 'XMP-mwg-coll', 2 => 'Image' },
-    NAMESPACE => 'mwg-coll',
-    NOTES => q{
-        Collections metadata defined by the MWG 2.0 specification.  See
-        L<http://www.metadataworkinggroup.org/> for the official specification.
-    },
-    Collections => {
-        List => 'Bag',
-        Struct => {
-            STRUCT_NAME => 'CollectionInfo',
-            NAMESPACE   => 'mwg-coll',
-            CollectionName => { },
-            CollectionURI  => { },
-        },
-    },
-    CollectionsCollectionName => { Name => 'CollectionName', Flat => 1 },
-    CollectionsCollectionURI  => { Name => 'CollectionURI',  Flat => 1 },
-);
-
 # FastPictureViewer namespace properties (http://www.fastpictureviewer.com/help/#rtfcomments)
 %Image::ExifTool::XMP::fpv = (
     %xmpTableDefaults,
@@ -1316,6 +1160,7 @@ my %sKeywordStruct;
     },
     FaceID          => { Writable => 'integer' },
     AngleInfoRoll   => { Writable => 'integer' },
+    AngleInfoYaw    => { Writable => 'integer' },
     ConfidenceLevel => { Writable => 'integer' },
 );
 
@@ -1355,6 +1200,21 @@ my %sKeywordStruct;
     LargestValidInteriorRectTop     => { Writable => 'integer' },
     LargestValidInteriorRectWidth   => { Writable => 'integer' },
     LargestValidInteriorRectHeight  => { Writable => 'integer' },
+);
+
+# Getty Images namespace (ref PH)
+%Image::ExifTool::XMP::GettyImages = (
+    %xmpTableDefaults,
+    GROUPS => { 1 => 'XMP-getty', 2 => 'Image' },
+    NAMESPACE => 'GettyImagesGIFT',
+    NOTES => q{
+        The actual Getty Images namespace prefix is "GettyImagesGIFT", which is the
+        prefix recorded in the file, but ExifTool shortens this for the "XMP-getty"
+        family 1 group name.
+    },
+    Personality => { },
+    OriginalFilename => { },
+    ParentMEID => { },
 );
 
 # SVG namespace properties (ref 9)
@@ -1414,7 +1274,7 @@ This file contains definitions for less common XMP namespaces.
 
 =head1 AUTHOR
 
-Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

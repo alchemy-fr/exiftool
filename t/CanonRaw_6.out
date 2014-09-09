@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.07
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.60
 [File, System, Image] FileName - File Name: CanonRaw_6_failed.cr2
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 8.6 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:11:20 07:49:37-05:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2012:11:20 07:49:37-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2012:11:20 07:49:37-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2014:05:08 10:53:04-04:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2014:05:08 10:53:04-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2014:05:08 10:53:04-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: CR2
 [File, File, Image] MIMEType - MIME Type: image/x-canon-cr2
@@ -77,7 +77,7 @@
 [MakerNotes, Canon, Camera] 5 - Continuous Drive: Single
 [MakerNotes, Canon, Camera] 7 - Focus Mode: One-shot AF
 [MakerNotes, Canon, Camera] 9 - Record Mode: CR2
-[MakerNotes, Canon, Camera] 10 - Canon Image Size: Unknown (-1)
+[MakerNotes, Canon, Camera] 10 - Canon Image Size: n/a
 [MakerNotes, Canon, Camera] 11 - Easy Mode: Manual
 [MakerNotes, Canon, Camera] 12 - Digital Zoom: None
 [MakerNotes, Canon, Camera] 13 - Contrast: Normal
@@ -86,7 +86,7 @@
 [MakerNotes, Canon, Camera] 17 - Metering Mode: Center-weighted average
 [MakerNotes, Canon, Camera] 18 - Focus Range: Not Known
 [MakerNotes, Canon, Camera] 20 - Canon Exposure Mode: Aperture-priority AE
-[MakerNotes, Canon, Camera] 22 - Lens Type: Unknown (-1)
+[MakerNotes, Canon, Camera] 22 - Lens Type: n/a
 [MakerNotes, Canon, Camera] 23 - Max Focal Length: 55 mm
 [MakerNotes, Canon, Camera] 24 - Min Focal Length: 18 mm
 [MakerNotes, Canon, Camera] 25 - Focal Units: 1/mm

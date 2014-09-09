@@ -265,7 +265,9 @@ my $testnum = 1;
     ++$testnum;
     my $exifTool = new Image::ExifTool;
     $exifTool->Options(GlobalTimeShift => '-0:1:0 0:0:0');
-    my $info = $exifTool->ImageInfo('t/images/ExifTool.jpg', 'time:all');
+    # Note: can't extract system times because this could result in a different
+    # calculated global time offset (since I am shifting by 1 month)
+    my $info = $exifTool->ImageInfo('t/images/ExifTool.jpg', 'time:all', '-system:all');
     print 'not ' unless check($exifTool, $info, $testname, $testnum);
     print "ok $testnum\n";
 }

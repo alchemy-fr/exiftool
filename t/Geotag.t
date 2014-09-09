@@ -2,7 +2,7 @@
 # After "make install" it should work as "perl t/Geotag.t".
 
 BEGIN {
-    $| = 1; print "1..8\n"; $Image::ExifTool::noConfig = 1;
+    $| = 1; print "1..9\n"; $Image::ExifTool::noConfig = 1;
     # must create user-defined tags before loading ExifTool (used in test 8)
     %Image::ExifTool::UserDefined = (
         'Image::ExifTool::GPS::Main' => {
@@ -160,5 +160,22 @@ my $testfile2;
     print "ok $testnum\n";
 }
 
+# test 9: Geotag from KML track log, obtained from Google Location
+{
+    ++$testnum;
+    my $exifTool = new Image::ExifTool;
+    $testfile2 = "t/${testname}_${testnum}_failed.jpg";
+    unlink $testfile2;
+    $exifTool->SetNewValue(Geotag => 't/images/Geotag.kml');
+    $exifTool->SetNewValue(Geotime => '2013:11:13 09:04:31Z');
+    $exifTool->WriteInfo('t/images/Writer.jpg', $testfile2);
+    my $info = $exifTool->ImageInfo($testfile2, @testTags);
+    if (check($exifTool, $info, $testname, $testnum)) {
+        unlink $testfile2;
+    } else {
+        print 'not ';
+    }
+    print "ok $testnum\n";
+}
 
 # end

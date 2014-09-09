@@ -1,4 +1,4 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.13
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.65
 [File, System, Image] FileSize - File Size: 9.9 kB
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -60,7 +60,7 @@
 [EXIF, IFD1, Image] 514 - Thumbnail Length: 0
 [IPTC, IPTC, Other] 90 - Coded Character Set: UTF8
 [IPTC, IPTC, Other] 0 - Envelope Record Version: 4
-[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 9.13
+[XMP, XMP-x, Document] xmptk - XMP Toolkit: Image::ExifTool 9.65
 [XMP, XMP-rdf, Document] about - About: uuid:80056b68-1045-fa97-3401-6f4ed84cd53d
 [XMP, XMP-iptcCore, Author] CreatorContactInfoCiAdrCtry - Creator Country: Canada
 [XMP, XMP-dc, Author] creator - Creator: Phil Harvey-v2
@@ -74,7 +74,7 @@
 [XMP, XMP-photoshop, Location] City - City: Kingston-v2
 [XMP, XMP-photoshop, Location] Country - Country: Canada-v2
 [XMP, XMP-photoshop, Author] Credit - Credit: My Credit-v2
-[XMP, XMP-photoshop, Time] DateCreated - Date Created: 2004:02:26
+[XMP, XMP-photoshop, Time] DateCreated - Date Created: 2004:02:26 02:00
 [XMP, XMP-photoshop, Image] Headline - Headline: No headline-v2
 [XMP, XMP-photoshop, Image] Instructions - Instructions: What instructions-v2
 [XMP, XMP-photoshop, Author] Source - Source: I'm the source-v2
@@ -118,7 +118,7 @@
 [ICC_Profile, ICC_Profile, Image] lumi - Luminance: 76.03647 80 87.12462
 [ICC_Profile, ICC-meas, Image] 8 - Measurement Observer: CIE 1931
 [ICC_Profile, ICC-meas, Image] 12 - Measurement Backing: 0 0 0
-[ICC_Profile, ICC-meas, Image] 24 - Measurement Geometry: Unknown (0)
+[ICC_Profile, ICC-meas, Image] 24 - Measurement Geometry: Unknown
 [ICC_Profile, ICC-meas, Image] 28 - Measurement Flare: 0.999%
 [ICC_Profile, ICC-meas, Image] 32 - Measurement Illuminant: D65
 [ICC_Profile, ICC_Profile, Image] tech - Technology: Cathode Ray Tube Display
