@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.07
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.69
 [File, System, Image] FileName - File Name: PGF.pgf
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 286 bytes
 [File, System, Time] FileModifyDate - File Modification Date/Time: 2011:01:26 07:32:42-05:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2012:11:19 15:31:05-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2012:11:17 09:18:25-05:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2014:07:23 08:41:55-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2014:07:19 08:21:42-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: PGF
 [File, File, Image] MIMEType - MIME Type: image/pgf
@@ -25,8 +25,8 @@
 [PNG, PNG, Image] 11 - Filter: Adaptive
 [PNG, PNG, Image] 12 - Interlace: Noninterlaced
 [PNG, PNG, Image] sRGB - SRGB Rendering: Perceptual
-[PNG, PNG, Image] 0 - Pixels Per Unit X: 2835
-[PNG, PNG, Image] 4 - Pixels Per Unit Y: 2835
-[PNG, PNG, Image] 8 - Pixel Units: Meters
+[PNG, PNG-pHYs, Image] 0 - Pixels Per Unit X: 2835
+[PNG, PNG-pHYs, Image] 4 - Pixels Per Unit Y: 2835
+[PNG, PNG-pHYs, Image] 8 - Pixel Units: meters
 [PNG, PNG, Image] Comment - Comment: ExifTool PGF Test
 [Composite, Composite, Image] ImageSize - Image Size: 8x8

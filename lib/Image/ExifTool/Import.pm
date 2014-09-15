@@ -12,7 +12,7 @@ require Exporter;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
-$VERSION = '1.02';
+$VERSION = '1.03';
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(ReadCSV ReadJSON);
 
@@ -23,14 +23,14 @@ my $charset;
 
 #------------------------------------------------------------------------------
 # Read CSV file
-# Inputs: 0) CSV file name, 1) database hash ref, 2) flag to delete "-" tags
+# Inputs: 0) CSV file name, 1) database hash ref, 2) missing tag value
 # Returns: undef on success, or error string
 # Notes: There are various flavours of CSV, but here we assume that only
 #        double quotes are escaped, and they are escaped by doubling them
 sub ReadCSV($$;$)
 {
     local ($_, $/);
-    my ($file, $database, $delDash) = @_;
+    my ($file, $database, $missingValue) = @_;
     my ($buff, @tags, $found, $err);
 
     open CSVFILE, $file or return "Error opening CSV file '$file'";
@@ -71,8 +71,9 @@ sub ReadCSV($$;$)
             # save values for each tag
             for ($i=0; $i<@vals and $i<@tags; ++$i) {
                 next unless length $vals[$i];   # ignore empty entries
-                # delete tag if value (set value to undef) is '-' and -f option is used
-                $fileInfo{$tags[$i]} = ($vals[$i] eq '-' and $delDash) ? undef : $vals[$i];
+                # delete tag (set value to undef) if value is same as missing tag
+                $fileInfo{$tags[$i]} =
+                    (defined $missingValue and $vals[$i] eq $missingValue) ? undef : $vals[$i];
             }
             # figure out the file name to use
             if ($fileInfo{SourceFile}) {
@@ -82,7 +83,7 @@ sub ReadCSV($$;$)
         } else {
             # the first row should be the tag names
             foreach (@vals) {
-                # terminate at first blank tag name (ie. extra comma at end of line)
+                # terminate at first blank tag name (eg. extra comma at end of line)
                 last unless length $_;
                 @tags or s/^\xef\xbb\xbf//; # remove UTF-8 BOM if it exists
                 /^[-\w]+(:[-\w+]+)?#?$/ or $err = "Invalid tag name '$_'", last;
@@ -131,7 +132,7 @@ Tok: for (;;) {
             # read another 64kB and add to unparsed data
             my $offset = length($$buffPt) - $pos;
             $$buffPt = substr($$buffPt, $pos) if $offset;
-            read $fp, $$buffPt, 65536, $offset or $$buffPt = '', last;
+            ($fp and read $fp, $$buffPt, 65536, $offset) or $$buffPt = '', last;
             unless ($didBOM) {
                 $$buffPt =~ s/^\xef\xbb\xbf//;  # remove UTF-8 BOM if it exists
                 $didBOM = 1;
@@ -191,6 +192,11 @@ Tok: for (;;) {
             # unescape characters
             $rtnVal =~ s/\\u([0-9a-f]{4})/ToUTF8(hex $1)/ige;
             $rtnVal =~ s/\\(.)/$unescapeJSON{$1}||$1/sge;
+            # decode base64 (binary data) values
+            if ($rtnVal =~ /^base64:[A-Za-z0-9+\/]*={0,2}$/ and length($rtnVal) % 4 == 3) {
+                require Image::ExifTool::XMP;
+                $rtnVal = ${Image::ExifTool::XMP::DecodeBase64(substr($rtnVal,7))};
+            }
         } elsif ($tok eq ']' or $tok eq '}' or $tok eq ',') {
             # return undef for empty object, array, or list item
             # (empty list item actually not valid JSON)
@@ -213,7 +219,7 @@ Tok: for (;;) {
 sub ReadJSON($$;$$)
 {
     local $_;
-    my ($file, $database, $delDash, $chset) = @_;
+    my ($file, $database, $missingValue, $chset) = @_;
 
     # initialize character set for converting "\uHHHH" chars
     $charset = $chset || 'UTF8';
@@ -228,8 +234,8 @@ sub ReadJSON($$;$$)
     my ($info, $found);
     foreach $info (@$obj) {
         next unless ref $info eq 'HASH' and $$info{SourceFile};
-        if ($delDash) {
-            $$info{$_} eq '-' and $$info{$_} = undef foreach keys %$info;
+        if (defined $missingValue) {
+            $$info{$_} eq $missingValue and $$info{$_} = undef foreach keys %$info;
         }
         $$database{$$info{SourceFile}} = $info;
         $found = 1;
@@ -277,8 +283,8 @@ Read CSV or JSON file into a database hash.
 
 1) Hash reference for database object.
 
-2) Optional flag to set '-' values to undef in the database.  (Used for
-deleting tags.)
+2) Optional string used to represent an undefined (missing) tag value. 
+(Used for deleting tags.)
 
 3) [ReadJSON only] Optional character set for converting Unicode escape
 sequences in strings.  Defaults to "UTF8".  See the ExifTool Charset option
@@ -295,7 +301,7 @@ stored as hash lookups of tag name/value for each SourceFile.
 
 =head1 AUTHOR
 
-Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

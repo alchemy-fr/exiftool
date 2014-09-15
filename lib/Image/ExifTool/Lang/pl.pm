@@ -11,7 +11,7 @@ package Image::ExifTool::Lang::pl;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.07';
+$VERSION = '1.09';
 
 %Image::ExifTool::Lang::pl::Translate = (
    'AEAperture' => 'Priorytet AE',
@@ -128,7 +128,7 @@ $VERSION = '1.07';
         'Flash' => 'Lampa błyskowa',
         'Fluorescent' => 'Jarzeniowy',
         'ISO Studio Tungsten' => 'ISO dla studyjnych lamp żarowych',
-        'Other' => 'inne źródło światła',
+        'Other' => 'Inne źródło światła',
         'Shade' => 'Cień',
         'Standard Light A' => 'Standardowe światło A',
         'Standard Light B' => 'Standardowe światło B',
@@ -149,7 +149,7 @@ $VERSION = '1.07';
         'Flash' => 'Lampa błyskowa',
         'Fluorescent' => 'Jarzeniowy',
         'ISO Studio Tungsten' => 'ISO dla studyjnych lamp żarowych',
-        'Other' => 'inne źródło światła',
+        'Other' => 'Inne źródło światła',
         'Shade' => 'Cień',
         'Standard Light A' => 'Standardowe światło A',
         'Standard Light B' => 'Standardowe światło B',
@@ -453,6 +453,8 @@ $VERSION = '1.07';
    'FrameSize' => 'Wielkość kadru',
    'FreeByteCounts' => 'Liczba wolnych bajtów',
    'FreeOffsets' => 'Wolne offsety',
+   'GDALMetadata' => 'Metadane GDAL',
+   'GDALNoData' => 'Brak danych GDAL',
    'GPSAltitude' => 'Wysokość',
    'GPSAltitudeRef' => {
       Description => 'Wysokość odniesienia',
@@ -479,6 +481,7 @@ $VERSION = '1.07';
         'No Correction' => 'Pomiar bez korekcji różnicowej',
       },
     },
+   'GPSHPositioningError' => 'Błąd poziomy wyznaczenia pozycji',
    'GPSImgDirection' => 'Kierunek obrazu',
    'GPSImgDirectionRef' => 'Wartość odniesienia dla kierunku obrazu',
    'GPSInfo' => 'Wskaźnik GPS Info IFD',
@@ -578,6 +581,12 @@ $VERSION = '1.07';
         'Portrait' => 'Portret',
       },
     },
+   'ImageType' => {
+      Description => 'Rodzaj obrazu',
+      PrintConv => {
+        'Page' => 'Strona',
+      },
+    },
    'ImageUniqueID' => 'Unikalny kod ID zdjęcia',
    'ImageWidth' => 'Szerokość obrazu',
    'Index' => 'Indeks',
@@ -594,10 +603,19 @@ $VERSION = '1.07';
     },
    'InteropOffset' => 'Znacznik wzajemnej zgodności',
    'InteropVersion' => 'Wersja wzajemnej zgodności',
+   'JPEGQuality' => {
+      Description => 'Jakość',
+      PrintConv => {
+        'Standard' => 'Standardowa jakość',
+      },
+    },
    'Keywords' => 'Słowa kluczowe',
    'Lens' => 'Obiektyw',
    'LensID' => 'ID obiektywu',
    'LensInfo' => 'Informacja o obiektywie',
+   'LensMake' => 'Producent obiektywu',
+   'LensModel' => 'Model obiektywu',
+   'LensSerialNumber' => 'Numer seryjny obiektywu',
    'LightReading' => 'Pomiar światła',
    'LightSource' => {
       Description => 'Źródło światła',
@@ -611,7 +629,7 @@ $VERSION = '1.07';
         'Flash' => 'Lampa błyskowa',
         'Fluorescent' => 'Jarzeniowy',
         'ISO Studio Tungsten' => 'ISO dla studyjnych lamp żarowych',
-        'Other' => 'inne źródło światła',
+        'Other' => 'Inne źródło światła',
         'Shade' => 'Cień',
         'Standard Light A' => 'Standardowe światło A',
         'Standard Light B' => 'Standardowe światło B',
@@ -647,7 +665,7 @@ $VERSION = '1.07';
         'Center-weighted average' => 'Centralnie ważony uśredniony',
         'Multi-segment' => 'Wzór',
         'Multi-spot' => 'Wielopunktowy',
-        'Other' => 'inne',
+        'Other' => 'Inne',
         'Partial' => 'Częściowy',
         'Spot' => 'Punktowy',
         'Unknown' => 'Nieznane',
@@ -744,6 +762,20 @@ $VERSION = '1.07';
    'PictureStyle' => {
       PrintConv => {
         'None' => 'Brak',
+      },
+    },
+   'PixelFormat' => {
+      Description => 'Format zapisu koloru',
+      PrintConv => {
+        '128-bit PRGBA Float' => '128-bitów PRGBA (zapis zmienno przecinkowy)',
+        '128-bit RGB Float' => '128-bitów RGB (zapis zmienno przecinkowy)',
+        '128-bit RGBA Float' => '128-bitów RGBA (zapis zmienno przecinkowy)',
+        '16-bit Gray' => '16-bitów Szarość',
+        '32-bit Gray Float' => '32-bity Szarość (zapis zmienno przecinkowy)',
+        '48-bit RGB Fixed Point' => '48-bitów RGB (zapis stałopozycyjny)',
+        '8-bit Gray' => '8-bitów Szarość',
+        '96-bit RGB Fixed Point' => '96-bitów RGB (zapis stałopozycyjny)',
+        'Black & White' => 'Czarno Biały',
       },
     },
    'PlanarConfiguration' => {
@@ -1008,6 +1040,7 @@ $VERSION = '1.07';
    'Track' => 'Ścieżka',
    'TransferFunction' => 'Funkcja transferu',
    'Transformation' => {
+      Description => 'Przekształcenie',
       PrintConv => {
         'Horizontal (normal)' => '0° (góra/lewo)',
         'Mirror horizontal' => '0° (góra/prawo)',
@@ -1021,6 +1054,7 @@ $VERSION = '1.07';
     },
    'TransmissionReference' => 'Odnośnik transmisji',
    'TvExposureTimeSetting' => 'Ustawienia czasu ekspozycji TV',
+   'Uncompressed' => 'Nieskompresowany',
    'UniqueCameraModel' => 'Unikatowy model aparatu',
    'Unknown' => 'Nieznany',
    'Urgency' => 'Priorytet',
@@ -1116,7 +1150,7 @@ and values.
 
 =head1 AUTHOR
 
-Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

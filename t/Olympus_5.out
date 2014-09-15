@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.07
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.31
 [File, System, Image] FileName - File Name: Olympus_5_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 7.2 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:11:20 07:49:46-05:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2012:11:20 07:49:46-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2012:11:20 07:49:46-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2013:05:30 09:51:24-04:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2013:05:30 09:51:24-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2013:05:30 09:51:24-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -224,7 +224,7 @@
 [MakerNotes, Olympus, Camera] 4614 - Olympus Focus Info 0x1206: 0
 [MakerNotes, Olympus, Camera] 4615 - Olympus Focus Info 0x1207: 0
 [MakerNotes, Olympus, Camera] 4616 - Internal Flash: Off
-[MakerNotes, Olympus, Camera] 5376 - Sensor Temperature: 20
+[MakerNotes, Olympus, Camera] 5376 - Sensor Temperature: 20 C
 [PrintIM, PrintIM, Printing] PrintIMVersion - PrintIM Version: 0250
 [PrintIM, PrintIM, Printing] 1 - Print IM 0x0001: 0x00140014
 [PrintIM, PrintIM, Printing] 2 - Print IM 0x0002: 0x00000001

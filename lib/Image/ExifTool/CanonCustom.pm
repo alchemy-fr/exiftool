@@ -19,7 +19,7 @@ use Image::ExifTool qw(:DataAccess);
 use Image::ExifTool::Canon;
 use Image::ExifTool::Exif;
 
-$VERSION = '1.44';
+$VERSION = '1.49';
 
 sub ProcessCanonCustom($$$);
 sub ProcessCanonCustom2($$$);
@@ -1273,10 +1273,7 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
         {
             Name => 'ISOExpansion',
             Notes => 'other models',
-            PrintConv => {
-                0 => 'Off',
-                1 => 'On',
-            },
+            PrintConv => \%offOn,
         },
     ],
     0x0104 => {
@@ -1292,17 +1289,27 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
             2 => '+,0,-',
         },
     },
-    0x0106 => {
+    0x0106 => [{
         Name => 'AEBShotCount',
-        Count => -1,
-        Notes => '1 value for the 1DmkIII and 5DmkIII, 2 for the 1DmkIV',
-        PrintConv => [{
-            0 => 3,
-            1 => 2,
-            2 => 5,
-            3 => 7,
-        }],
-    },
+        Condition => '$count == 1',
+        Notes => 'one value for some models...',
+        PrintConv => {
+            0 => '3 shots',
+            1 => '2 shots',
+            2 => '5 shots',
+            3 => '7 shots',
+        },
+    },{
+        Name => 'AEBShotCount',
+        Count => 2,
+        Notes => 'two values for others',
+        PrintConv => {
+            '3 0' => '3 shots',
+            '2 1' => '2 shots',
+            '5 2' => '5 shots',
+            '7 3' => '7 shots',
+        },
+    }],
     0x0107 => {
         Name => 'SpotMeterLinkToAFPoint',
         PrintConv => {
@@ -1526,6 +1533,7 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
             PrintConv => \%enableDisable,
         },
     ],
+    # 0x0205 - Added in 5DmkII firmware update
     #### 2b) Flash exposure
     0x0304 => {
         Name => 'ETTLII',
@@ -1855,7 +1863,7 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
     0x0516 => { # new for 7D and 1DmkIV
         Name => 'OrientationLinkedAFPoint',
         PrintConv => {
-            0 => 'Same for verical and horizontal',
+            0 => 'Same for vertical and horizontal',
             1 => 'Select different AF points',
         },
     },
@@ -2097,12 +2105,16 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
     },
     0x0709 => {
         Name => 'LockMicrophoneButton',
-        PrintConv => {
+        PrintConv => [{
             # called "sound" in 1DmkIII manual, and "memo" in 1DmkIV manual
             0 => 'Protect (hold:record memo)',
             1 => 'Record memo (protect:disable)',
             2 => 'Play memo (hold:record memo)', # new with 1DmkIV
-        },
+            3 => 'Rating (protect/memo:disable)', # new with 1DX
+        }],
+        # (not sure what the 2nd number is -- new for 1DX.  Seen a value of 31.
+        # Memo quality may be set to 48kHz or 8kHz through another option that
+        # doesn't seem to be stored separately -- is this it?)
     },
     0x070a => {
         Name => 'ButtonFunctionControlOff',
@@ -2180,6 +2192,15 @@ my %convPFn = ( PrintConv => \&ConvertPfn, PrintConvInv => \&ConvertPfnInv );
                 0 => 'Eg-A II',
                 1 => 'Eg-D',
                 2 => 'Eg-S',
+            },
+        },
+        {
+            Name => 'FocusingScreen',
+            Condition => '$$self{Model} =~ /\b1D X\b/',
+            Notes => '1DX',
+            PrintConv => {
+                0 => 'Ec-CV',
+                1 => 'Ec-A,B,D,H,I,L',
             },
         },
         {
@@ -2270,32 +2291,33 @@ sub ConvertPfnInv($)
 }
 
 #------------------------------------------------------------------------------
-# Read/Write Canon custom 2 directory (used by 1D Mark III)
+# Read/Write Canon custom 2 directory (new for 1D Mark III)
 # Inputs: 0) ExifTool object ref, 1) dirInfo ref, 2) tag table ref
 # Returns: 1 on success
 sub ProcessCanonCustom2($$$)
 {
-    my ($exifTool, $dirInfo, $tagTablePtr) = @_;
+    my ($et, $dirInfo, $tagTablePtr) = @_;
     my $dataPt = $$dirInfo{DataPt};
     my $offset = $$dirInfo{DirStart};
     my $size = $$dirInfo{DirLen};
     my $write = $$dirInfo{Write};
-    my $verbose = $exifTool->Options('Verbose');
+    my $verbose = $et->Options('Verbose');
     my $newTags;
 
+    return 0 if $size < 2;
     # first entry in array must be the size
     my $len = Get16u($dataPt, $offset);
     unless ($len == $size and $len >= 8) {
-        $exifTool->Warn("Invalid CanonCustom2 data");
+        $et->Warn('Invalid CanonCustom2 data');
         return 0;
     }
     # get group count
     my $count = Get32u($dataPt, $offset + 4);
     if ($write) {
-        $newTags = $exifTool->GetNewTagInfoHash($tagTablePtr);
-        $exifTool->VPrint(0, "  Rewriting CanonCustom2\n");
+        $newTags = $et->GetNewTagInfoHash($tagTablePtr);
+        $et->VPrint(0, "  Rewriting CanonCustom2\n");
     } elsif ($verbose) {
-        $exifTool->VerboseDir('CanonCustom2', $count);
+        $et->VerboseDir('CanonCustom2', $count);
     }
     my $pos = $offset + 8;
     my $end = $offset + $size;
@@ -2308,9 +2330,13 @@ sub ProcessCanonCustom2($$$)
         last if $recLen < 8;    # must be at least 8 bytes for recNum and recLen
         $pos += 12;
         my $recPos = $pos;
-        my $recEnd = $pos + $recLen;
+        my $recEnd = $pos + $recLen - 8;
+        if ($recEnd > $end) {
+            $et->Warn('Corrupted CanonCustom2 group');
+            return 0;
+        }
         if ($verbose and not $write) {
-            $exifTool->VerboseDir("CanonCustom2 group $recNum", $recCount);
+            $et->VerboseDir("CanonCustom2 group $recNum", $recCount);
         }
         my ($i, $num, $tag);
         for ($i=0; $recPos + 8 < $recEnd; ++$i, $recPos+=4*$num) {
@@ -2322,19 +2348,20 @@ sub ProcessCanonCustom2($$$)
             if ($write) {
                 # write new value
                 my $tagInfo = $$newTags{$tag};
-                next unless $tagInfo;
-                my $nvHash = $exifTool->GetNewValueHash($tagInfo);
-                next unless $exifTool->IsOverwriting($nvHash, $val);
-                my $newVal = $exifTool->GetNewValues($nvHash);
+                next unless $$newTags{$tag};
+                $tagInfo = $et->GetTagInfo($tagTablePtr, $tag, \$val, undef, $num) or next;
+                my $nvHash = $et->GetNewValueHash($tagInfo) or next;
+                next unless $et->IsOverwriting($nvHash, $val);
+                my $newVal = $et->GetNewValues($nvHash);
                 next unless defined $newVal;    # can't delete from a custom table
                 WriteValue($newVal, 'int32s', $num, $dataPt, $recPos);
-                $exifTool->VerboseValue("- CanonCustom:$$tagInfo{Name}", $val);
-                $exifTool->VerboseValue("+ CanonCustom:$$tagInfo{Name}", $newVal);
-                ++$exifTool->{CHANGED};
+                $et->VerboseValue("- CanonCustom:$$tagInfo{Name}", $val);
+                $et->VerboseValue("+ CanonCustom:$$tagInfo{Name}", $newVal);
+                ++$$et{CHANGED};
             } else {
                 # save extracted tag
                 my $oldInfo = $$tagTablePtr{$tag};
-                $exifTool->HandleTag($tagTablePtr, $tag, $val,
+                $et->HandleTag($tagTablePtr, $tag, $val,
                     Index  => $i,
                     Format => 'int32u',
                     Count  => $num,
@@ -2348,10 +2375,10 @@ sub ProcessCanonCustom2($$$)
                 }
             }
         }
-        $pos += $recLen - 8;
+        $pos = $recEnd;
     }
     if ($pos != $end) {
-        $exifTool->Warn('Possibly corrupted CanonCustom2 data');
+        $et->Warn('Possibly corrupted CanonCustom2 data');
         return 0;
     }
     return 1;
@@ -2363,8 +2390,8 @@ sub ProcessCanonCustom2($$$)
 # Returns: New custom data block or undefined on error
 sub WriteCanonCustom2($$$)
 {
-    my ($exifTool, $dirInfo, $tagTablePtr) = @_;
-    $exifTool or return 1;    # allow dummy access to autoload this package
+    my ($et, $dirInfo, $tagTablePtr) = @_;
+    $et or return 1;    # allow dummy access to autoload this package
     my $dataPt = $$dirInfo{DataPt};
     # edit a copy of the custom function 2 data
     my $buff = substr($$dataPt, $$dirInfo{DirStart}, $$dirInfo{DirLen});
@@ -2374,7 +2401,7 @@ sub WriteCanonCustom2($$$)
         DirLen   => $$dirInfo{DirLen},
         Write    => 1,
     );
-    ProcessCanonCustom2($exifTool, \%dirInfo, $tagTablePtr) or return undef;
+    ProcessCanonCustom2($et, \%dirInfo, $tagTablePtr) or return undef;
     return $buff;
 }
 
@@ -2384,26 +2411,26 @@ sub WriteCanonCustom2($$$)
 # Returns: 1 on success
 sub ProcessCanonCustom($$$)
 {
-    my ($exifTool, $dirInfo, $tagTablePtr) = @_;
+    my ($et, $dirInfo, $tagTablePtr) = @_;
     my $dataPt = $$dirInfo{DataPt};
     my $offset = $$dirInfo{DirStart};
     my $size = $$dirInfo{DirLen};
-    my $verbose = $exifTool->Options('Verbose');
+    my $verbose = $et->Options('Verbose');
 
     # first entry in array must be the size
     my $len = Get16u($dataPt,$offset);
-    unless ($len == $size or ($$exifTool{Model}=~/\bD60\b/ and $len+2 == $size)) {
-        $exifTool->Warn("Invalid CanonCustom data");
+    unless ($len == $size or ($$et{Model}=~/\bD60\b/ and $len+2 == $size)) {
+        $et->Warn("Invalid CanonCustom data");
         return 0;
     }
-    $verbose and $exifTool->VerboseDir('CanonCustom', $size/2-1);
+    $verbose and $et->VerboseDir('CanonCustom', $size/2-1);
     my $pos;
     for ($pos=2; $pos<$size; $pos+=2) {
         # ($pos is position within custom directory)
         my $val = Get16u($dataPt,$offset+$pos);
         my $tag = ($val >> 8);
         $val = ($val & 0xff);
-        $exifTool->HandleTag($tagTablePtr, $tag, $val,
+        $et->HandleTag($tagTablePtr, $tag, $val,
             Index  => $pos/2-1,
             Format => 'int8u',
             Count  => 1,
@@ -2419,7 +2446,7 @@ sub ProcessCanonCustom($$$)
 # Returns: error string or undef (and may modify value) on success
 sub CheckCanonCustom($$$)
 {
-    my ($exifTool, $tagInfo, $valPtr) = @_;
+    my ($et, $tagInfo, $valPtr) = @_;
     return Image::ExifTool::CheckValue($valPtr, 'int8u');
 }
 
@@ -2429,8 +2456,8 @@ sub CheckCanonCustom($$$)
 # Returns: New custom data block or undefined on error
 sub WriteCanonCustom($$$)
 {
-    my ($exifTool, $dirInfo, $tagTablePtr) = @_;
-    $exifTool or return 1;    # allow dummy access to autoload this package
+    my ($et, $dirInfo, $tagTablePtr) = @_;
+    $et or return 1;    # allow dummy access to autoload this package
     my $dataPt = $$dirInfo{DataPt};
     my $dirStart = $$dirInfo{DirStart} || 0;
     my $dirLen = $$dirInfo{DirLen} || length($$dataPt) - $dirStart;
@@ -2440,26 +2467,26 @@ sub WriteCanonCustom($$$)
 
     # first entry in array must be the size
     my $len = Get16u($dataPt, 0);
-    unless ($len == $dirLen or ($$exifTool{Model}=~/\bD60\b/ and $len+2 == $dirLen)) {
-        $exifTool->Warn("Invalid CanonCustom data");
+    unless ($len == $dirLen or ($$et{Model}=~/\bD60\b/ and $len+2 == $dirLen)) {
+        $et->Warn("Invalid CanonCustom data");
         return undef;
     }
-    my $newTags = $exifTool->GetNewTagInfoHash($tagTablePtr);
+    my $newTags = $et->GetNewTagInfoHash($tagTablePtr);
     my $pos;
     for ($pos=2; $pos<$dirLen; $pos+=2) {
         my $val = Get16u($dataPt, $pos);
         my $tag = ($val >> 8);
         my $tagInfo = $$newTags{$tag};
         next unless $tagInfo;
-        my $nvHash = $exifTool->GetNewValueHash($tagInfo);
+        my $nvHash = $et->GetNewValueHash($tagInfo);
         $val = ($val & 0xff);
-        next unless $exifTool->IsOverwriting($nvHash, $val);
-        my $newVal = $exifTool->GetNewValues($nvHash);
+        next unless $et->IsOverwriting($nvHash, $val);
+        my $newVal = $et->GetNewValues($nvHash);
         next unless defined $newVal;    # can't delete from a custom table
         Set16u(($newVal & 0xff) + ($tag << 8), $dataPt, $pos);
-        $exifTool->VerboseValue("- $dirName:$$tagInfo{Name}", $val);
-        $exifTool->VerboseValue("+ $dirName:$$tagInfo{Name}", $newVal);
-        ++$exifTool->{CHANGED};
+        $et->VerboseValue("- $dirName:$$tagInfo{Name}", $val);
+        $et->VerboseValue("+ $dirName:$$tagInfo{Name}", $newVal);
+        ++$$et{CHANGED};
     }
     return $newData;
 }
@@ -2486,7 +2513,7 @@ Image::ExifTool to read this information.
 
 =head1 AUTHOR
 
-Copyright 2003-2013, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

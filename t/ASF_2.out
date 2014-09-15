@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.07
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.29
 [File, System, Image] FileName - File Name: ASF.wmv
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 12 kB
 [File, System, Time] FileModifyDate - File Modification Date/Time: 2005:12:27 07:29:29-05:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2012:11:20 07:48:02-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2012:11:17 09:18:25-05:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2013:05:02 07:13:04-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2005:12:27 07:36:02-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: WMV
 [File, File, Image] MIMEType - MIME Type: video/x-ms-wmv
@@ -28,6 +28,12 @@
 [ASF, ASF, Video] 68 - Min Packet Size: 1400
 [ASF, ASF, Video] 72 - Max Packet Size: 1400
 [ASF, ASF, Video] 76 - Max Bitrate: 30.6 kbps
+[ASF, ASF, Video] MediaClassPrimaryID - Media Class Primary ID: DB9830BD-3AB3-4FAB-8A37-1A995F7FF74B
+[ASF, ASF, Video] MediaClassSecondaryID - Media Class Secondary ID: 0B710218-8C0C-475E-AF73-4C41C0C8F8CE
+[ASF, ASF, Video] IsVBR - Is VBR: False
+[ASF, ASF, Video] IsVBR - Is VBR: False
+[ASF, ASF, Video] WMADRCPeakReference - WMADRC Peak Reference: 23311
+[ASF, ASF, Video] WMADRCAverageReference - WMADRC Average Reference: 5966
 [ASF, ASF, Other] AudioCodecName - Audio Codec Name: Windows Media Audio 9.1
 [ASF, ASF, Other] AudioCodecDescription - Audio Codec Description:  20 kbps, 22 kHz, stereo 1-pass CBR
 [ASF, ASF, Other] VideoCodecName - Video Codec Name: Windows Media Video 9 Image v2

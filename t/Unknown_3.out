@@ -1,10 +1,10 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.07
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.19
 [File, System, Image] FileName - File Name: Unknown_3_failed.jpg
 [File, System, Image] Directory - Directory: t
 [File, System, Image] FileSize - File Size: 7.0 kB
-[File, System, Time] FileModifyDate - File Modification Date/Time: 2012:11:20 07:49:51-05:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2012:11:20 07:49:51-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2012:11:20 07:49:51-05:00
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2013:02:19 13:07:14-05:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2013:02:19 13:07:14-05:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2013:02:19 13:07:14-05:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: JPEG
 [File, File, Image] MIMEType - MIME Type: image/jpeg
@@ -64,7 +64,7 @@
 [EXIF, IFD1, Image] 282 - X Resolution: 72
 [EXIF, IFD1, Image] 283 - Y Resolution: 72
 [EXIF, IFD1, Image] 296 - Resolution Unit: inches
-[EXIF, IFD1, Image] 513 - Thumbnail Offset: 6926
+[EXIF, IFD1, Image] 513 - Thumbnail Offset: 6922
 [EXIF, IFD1, Image] 514 - Thumbnail Length: 28
 [MakerNotes, MakerUnknown, Camera] 1 - Unknown 0x0001: ADM0000037036
 [MakerNotes, MakerUnknown, Camera] 4 - Unknown 0x0004: AE.. ^;k...MULTIoo/..................;[...]
