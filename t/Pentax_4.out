@@ -1,12 +1,13 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.42
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 10.02
 [File, System, Image] FileName - File Name: Pentax.avi
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 1672 bytes
 [File, System, Time] FileModifyDate - File Modification Date/Time: 2009:10:30 08:10:17-04:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2013:12:01 09:36:02-05:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2013:11:05 20:04:31-05:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2015:09:03 13:07:16-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2015:09:03 13:07:16-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: AVI
+[File, File, Image] FileTypeExtension - File Type Extension: avi
 [File, File, Image] MIMEType - MIME Type: video/x-msvideo
 [File, File, Image] 4 - Image Width: 1280
 [File, File, Image] 8 - Image Height: 720
@@ -53,14 +54,15 @@
 [MakerNotes, Pentax, Camera] 19 - F Number: 0.0
 [MakerNotes, Pentax, Camera] 22 - Exposure Compensation: 0
 [MakerNotes, Pentax, Camera] 25 - White Balance: Flash
-[MakerNotes, Pentax, Camera] 31 - Saturation: Normal
-[MakerNotes, Pentax, Camera] 32 - Contrast: Normal
-[MakerNotes, Pentax, Camera] 33 - Sharpness: Med Soft
+[MakerNotes, Pentax, Camera] 31 - Saturation: 0 (normal)
+[MakerNotes, Pentax, Camera] 32 - Contrast: 0 (normal)
+[MakerNotes, Pentax, Camera] 33 - Sharpness: -1 (med soft)
 [MakerNotes, Pentax, Camera] 39 - DSP Firmware Version: 1.00.00.01
 [MakerNotes, Pentax, Camera] 40 - CPU Firmware Version: 1.00.00.01
 [MakerNotes, Pentax, Camera] 51 - Picture Mode: Video (4); 1/3 EV steps
 [MakerNotes, Pentax, Camera] 52 - Drive Mode: Video; n/a; Shutter Button; Video
 [MakerNotes, Pentax, Camera] 0 - Lens Type: smc PENTAX-DA L 18-55mm F3.5-5.6
+[MakerNotes, Pentax, Camera] 3 - Extender Status: Not attached
 [MakerNotes, Pentax, Camera] 79 - Image Tone: Natural
 [MakerNotes, Pentax, Camera] 0 - SR Result: Stabilized, [1], [2], [3], [4]
 [MakerNotes, Pentax, Camera] 1 - Shake Reduction: On (7)
@@ -107,7 +109,9 @@
 [MakerNotes, Pentax, Camera] 0.1 - Auto Aperture: On
 [MakerNotes, Pentax, Camera] 0.2 - Min Aperture: 32
 [MakerNotes, Pentax, Camera] 0.3 - Lens F Stops: 6
-[MakerNotes, Pentax, Camera] 9 - Focal Length: 23.1 mm
+[MakerNotes, Pentax, Camera] 3 - Min Focus Distance: 0.25-0.28 m
+[MakerNotes, Pentax, Camera] 3.1 - Focus Range Index: 6 (far)
+[MakerNotes, Pentax, Camera] 9 - Lens Focal Length: 23.1 mm
 [MakerNotes, Pentax, Camera] 10 - Nominal Max Aperture: 4.0
 [MakerNotes, Pentax, Camera] 10.1 - Nominal Min Aperture: 27
 [MakerNotes, Pentax, Camera] 14.1 - Max Aperture: 3.7
@@ -123,5 +127,5 @@
 [MakerNotes, Pentax, Camera] 560 - Firmware Version: K-x Ver 1.00           
 [Composite, Composite, Other] Duration - Duration: 25.00 s
 [Composite, Composite, Image] ImageSize - Image Size: 1280x720
+[Composite, Composite, Image] Megapixels - Megapixels: 0.922
 [Composite, Composite, Camera] LensID - Lens ID: smc PENTAX-DA L 18-55mm F3.5-5.6
-[Composite, Composite, Camera] FocalLength35efl - Focal Length: 23.1 mm

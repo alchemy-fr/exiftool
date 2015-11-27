@@ -191,7 +191,7 @@ sub ProcessPhotoMechanic($$)
             $et->ProcessDirectory(\%dirInfo, $tagTablePtr);
         } elsif ($$et{DEL_GROUP}{PhotoMechanic}) {
             # delete the trailer
-            $verbose and printf $out "  Deleting PhotoMechanic trailer\n";
+            $verbose and print $out "  Deleting PhotoMechanic trailer\n";
             ++$$et{CHANGED};
         } else {
             # rewrite the trailer
@@ -236,7 +236,7 @@ write information written by the Camera Bits Photo Mechanic software.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

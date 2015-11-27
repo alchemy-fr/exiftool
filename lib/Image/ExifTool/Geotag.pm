@@ -9,6 +9,7 @@
 #               2009/09/11 - PH Read ITC GPS track logs
 #               2012/01/08 - PH Extract orientation information from PTNTHPR
 #               2012/05/08 - PH Read Winplus Beacon .TXT files
+#               2015/05/30 - PH Read Bramor gEO log files
 #
 # References:   1) http://www.topografix.com/GPX/1/1/
 #               2) http://www.gpsinformation.org/dale/nmea.htm#GSA
@@ -22,7 +23,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:Public);
 
-$VERSION = '1.44';
+$VERSION = '1.48';
 
 sub JITTER() { return 2 }       # maximum time jitter
 
@@ -113,13 +114,13 @@ sub LoadTrackLog($$;$)
     my ($et, $val) = @_;
     my ($raf, $from, $time, $isDate, $noDate, $noDateChanged, $lastDate, $dateFlarm);
     my ($nmeaStart, $fixSecs, @fixTimes, $lastFix, %nmea);
-    my ($canCut, $cutPDOP, $cutHDOP, $cutSats, $e0, $e1);
+    my ($canCut, $cutPDOP, $cutHDOP, $cutSats, $e0, $e1, @tmp);
 
     unless (eval { require Time::Local }) {
         return 'Geotag feature requires Time::Local installed';
     }
     # add data to existing track
-    my $geotag = $et->GetNewValues('Geotag') || { };
+    my $geotag = $et->GetNewValue('Geotag') || { };
     # get lookup for available information types
     my $has = $$geotag{Has};
     $has or $has = $$geotag{Has} = { 'pos' => 1 };
@@ -132,7 +133,7 @@ sub LoadTrackLog($$;$)
         $/ = $1;
     } else {
         # $val is track file name
-        open EXIFTOOL_TRKFILE, $val or return "Error opening GPS file '$val'";
+        $et->Open(\*EXIFTOOL_TRKFILE, $val) or return "Error opening GPS file '$val'";
         $raf = new File::RandomAccess(\*EXIFTOOL_TRKFILE);
         unless ($raf->Read($_, 256)) {
             close EXIFTOOL_TRKFILE;
@@ -196,6 +197,8 @@ sub LoadTrackLog($$;$)
                 $format = 'IGC';
             } elsif (/^TP,D,/) {
                 $format = 'Winplus';
+            } elsif (/^\s*\d+\s+.*\sypr\s*$/ and (@tmp=split) == 12) {
+                $format = 'Bramor';
             } else {
                 # search only first 50 lines of file for a valid fix
                 last if ++$skipped > 50;
@@ -293,16 +296,35 @@ sub LoadTrackLog($$;$)
 # Winplus Beacon text file
 #
         } elsif ($format eq 'Winplus') {
+            # TP,D, 44.933666667, -93.186555556, 10/26/2011, 19:07:28, 0
+            #       latitude      longitude      date        time
             /^TP,D,\s*([-+]?\d+\.\d*),\s*([-+]?\d+\.\d*),\s*(\d+)\/(\d+)\/(\d{4}),\s*(\d+):(\d+):(\d+)/ or next;
             $$fix{lat} = $1;
             $$fix{lon} = $2;
             $time = Time::Local::timegm($8,$7,$6,$4,$3-1,$5-1900);
-            $isDate = 1;
+DoneFix:    $isDate = 1;
             $$points{$time} = $fix;
             push @fixTimes, $time;
             $fix = { };
             ++$numPoints;
             next;
+#
+# Bramor gEO log file
+#
+        } elsif ($format eq 'Bramor') {
+            #   1 0015   18.723675   50.672752  149 169.31 22/04/2015 07:06:55 169.31    8.88   28.07 ypr
+            #   ? index  latitude    longitude  alt track  date       time     dir       pitch  roll
+            my @parts = split ' ', $_;
+            next unless @parts == 12 and $parts[11] eq 'ypr';
+            my @d = split m{/}, $parts[6];  # date (dd/mm/YYYY)
+            my @t = split m{:}, $parts[7];  # time (HH:MM:SS)
+            next unless @d == 3 and @t == 3;
+            @$fix{qw(lat lon alt track dir pitch roll)} = @parts[2,3,4,5,8,9,10];
+            # (add the seconds afterwards in case some models have decimal seconds)
+            $time = Time::Local::timegm(0,$t[1],$t[0],$d[0],$d[1]-1,$d[2]-1900) + $t[2];
+            # set necessary flags for extra available information
+            @$has{qw(alt track orient)} = (1,1,1);
+            goto DoneFix;   # save this fix
         }
         my (%fix, $secs, $date, $nmea);
         if ($format eq 'NMEA') {
@@ -355,9 +377,7 @@ sub LoadTrackLog($$;$)
             /^\$GPGGA,(\d{2})(\d{2})(\d+(\.\d*)?),(\d*?)(\d{1,2}\.\d+),([NS]),(\d*?)(\d{1,2}\.\d+),([EW]),[1-6]?,(\d+)?,(\.\d+|\d+\.?\d*)?,(-?\d+\.?\d*)?,M?,/ or next;
             $fix{lat} = (($5 || 0) + $6/60) * ($7 eq 'N' ? 1 : -1);
             $fix{lon} = (($8 || 0) + $9/60) * ($10 eq 'E' ? 1 : -1);
-            $fix{nsats} = $11;
-            $fix{hdop} = $12;
-            $fix{alt} = $13;
+            @fix{qw(nsats hdop alt)} = ($11,$12,$13);
             $secs = (($1 * 60) + $2) * 60 + $3;
             $canCut = 1;
 #
@@ -592,7 +612,7 @@ sub LoadTrackLog($$;$)
 sub ApplySyncCorr($$)
 {
     my ($et, $time) = @_;
-    my $sync = $et->GetNewValues('Geosync');
+    my $sync = $et->GetNewValue('Geosync');
     if (ref $sync eq 'HASH') {
         my $syncTimes = $$sync{Times};
         if ($syncTimes) {
@@ -686,7 +706,7 @@ sub SetGeoValues($$;$)
 {
     local $_;
     my ($et, $val, $writeGroup) = @_;
-    my $geotag = $et->GetNewValues('Geotag');
+    my $geotag = $et->GetNewValue('Geotag');
     my $verbose = $et->Options('Verbose');
     my ($fix, $time, $fsec, $noDate, $secondTry, $iExt, $iDir);
 
@@ -993,7 +1013,7 @@ Category:       foreach $category (qw{pos track alt orient}) {
 sub ConvertGeosync($$)
 {
     my ($et, $val) = @_;
-    my $sync = $et->GetNewValues('Geosync') || { };
+    my $sync = $et->GetNewValue('Geosync') || { };
     my ($syncFile, $gpsTime, $imgTime);
 
     if ($val =~ /(.*?)\@(.*)/) {
@@ -1156,7 +1176,7 @@ This module is used by Image::ExifTool
 This module loads GPS track logs, interpolates to determine position based
 on time, and sets new GPS values for geotagging images.  Currently supported
 formats are GPX, NMEA RMC/GGA/GLL, KML, IGC, Garmin XML and TCX, Magellan
-PMGNTRK, Honeywell PTNTHPR, and Winplus Beacon text files.
+PMGNTRK, Honeywell PTNTHPR, Winplus Beacon text, and Bramor gEO log files.
 
 Methods in this module should not be called directly.  Instead, the Geotag
 feature is accessed by writing the values of the ExifTool Geotag, Geosync
@@ -1170,7 +1190,7 @@ user-defined tags, GPSPitch and GPSRoll, must be active.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

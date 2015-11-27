@@ -248,7 +248,7 @@ sub AddChunks($$;@)
         my $nvHash = $et->GetNewValueHash($tagInfo);
         # (native PNG information is always preferred, so don't check IsCreating)
         next unless $et->IsOverwriting($nvHash);
-        my $val = $et->GetNewValues($nvHash);
+        my $val = $et->GetNewValue($nvHash);
         if (defined $val) {
             next if $$nvHash{EditOnly};
             my $data;
@@ -377,7 +377,7 @@ strings).
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

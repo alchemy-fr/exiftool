@@ -14,7 +14,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.05';
+$VERSION = '1.07';
 
 my %noYes = ( 0 => 'No', 1 => 'Yes' );
 
@@ -23,6 +23,7 @@ my %noYes = ( 0 => 'No', 1 => 'Yes' );
 #       (the upper bits), which is not included in the tag ID's below
 %Image::ExifTool::Matroska::Main = (
     GROUPS => { 2 => 'Video' },
+    VARS => { NO_LOOKUP => 1 }, # omit tags from lookup
     NOTES => q{
         The following tags are extracted from Matroska multimedia container files. 
         This container format is used by file types such as MKA, MKV, MKS and WEBM. 
@@ -150,7 +151,7 @@ my %noYes = ( 0 => 'No', 1 => 'Yes' );
         SubDirectory => { TagTable => 'Image::ExifTool::Matroska::Main' },
     },
     0x67 => {
-        Name => 'Timecode',
+        Name => 'TimeCode',
         Format => 'unsigned',
         Unknown => 1,
         ValueConv => '$$self{TimecodeScale} ? $val * $$self{TimecodeScale} / 1e9 : $val',
@@ -869,7 +870,7 @@ information from Matroska multimedia files (MKA, MKV, MKS and WEBM).
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -5,13 +5,11 @@
     "keywords": ["exiftool", "metadatas"],
     "license": "Perl Licensing",
     "authors": [
-    {
-        "name": "Phil Harvey",
-        "email": "phil@owl.phy.queensu.ca",
-        "homepage": "http://www.sno.phy.queensu.ca/~phil/exiftool/"
-    }
+        {
+	    "name": "Phil Harvey",
+	    "email": "phil@owl.phy.queensu.ca",
+	    "homepage": "http://www.sno.phy.queensu.ca/~phil/exiftool/"
+        }
     ],
-    "require": {
-        "phpexiftool/phpexiftool": "*"
-    }
+    "require": {}
 }

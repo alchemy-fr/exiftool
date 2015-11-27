@@ -31,6 +31,7 @@
 #   19) http://nah6.com/~itsme/cvs-xdadevtools/iphone/tools/decodesinf.pl
 #   20) https://developer.apple.com/legacy/library/documentation/quicktime/reference/QT7-1_Update_Reference/QT7-1_Update_Reference.pdf
 #   21) Francois Bonzon private communication
+#   22) https://developer.apple.com/library/mac/documentation/QuickTime/QTFF/Metadata/Metadata.html
 #------------------------------------------------------------------------------
 
 package Image::ExifTool::QuickTime;
@@ -40,7 +41,7 @@ use vars qw($VERSION $AUTOLOAD);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.83';
+$VERSION = '1.94';
 
 sub FixWrongFormat($);
 sub ProcessMOV($$;$);
@@ -62,6 +63,7 @@ sub WriteMOV($$);
 my %mimeLookup = (
    '3G2' => 'video/3gpp2',
    '3GP' => 'video/3gpp',
+    AAX  => 'audio/vnd.audible.aax',
     DVB  => 'video/vnd.dvb.file',
     F4A  => 'audio/mp4',
     F4B  => 'audio/mp4',
@@ -94,6 +96,7 @@ my %ftypLookup = (
     '3gp6' => '3GPP Media (.3GP) Release 6 Progressive Download', # video/3gpp
     '3gp6' => '3GPP Media (.3GP) Release 6 Streaming Servers', # video/3gpp
     '3gs7' => '3GPP Media (.3GP) Release 7 Streaming Servers', # video/3gpp
+    'aax ' => 'Audible Enhanced Audiobook (.AAX)', #PH
     'avc1' => 'MP4 Base w/ AVC ext [ISO 14496-12:2005]', # video/mp4
     'CAEP' => 'Canon Digital Camera',
     'caqv' => 'Casio Digital Camera',
@@ -229,6 +232,7 @@ my %vendorID = (
    'SMI '=> 'Sorenson Media Inc.',
     ZORA => 'Zoran Corporation',
    'AR.D'=> 'Parrot AR.Drone',
+   ' KD '=> 'Kodak', # (FZ201)
 );
 
 # QuickTime data atom encodings for string types (ref 12)
@@ -295,9 +299,9 @@ my %graphicsMode = (
         stored as UTC.  Unfortunately, digital cameras often store local time values
         instead (presumably because they don't know the time zone).  For this
         reason, by default ExifTool does not assume a time zone for these values.
-        However, if the QuickTimeUTC option is set via the API or the ExifTool
-        configuration file, then ExifTool will assume these values are properly
-        stored as UTC, and will convert them to local time when extracting.
+        However, if the QuickTimeUTC API option is set, then ExifTool will assume
+        these values are properly stored as UTC, and will convert them to local time
+        when extracting.
 
         See
         L<http://developer.apple.com/mac/library/documentation/QuickTime/QTFF/QTFFChap1/qtff1.html>
@@ -322,6 +326,11 @@ my %graphicsMode = (
         },
         # (also Samsung WB750 uncompressed thumbnail data starting with "SDIC\0")
     ],
+    # fre1 - 4 bytes: "june" (Kodak PixPro SP360)
+    frea => {
+        Name => 'Kodak_frea',
+        SubDirectory => { TagTable => 'Image::ExifTool::Kodak::frea' },
+    },
     skip => [
         {
             Name => 'CanonSkip',
@@ -341,10 +350,12 @@ my %graphicsMode = (
     },
     PICT => {
         Name => 'PreviewPICT',
+        Groups => { 2 => 'Preview' },
         Binary => 1,
     },
     pict => { #8
         Name => 'PreviewPICT',
+        Groups => { 2 => 'Preview' },
         Binary => 1,
     },
     moov => {
@@ -363,7 +374,7 @@ my %graphicsMode = (
     junk => { Unknown => 1, Binary => 1 }, #8
     uuid => [
         { #9 (MP4 files)
-            Name => 'UUID-XMP',
+            Name => 'XMP',
             # *** this is where ExifTool writes XMP in MP4 videos (as per XMP spec) ***
             Condition => '$$valPt=~/^\xbe\x7a\xcf\xcb\x97\xa9\x42\xe8\x9c\x71\x99\x94\x91\xe3\xaf\xac/',
             SubDirectory => {
@@ -404,7 +415,7 @@ my %graphicsMode = (
     },
     thum => { #PH
         Name => 'ThumbnailImage',
-        Groups => { 2 => 'Image' },
+        Groups => { 2 => 'Preview' },
         Binary => 1,
     },
     ardt => { #PH
@@ -605,6 +616,7 @@ my %graphicsMode = (
         SubDirectory => { TagTable => 'Image::ExifTool::QuickTime::CleanAperture' },
     },
     # avcC - AVC configuration (ref http://thompsonng.blogspot.ca/2010/11/mp4-file-format-part-2.html)
+    # hvcC - HEVC configuration
     # svcC - 7 bytes: 00 00 00 00 ff e0 00
     # esds - elementary stream descriptor
     # d263
@@ -714,6 +726,7 @@ my %graphicsMode = (
     # prfl - Profile (ref 12)
     # clip - clipping --> contains crgn (clip region) (ref 12)
     # mvex - movie extends --> contains mehd (movie extends header), trex (track extends) (ref 14)
+    # ICAT - 4 bytes: "6350" (Nikon CoolPix S6900)
 );
 
 # movie header data block
@@ -1332,6 +1345,10 @@ my %graphicsMode = (
         Name => 'CanonCNTH',
         SubDirectory => { TagTable => 'Image::ExifTool::Canon::CNTH' },
     },
+    CNOP => { #PH (7DmkII)
+        Name => 'CanonCNOP',
+        SubDirectory => { TagTable => 'Image::ExifTool::Canon::CNOP' },
+    },
     # CNDB - 2112 bytes (550D)
     # CNDM - 4 bytes - 0xff,0xd8,0xff,0xd9 (S95)
     # CNDG - 10232 bytes, mostly zeros (N100)
@@ -1377,6 +1394,18 @@ my %graphicsMode = (
         SubDirectory => { TagTable => 'Image::ExifTool::Kodak::DcMD' },
     },
     # AMBA => Ambarella AVC atom (unknown data written by Kodak Playsport video cam)
+    # tmlp - 1 byte: 0 (PixPro SP360)
+    # pivi - 72 bytes (PixPro SP360)
+    # pive - 12 bytes (PixPro SP360)
+    # m ev - 2 bytes: 0 0 (PixPro SP360)
+    # m wb - 4 bytes: 0 0 0 0 (PixPro SP360)
+    # mclr - 4 bytes: 0 0 0 0 (PixPro SP360)
+    # mmtr - 4 bytes: 6 0 0 0 (PixPro SP360)
+    # mflr - 4 bytes: 0 0 0 0 (PixPro SP360)
+    # lvlm - 24 bytes (PixPro SP360)
+    # ufdm - 4 bytes: 0 0 0 1 (PixPro SP360)
+    # mtdt - 1 byte: 0 (PixPro SP360)
+    # gdta - 75240 bytes (PixPro SP360)
     # ---- LG ----
     adzc => { Name => 'Unknown_adzc', Unknown => 1, Hidden => 1, %langText }, # "false\0/","true\0/"
     adze => { Name => 'Unknown_adze', Unknown => 1, Hidden => 1, %langText }, # "false\0/"
@@ -1434,13 +1463,16 @@ my %graphicsMode = (
         },{ #17 (format is in bytes 3-7)
             Name => 'ThumbnailImage',
             Condition => '$$valPt =~ /^.{8}\xff\xd8\xff\xdb/s',
+            Groups => { 2 => 'Preview' },
             ValueConv => 'substr($val, 8)',
         },{ #17 (format is in bytes 3-7)
             Name => 'ThumbnailPNG',
             Condition => '$$valPt =~ /^.{8}\x89PNG\r\n\x1a\n/s',
+            Groups => { 2 => 'Preview' },
             ValueConv => 'substr($val, 8)',
         },{
             Name => 'UnknownThumbnail',
+            Groups => { 2 => 'Preview' },
             Binary => 1,
         },
     ],
@@ -1482,6 +1514,7 @@ my %graphicsMode = (
     # ---- Ricoh ----
     RTHU => { #PH (GR)
         Name => 'PreviewImage',
+        Groups => { 2 => 'Preview' },
         RawConv => '$self->ValidateImage(\$val, $tag)',
     },
     RMKN => { #PH (GR)
@@ -1528,6 +1561,11 @@ my %graphicsMode = (
     albr => { Name => 'AlbumArtist', Groups => { 2 => 'Author' } },
     cvru => 'CoverURI',
     lrcu => 'LyricsURI',
+
+    tags => {   # found in Audible .m4b audio books (ref PH)
+        Name => 'Audible_tags',
+        SubDirectory => { TagTable => 'Image::ExifTool::Audible::tags' },
+    },
 );
 
 # Unknown information stored in HTC One (M8) videos - PH
@@ -1883,8 +1921,8 @@ my %graphicsMode = (
         Name => 'iTunesInfo',
         SubDirectory => { TagTable => 'Image::ExifTool::QuickTime::iTunesInfo' },
     },
-    aART => 'AlbumArtist',
-    covr => 'CoverArt',
+    aART => { Name => 'AlbumArtist', Groups => { 2 => 'Author' } },
+    covr => { Name => 'CoverArt',    Groups => { 2 => 'Preview' } },
     cpil => { #10
         Name => 'Compilation',
         PrintConv => { 0 => 'No', 1 => 'Yes' },
@@ -1957,7 +1995,7 @@ my %graphicsMode = (
             6 => 'Music|Country',
             7 => 'Music|Electronic',
             8 => 'Music|Holiday',
-            9 => 'Music|Opera',
+            9 => 'Music|Classical|Opera',
             10 => 'Music|Singer/Songwriter',
             11 => 'Music|Jazz',
             12 => 'Music|Latino',
@@ -1990,7 +2028,7 @@ my %graphicsMode = (
             39 => 'Mac App Store',
             40 => 'Textbooks',
             50 => 'Music|Fitness & Workout',
-            51 => 'Music|K-Pop',
+            51 => 'Music|Pop|K-Pop',
             52 => 'Music|Karaoke',
             53 => 'Music|Instrumental',
             74 => 'Audiobooks|News',
@@ -2011,20 +2049,20 @@ my %graphicsMode = (
             1015 => "Music|Children's Music|Sing-Along",
             1016 => "Music|Children's Music|Stories",
             1017 => 'Music|Classical|Avant-Garde',
-            1018 => 'Music|Classical|Baroque',
+            1018 => 'Music|Classical|Baroque Era',
             1019 => 'Music|Classical|Chamber Music',
             1020 => 'Music|Classical|Chant',
             1021 => 'Music|Classical|Choral',
             1022 => 'Music|Classical|Classical Crossover',
             1023 => 'Music|Classical|Early Music',
             1024 => 'Music|Classical|Impressionist',
-            1025 => 'Music|Classical|Medieval',
+            1025 => 'Music|Classical|Medieval Era',
             1026 => 'Music|Classical|Minimalism',
-            1027 => 'Music|Classical|Modern Composition',
+            1027 => 'Music|Classical|Modern Era',
             1028 => 'Music|Classical|Opera',
             1029 => 'Music|Classical|Orchestral',
             1030 => 'Music|Classical|Renaissance',
-            1031 => 'Music|Classical|Romantic',
+            1031 => 'Music|Classical|Romantic Era',
             1032 => 'Music|Classical|Wedding Music',
             1033 => 'Music|Country|Alternative Country',
             1034 => 'Music|Country|Americana',
@@ -2108,11 +2146,11 @@ my %graphicsMode = (
             1114 => 'Music|Jazz|Smooth Jazz',
             1115 => 'Music|Latino|Latin Jazz',
             1116 => 'Music|Latino|Contemporary Latin',
-            1117 => 'Music|Latino|Pop Latino',
-            1118 => 'Music|Latino|Raices', # (R&iacute;ces)
+            1117 => 'Music|Latino|Latin Pop',
+            1118 => 'Music|Latino|Raices', # (Ra&iacute;ces)
             1119 => 'Music|Latino|Latin Urban',
             1120 => 'Music|Latino|Baladas y Boleros',
-            1121 => 'Music|Latino|Alternativo & Rock Latino',
+            1121 => 'Music|Latino|Latin Alternative & Rock',
             1122 => 'Music|Brazilian',
             1123 => 'Music|Latino|Regional Mexicano',
             1124 => 'Music|Latino|Salsa y Tropical',
@@ -2172,7 +2210,7 @@ my %graphicsMode = (
             1180 => 'Music|World|Celtic',
             1181 => 'Music|World|Celtic Folk',
             1182 => 'Music|World|Contemporary Celtic',
-            1183 => 'Music|Reggae|Dancehall',
+            1183 => 'Music|Reggae|Modern Dancehall',
             1184 => 'Music|World|Drinking Songs',
             1185 => 'Music|Indian|Indian Pop',
             1186 => 'Music|World|Japanese Pop',
@@ -2300,6 +2338,7 @@ my %graphicsMode = (
             1323 => 'Podcasts|Games & Hobbies',
             1324 => 'Podcasts|Society & Culture',
             1325 => 'Podcasts|Government & Organizations',
+            1337 => 'Music Videos|Classical|Piano',
             1401 => 'Podcasts|Arts|Literature',
             1402 => 'Podcasts|Arts|Design',
             1404 => 'Podcasts|Games & Hobbies|Video Games',
@@ -2355,7 +2394,7 @@ my %graphicsMode = (
             1606 => 'Music Videos|Country',
             1607 => 'Music Videos|Electronic',
             1608 => 'Music Videos|Holiday',
-            1609 => 'Music Videos|Opera',
+            1609 => 'Music Videos|Classical|Opera',
             1610 => 'Music Videos|Singer/Songwriter',
             1611 => 'Music Videos|Jazz',
             1612 => 'Music Videos|Latin',
@@ -2427,8 +2466,8 @@ my %graphicsMode = (
             1682 => 'Music Videos|Classical|High Classical',
             1683 => 'Music Videos|Fitness & Workout',
             1684 => 'Music Videos|Instrumental',
-            1685 => 'Music Videos|Jazz|MZGenre.MusicVideo.Jazz.BigBand',
-            1686 => 'Music Videos|K-Pop',
+            1685 => 'Music Videos|Jazz|Big Band',
+            1686 => 'Music Videos|Pop|K-Pop',
             1687 => 'Music Videos|Karaoke',
             1688 => 'Music Videos|Rock|Heavy Metal',
             1689 => 'Music Videos|Spoken Word',
@@ -2500,19 +2539,19 @@ my %graphicsMode = (
             1756 => 'Music Videos|Christian & Gospel|Southern Gospel',
             1757 => 'Music Videos|Christian & Gospel|Traditional Gospel',
             1758 => 'Music Videos|Classical|Avant-Garde',
-            1759 => 'Music Videos|Classical|Baroque',
+            1759 => 'Music Videos|Classical|Baroque Era',
             1760 => 'Music Videos|Classical|Chamber Music',
             1761 => 'Music Videos|Classical|Chant',
             1762 => 'Music Videos|Classical|Choral',
             1763 => 'Music Videos|Classical|Classical Crossover',
             1764 => 'Music Videos|Classical|Early Music',
             1765 => 'Music Videos|Classical|Impressionist',
-            1766 => 'Music Videos|Classical|Medieval',
+            1766 => 'Music Videos|Classical|Medieval Era',
             1767 => 'Music Videos|Classical|Minimalism',
-            1768 => 'Music Videos|Classical|Modern Composition',
+            1768 => 'Music Videos|Classical|Modern Era',
             1769 => 'Music Videos|Classical|Orchestral',
             1770 => 'Music Videos|Classical|Renaissance',
-            1771 => 'Music Videos|Classical|Romantic',
+            1771 => 'Music Videos|Classical|Romantic Era',
             1772 => 'Music Videos|Classical|Wedding Music',
             1773 => 'Music Videos|Comedy|Novelty',
             1774 => 'Music Videos|Comedy|Standup Comedy',
@@ -2580,12 +2619,12 @@ my %graphicsMode = (
             1837 => 'Music Videos|Jazz|Ragtime',
             1838 => 'Music Videos|Jazz|Smooth Jazz',
             1839 => 'Music Videos|Jazz|Trad Jazz',
-            1840 => 'Music Videos|Latin|Alternativo & Rock Latino',
+            1840 => 'Music Videos|Latin|Alternative & Rock in Spanish',
             1841 => 'Music Videos|Latin|Baladas y Boleros',
             1842 => 'Music Videos|Latin|Contemporary Latin',
             1843 => 'Music Videos|Latin|Latin Jazz',
             1844 => 'Music Videos|Latin|Latin Urban',
-            1845 => 'Music Videos|Latin|Pop Latino',
+            1845 => 'Music Videos|Latin|Pop in Spanish',
             1846 => 'Music Videos|Latin|Raices',
             1847 => 'Music Videos|Latin|Regional Mexicano',
             1848 => 'Music Videos|Latin|Salsa y Tropical',
@@ -2606,7 +2645,7 @@ my %graphicsMode = (
             1863 => 'Music Videos|R&B/Soul|Motown',
             1864 => 'Music Videos|R&B/Soul|Neo-Soul',
             1865 => 'Music Videos|R&B/Soul|Soul',
-            1866 => 'Music Videos|Reggae|Dancehall',
+            1866 => 'Music Videos|Reggae|Modern Dancehall',
             1867 => 'Music Videos|Reggae|Dub',
             1868 => 'Music Videos|Reggae|Roots Reggae',
             1869 => 'Music Videos|Reggae|Ska',
@@ -2667,6 +2706,27 @@ my %graphicsMode = (
             1924 => 'Music Videos|World|Worldbeat',
             1925 => 'Music Videos|World|Zydeco',
             1926 => 'Music Videos|Christian & Gospel',
+            1928 => 'Music Videos|Classical|Art Song',
+            1929 => 'Music Videos|Classical|Brass & Woodwinds',
+            1930 => 'Music Videos|Classical|Solo Instrumental',
+            1931 => 'Music Videos|Classical|Contemporary Era',
+            1932 => 'Music Videos|Classical|Oratorio',
+            1933 => 'Music Videos|Classical|Cantata',
+            1934 => 'Music Videos|Classical|Electronic',
+            1935 => 'Music Videos|Classical|Sacred',
+            1936 => 'Music Videos|Classical|Guitar',
+            1938 => 'Music Videos|Classical|Violin',
+            1939 => 'Music Videos|Classical|Cello',
+            1940 => 'Music Videos|Classical|Percussion',
+            1941 => 'Music Videos|Electronic|Dubstep',
+            1942 => 'Music Videos|Electronic|Bass',
+            1943 => 'Music Videos|Hip-Hop/Rap|UK Hip-Hop',
+            1944 => 'Music Videos|Reggae|Lovers Rock',
+            1945 => 'Music Videos|Alternative|EMO',
+            1946 => 'Music Videos|Alternative|Pop Punk',
+            1947 => 'Music Videos|Alternative|Indie Pop',
+            1948 => 'Music Videos|New Age|Yoga',
+            1949 => 'Music Videos|Pop|Tribute',
             4000 => 'TV Shows|Comedy',
             4001 => 'TV Shows|Drama',
             4002 => 'TV Shows|Animation',
@@ -2711,7 +2771,7 @@ my %graphicsMode = (
             4430 => 'Movies|Turkish',
             4431 => 'Movies|Bollywood',
             4432 => 'Movies|Regional Indian',
-            4433 => 'Movies|MiddleEastern',
+            4433 => 'Movies|Middle Eastern',
             4434 => 'Movies|African',
             6000 => 'App Store|Business',
             6001 => 'App Store|Weather',
@@ -2774,7 +2834,7 @@ my %graphicsMode = (
             8018 => 'Tones|Ringtones|Kayokyoku',
             8019 => 'Tones|Ringtones|Latin',
             8020 => 'Tones|Ringtones|New Age',
-            8021 => 'Tones|Ringtones|Opera',
+            8021 => 'Tones|Ringtones|Classical|Opera',
             8022 => 'Tones|Ringtones|Pop',
             8023 => 'Tones|Ringtones|R&B/Soul',
             8024 => 'Tones|Ringtones|Reggae',
@@ -2846,7 +2906,7 @@ my %graphicsMode = (
             8109 => 'Tones|Ringtones|Christian & Gospel|Southern Gospel',
             8110 => 'Tones|Ringtones|Christian & Gospel|Traditional Gospel',
             8111 => 'Tones|Ringtones|Classical|Avant-Garde',
-            8112 => 'Tones|Ringtones|Classical|Baroque',
+            8112 => 'Tones|Ringtones|Classical|Baroque Era',
             8113 => 'Tones|Ringtones|Classical|Chamber Music',
             8114 => 'Tones|Ringtones|Classical|Chant',
             8115 => 'Tones|Ringtones|Classical|Choral',
@@ -2854,12 +2914,12 @@ my %graphicsMode = (
             8117 => 'Tones|Ringtones|Classical|Early Music',
             8118 => 'Tones|Ringtones|Classical|High Classical',
             8119 => 'Tones|Ringtones|Classical|Impressionist',
-            8120 => 'Tones|Ringtones|Classical|Medieval',
+            8120 => 'Tones|Ringtones|Classical|Medieval Era',
             8121 => 'Tones|Ringtones|Classical|Minimalism',
-            8122 => 'Tones|Ringtones|Classical|Modern Composition',
+            8122 => 'Tones|Ringtones|Classical|Modern Era',
             8123 => 'Tones|Ringtones|Classical|Orchestral',
             8124 => 'Tones|Ringtones|Classical|Renaissance',
-            8125 => 'Tones|Ringtones|Classical|Romantic',
+            8125 => 'Tones|Ringtones|Classical|Romantic Era',
             8126 => 'Tones|Ringtones|Classical|Wedding Music',
             8127 => 'Tones|Ringtones|Comedy|Novelty',
             8128 => 'Tones|Ringtones|Comedy|Standup Comedy',
@@ -2947,19 +3007,19 @@ my %graphicsMode = (
             8211 => 'Tones|Ringtones|Jazz|Ragtime',
             8212 => 'Tones|Ringtones|Jazz|Smooth Jazz',
             8213 => 'Tones|Ringtones|Jazz|Trad Jazz',
-            8214 => 'Tones|Ringtones|K-Pop',
+            8214 => 'Tones|Ringtones|Pop|K-Pop',
             8215 => 'Tones|Ringtones|Karaoke',
             8216 => 'Tones|Ringtones|Korean',
             8217 => 'Tones|Ringtones|Korean|Korean Classical',
             8218 => 'Tones|Ringtones|Korean|Korean Trad Instrumental',
             8219 => 'Tones|Ringtones|Korean|Korean Trad Song',
             8220 => 'Tones|Ringtones|Korean|Korean Trad Theater',
-            8221 => 'Tones|Ringtones|Latin|Alternativo & Rock Latino',
+            8221 => 'Tones|Ringtones|Latin|Alternative & Rock in Spanish',
             8222 => 'Tones|Ringtones|Latin|Baladas y Boleros',
             8223 => 'Tones|Ringtones|Latin|Contemporary Latin',
             8224 => 'Tones|Ringtones|Latin|Latin Jazz',
             8225 => 'Tones|Ringtones|Latin|Latin Urban',
-            8226 => 'Tones|Ringtones|Latin|Pop Latino',
+            8226 => 'Tones|Ringtones|Latin|Pop in Spanish',
             8227 => 'Tones|Ringtones|Latin|Raices',
             8228 => 'Tones|Ringtones|Latin|Regional Mexicano',
             8229 => 'Tones|Ringtones|Latin|Salsa y Tropical',
@@ -2994,7 +3054,7 @@ my %graphicsMode = (
             8258 => 'Tones|Ringtones|R&B/Soul|Motown',
             8259 => 'Tones|Ringtones|R&B/Soul|Neo-Soul',
             8260 => 'Tones|Ringtones|R&B/Soul|Soul',
-            8261 => 'Tones|Ringtones|Reggae|Dancehall',
+            8261 => 'Tones|Ringtones|Reggae|Modern Dancehall',
             8262 => 'Tones|Ringtones|Reggae|Dub',
             8263 => 'Tones|Ringtones|Reggae|Roots Reggae',
             8264 => 'Tones|Ringtones|Reggae|Ska',
@@ -3077,6 +3137,28 @@ my %graphicsMode = (
             8341 => 'Tones|Ringtones|World|Turkish',
             8342 => 'Tones|Ringtones|World|Worldbeat',
             8343 => 'Tones|Ringtones|World|Zydeco',
+            8345 => 'Tones|Ringtones|Classical|Art Song',
+            8346 => 'Tones|Ringtones|Classical|Brass & Woodwinds',
+            8347 => 'Tones|Ringtones|Classical|Solo Instrumental',
+            8348 => 'Tones|Ringtones|Classical|Contemporary Era',
+            8349 => 'Tones|Ringtones|Classical|Oratorio',
+            8350 => 'Tones|Ringtones|Classical|Cantata',
+            8351 => 'Tones|Ringtones|Classical|Electronic',
+            8352 => 'Tones|Ringtones|Classical|Sacred',
+            8353 => 'Tones|Ringtones|Classical|Guitar',
+            8354 => 'Tones|Ringtones|Classical|Piano',
+            8355 => 'Tones|Ringtones|Classical|Violin',
+            8356 => 'Tones|Ringtones|Classical|Cello',
+            8357 => 'Tones|Ringtones|Classical|Percussion',
+            8358 => 'Tones|Ringtones|Electronic|Dubstep',
+            8359 => 'Tones|Ringtones|Electronic|Bass',
+            8360 => 'Tones|Ringtones|Hip-Hop/Rap|UK Hip Hop',
+            8361 => 'Tones|Ringtones|Reggae|Lovers Rock',
+            8362 => 'Tones|Ringtones|Alternative|EMO',
+            8363 => 'Tones|Ringtones|Alternative|Pop Punk',
+            8364 => 'Tones|Ringtones|Alternative|Indie Pop',
+            8365 => 'Tones|Ringtones|New Age|Yoga',
+            8366 => 'Tones|Ringtones|Pop|Tribute',
             9002 => 'Books|Nonfiction',
             9003 => 'Books|Romance',
             9004 => 'Books|Travel & Adventure',
@@ -3156,9 +3238,9 @@ my %graphicsMode = (
             10053 => 'Books|Mysteries & Thrillers|Short Stories',
             10054 => 'Books|Mysteries & Thrillers|British Detectives',
             10055 => 'Books|Mysteries & Thrillers|Women Sleuths',
-            10056 => 'Books|Romance|Erotica',
+            10056 => 'Books|Romance|Erotic Romance',
             10057 => 'Books|Romance|Contemporary',
-            10058 => 'Books|Romance|Fantasy, Futuristic & Ghost',
+            10058 => 'Books|Romance|Paranormal',
             10059 => 'Books|Romance|Historical',
             10060 => 'Books|Romance|Short Stories',
             10061 => 'Books|Romance|Suspense',
@@ -3259,6 +3341,300 @@ my %graphicsMode = (
             11007 => 'Books|Sci-Fi & Fantasy|Science Fiction & Literature|High Tech',
             11008 => 'Books|Sci-Fi & Fantasy|Science Fiction & Literature|Short Stories',
             11009 => 'Books|Professional & Technical|Education|Language Arts & Disciplines',
+            11010 => 'Books|Communications & Media',
+            11011 => 'Books|Communications & Media|Broadcasting',
+            11012 => 'Books|Communications & Media|Digital Media',
+            11013 => 'Books|Communications & Media|Journalism',
+            11014 => 'Books|Communications & Media|Photojournalism',
+            11015 => 'Books|Communications & Media|Print',
+            11016 => 'Books|Communications & Media|Speech',
+            11017 => 'Books|Communications & Media|Writing',
+            11018 => 'Books|Arts & Entertainment|Art & Architecture|Urban Planning',
+            11019 => 'Books|Arts & Entertainment|Dance',
+            11020 => 'Books|Arts & Entertainment|Fashion',
+            11021 => 'Books|Arts & Entertainment|Film',
+            11022 => 'Books|Arts & Entertainment|Interior Design',
+            11023 => 'Books|Arts & Entertainment|Media Arts',
+            11024 => 'Books|Arts & Entertainment|Radio',
+            11025 => 'Books|Arts & Entertainment|TV',
+            11026 => 'Books|Arts & Entertainment|Visual Arts',
+            11027 => 'Books|Biographies & Memoirs|Arts & Entertainment',
+            11028 => 'Books|Biographies & Memoirs|Business',
+            11029 => 'Books|Biographies & Memoirs|Culinary',
+            11030 => 'Books|Biographies & Memoirs|Gay & Lesbian',
+            11031 => 'Books|Biographies & Memoirs|Historical',
+            11032 => 'Books|Biographies & Memoirs|Literary',
+            11033 => 'Books|Biographies & Memoirs|Media & Journalism',
+            11034 => 'Books|Biographies & Memoirs|Military',
+            11035 => 'Books|Biographies & Memoirs|Politics',
+            11036 => 'Books|Biographies & Memoirs|Religious',
+            11037 => 'Books|Biographies & Memoirs|Science & Technology',
+            11038 => 'Books|Biographies & Memoirs|Sports',
+            11039 => 'Books|Biographies & Memoirs|Women',
+            11040 => 'Books|Romance|New Adult',
+            11042 => 'Books|Romance|Romantic Comedy',
+            11043 => 'Books|Romance|Gay & Lesbian',
+            11044 => 'Books|Fiction & Literature|Essays',
+            11045 => 'Books|Fiction & Literature|Anthologies',
+            11046 => 'Books|Fiction & Literature|Comparative Literature',
+            11047 => 'Books|Fiction & Literature|Drama',
+            11049 => 'Books|Fiction & Literature|Fairy Tales, Myths & Fables',
+            11050 => 'Books|Fiction & Literature|Family',
+            11051 => 'Books|Comics & Graphic Novels|Manga|School Drama',
+            11052 => 'Books|Comics & Graphic Novels|Manga|Human Drama',
+            11053 => 'Books|Comics & Graphic Novels|Manga|Family Drama',
+            11054 => 'Books|Sports & Outdoors|Boxing',
+            11055 => 'Books|Sports & Outdoors|Cricket',
+            11056 => 'Books|Sports & Outdoors|Cycling',
+            11057 => 'Books|Sports & Outdoors|Equestrian',
+            11058 => 'Books|Sports & Outdoors|Martial Arts & Self Defense',
+            11059 => 'Books|Sports & Outdoors|Motor Sports',
+            11060 => 'Books|Sports & Outdoors|Rugby',
+            11061 => 'Books|Sports & Outdoors|Running',
+            11062 => 'Books|Health, Mind & Body|Diet & Nutrition',
+            11063 => 'Books|Science & Nature|Agriculture',
+            11064 => 'Books|Science & Nature|Atmosphere',
+            11065 => 'Books|Science & Nature|Biology',
+            11066 => 'Books|Science & Nature|Ecology',
+            11067 => 'Books|Science & Nature|Environment',
+            11068 => 'Books|Science & Nature|Geography',
+            11069 => 'Books|Science & Nature|Geology',
+            11070 => 'Books|Nonfiction|Social Science|Anthropology',
+            11071 => 'Books|Nonfiction|Social Science|Archaeology',
+            11072 => 'Books|Nonfiction|Social Science|Civics',
+            11073 => 'Books|Nonfiction|Social Science|Government',
+            11074 => 'Books|Nonfiction|Social Science|Social Studies',
+            11075 => 'Books|Nonfiction|Social Science|Social Welfare',
+            11076 => 'Books|Nonfiction|Social Science|Society',
+            11077 => 'Books|Nonfiction|Philosophy|Aesthetics',
+            11078 => 'Books|Nonfiction|Philosophy|Epistemology',
+            11079 => 'Books|Nonfiction|Philosophy|Ethics',
+            11080 => 'Books|Nonfiction|Philosophy|Language',
+            11081 => 'Books|Nonfiction|Philosophy|Logic',
+            11082 => 'Books|Nonfiction|Philosophy|Metaphysics',
+            11083 => 'Books|Nonfiction|Philosophy|Political',
+            11084 => 'Books|Nonfiction|Philosophy|Religion',
+            11085 => 'Books|Reference|Manuals',
+            11086 => 'Books|Kids',
+            11087 => 'Books|Kids|Animals',
+            11088 => 'Books|Kids|Basic Concepts',
+            11089 => 'Books|Kids|Basic Concepts|Alphabet',
+            11090 => 'Books|Kids|Basic Concepts|Body',
+            11091 => 'Books|Kids|Basic Concepts|Colors',
+            11092 => 'Books|Kids|Basic Concepts|Counting & Numbers',
+            11093 => 'Books|Kids|Basic Concepts|Date & Time',
+            11094 => 'Books|Kids|Basic Concepts|General',
+            11095 => 'Books|Kids|Basic Concepts|Money',
+            11096 => 'Books|Kids|Basic Concepts|Opposites',
+            11097 => 'Books|Kids|Basic Concepts|Seasons',
+            11098 => 'Books|Kids|Basic Concepts|Senses & Sensation',
+            11099 => 'Books|Kids|Basic Concepts|Size & Shape',
+            11100 => 'Books|Kids|Basic Concepts|Sounds',
+            11101 => 'Books|Kids|Basic Concepts|Words',
+            11102 => 'Books|Kids|Biography',
+            11103 => 'Books|Kids|Careers & Occupations',
+            11104 => 'Books|Kids|Computers & Technology',
+            11105 => 'Books|Kids|Cooking & Food',
+            11106 => 'Books|Kids|Arts & Entertainment',
+            11107 => 'Books|Kids|Arts & Entertainment|Art',
+            11108 => 'Books|Kids|Arts & Entertainment|Crafts',
+            11109 => 'Books|Kids|Arts & Entertainment|Music',
+            11110 => 'Books|Kids|Arts & Entertainment|Performing Arts',
+            11111 => 'Books|Kids|Family',
+            11112 => 'Books|Kids|Fiction',
+            11113 => 'Books|Kids|Fiction|Action & Adventure',
+            11114 => 'Books|Kids|Fiction|Animals',
+            11115 => 'Books|Kids|Fiction|Classics',
+            11116 => 'Books|Kids|Fiction|Comics & Graphic Novels',
+            11117 => 'Books|Kids|Fiction|Culture, Places & People',
+            11118 => 'Books|Kids|Fiction|Family & Relationships',
+            11119 => 'Books|Kids|Fiction|Fantasy',
+            11120 => 'Books|Kids|Fiction|Fairy Tales, Myths & Fables',
+            11121 => 'Books|Kids|Fiction|Favorite Characters',
+            11122 => 'Books|Kids|Fiction|Historical',
+            11123 => 'Books|Kids|Fiction|Holidays & Celebrations',
+            11124 => 'Books|Kids|Fiction|Monsters & Ghosts',
+            11125 => 'Books|Kids|Fiction|Mysteries',
+            11126 => 'Books|Kids|Fiction|Nature',
+            11127 => 'Books|Kids|Fiction|Religion',
+            11128 => 'Books|Kids|Fiction|Sci-Fi',
+            11129 => 'Books|Kids|Fiction|Social Issues',
+            11130 => 'Books|Kids|Fiction|Sports & Recreation',
+            11131 => 'Books|Kids|Fiction|Transportation',
+            11132 => 'Books|Kids|Games & Activities',
+            11133 => 'Books|Kids|General Nonfiction',
+            11134 => 'Books|Kids|Health',
+            11135 => 'Books|Kids|History',
+            11136 => 'Books|Kids|Holidays & Celebrations',
+            11137 => 'Books|Kids|Holidays & Celebrations|Birthdays',
+            11138 => 'Books|Kids|Holidays & Celebrations|Christmas & Advent',
+            11139 => 'Books|Kids|Holidays & Celebrations|Easter & Lent',
+            11140 => 'Books|Kids|Holidays & Celebrations|General',
+            11141 => 'Books|Kids|Holidays & Celebrations|Halloween',
+            11142 => 'Books|Kids|Holidays & Celebrations|Hanukkah',
+            11143 => 'Books|Kids|Holidays & Celebrations|Other',
+            11144 => 'Books|Kids|Holidays & Celebrations|Passover',
+            11145 => 'Books|Kids|Holidays & Celebrations|Patriotic Holidays',
+            11146 => 'Books|Kids|Holidays & Celebrations|Ramadan',
+            11147 => 'Books|Kids|Holidays & Celebrations|Thanksgiving',
+            11148 => "Books|Kids|Holidays & Celebrations|Valentine's Day",
+            11149 => 'Books|Kids|Humor',
+            11150 => 'Books|Kids|Humor|Jokes & Riddles',
+            11151 => 'Books|Kids|Poetry',
+            11152 => 'Books|Kids|Learning to Read',
+            11153 => 'Books|Kids|Learning to Read|Chapter Books',
+            11154 => 'Books|Kids|Learning to Read|Early Readers',
+            11155 => 'Books|Kids|Learning to Read|Intermediate Readers',
+            11156 => 'Books|Kids|Nursery Rhymes',
+            11157 => 'Books|Kids|Government',
+            11158 => 'Books|Kids|Reference',
+            11159 => 'Books|Kids|Religion',
+            11160 => 'Books|Kids|Science & Nature',
+            11161 => 'Books|Kids|Social Issues',
+            11162 => 'Books|Kids|Social Studies',
+            11163 => 'Books|Kids|Sports & Recreation',
+            11164 => 'Books|Kids|Transportation',
+            11165 => 'Books|Young Adult',
+            11166 => 'Books|Young Adult|Animals',
+            11167 => 'Books|Young Adult|Biography',
+            11168 => 'Books|Young Adult|Careers & Occupations',
+            11169 => 'Books|Young Adult|Computers & Technology',
+            11170 => 'Books|Young Adult|Cooking & Food',
+            11171 => 'Books|Young Adult|Arts & Entertainment',
+            11172 => 'Books|Young Adult|Arts & Entertainment|Art',
+            11173 => 'Books|Young Adult|Arts & Entertainment|Crafts',
+            11174 => 'Books|Young Adult|Arts & Entertainment|Music',
+            11175 => 'Books|Young Adult|Arts & Entertainment|Performing Arts',
+            11176 => 'Books|Young Adult|Family',
+            11177 => 'Books|Young Adult|Fiction',
+            11178 => 'Books|Young Adult|Fiction|Action & Adventure',
+            11179 => 'Books|Young Adult|Fiction|Animals',
+            11180 => 'Books|Young Adult|Fiction|Classics',
+            11181 => 'Books|Young Adult|Fiction|Comics & Graphic Novels',
+            11182 => 'Books|Young Adult|Fiction|Culture, Places & People',
+            11183 => 'Books|Young Adult|Fiction|Dystopian',
+            11184 => 'Books|Young Adult|Fiction|Family & Relationships',
+            11185 => 'Books|Young Adult|Fiction|Fantasy',
+            11186 => 'Books|Young Adult|Fiction|Fairy Tales, Myths & Fables',
+            11187 => 'Books|Young Adult|Fiction|Favorite Characters',
+            11188 => 'Books|Young Adult|Fiction|Historical',
+            11189 => 'Books|Young Adult|Fiction|Holidays & Celebrations',
+            11190 => 'Books|Young Adult|Fiction|Horror, Monsters & Ghosts',
+            11191 => 'Books|Young Adult|Fiction|Crime & Mystery',
+            11192 => 'Books|Young Adult|Fiction|Nature',
+            11193 => 'Books|Young Adult|Fiction|Religion',
+            11194 => 'Books|Young Adult|Fiction|Romance',
+            11195 => 'Books|Young Adult|Fiction|Sci-Fi',
+            11196 => 'Books|Young Adult|Fiction|Coming of Age',
+            11197 => 'Books|Young Adult|Fiction|Sports & Recreation',
+            11198 => 'Books|Young Adult|Fiction|Transportation',
+            11199 => 'Books|Young Adult|Games & Activities',
+            11200 => 'Books|Young Adult|General Nonfiction',
+            11201 => 'Books|Young Adult|Health',
+            11202 => 'Books|Young Adult|History',
+            11203 => 'Books|Young Adult|Holidays & Celebrations',
+            11204 => 'Books|Young Adult|Holidays & Celebrations|Birthdays',
+            11205 => 'Books|Young Adult|Holidays & Celebrations|Christmas & Advent',
+            11206 => 'Books|Young Adult|Holidays & Celebrations|Easter & Lent',
+            11207 => 'Books|Young Adult|Holidays & Celebrations|General',
+            11208 => 'Books|Young Adult|Holidays & Celebrations|Halloween',
+            11209 => 'Books|Young Adult|Holidays & Celebrations|Hanukkah',
+            11210 => 'Books|Young Adult|Holidays & Celebrations|Other',
+            11211 => 'Books|Young Adult|Holidays & Celebrations|Passover',
+            11212 => 'Books|Young Adult|Holidays & Celebrations|Patriotic Holidays',
+            11213 => 'Books|Young Adult|Holidays & Celebrations|Ramadan',
+            11214 => 'Books|Young Adult|Holidays & Celebrations|Thanksgiving',
+            11215 => "Books|Young Adult|Holidays & Celebrations|Valentine's Day",
+            11216 => 'Books|Young Adult|Humor',
+            11217 => 'Books|Young Adult|Humor|Jokes & Riddles',
+            11218 => 'Books|Young Adult|Poetry',
+            11219 => 'Books|Young Adult|Politics & Government',
+            11220 => 'Books|Young Adult|Reference',
+            11221 => 'Books|Young Adult|Religion',
+            11222 => 'Books|Young Adult|Science & Nature',
+            11223 => 'Books|Young Adult|Coming of Age',
+            11224 => 'Books|Young Adult|Social Studies',
+            11225 => 'Books|Young Adult|Sports & Recreation',
+            11226 => 'Books|Young Adult|Transportation',
+            11227 => 'Books|Communications & Media',
+            11228 => 'Books|Military & Warfare',
+            11229 => 'Books|Romance|Inspirational',
+            11231 => 'Books|Romance|Holiday',
+            11232 => 'Books|Romance|Wholesome',
+            11233 => 'Books|Romance|Military',
+            11234 => 'Books|Arts & Entertainment|Art History',
+            11236 => 'Books|Arts & Entertainment|Design',
+            11243 => 'Books|Business & Personal Finance|Accounting',
+            11244 => 'Books|Business & Personal Finance|Hospitality',
+            11245 => 'Books|Business & Personal Finance|Real Estate',
+            11246 => 'Books|Humor|Jokes & Riddles',
+            11247 => 'Books|Religion & Spirituality|Comparative Religion',
+            11255 => 'Books|Cookbooks, Food & Wine|Culinary Arts',
+            11259 => 'Books|Mysteries & Thrillers|Cozy',
+            11260 => 'Books|Politics & Current Events|Current Events',
+            11261 => 'Books|Politics & Current Events|Foreign Policy & International Relations',
+            11262 => 'Books|Politics & Current Events|Local Government',
+            11263 => 'Books|Politics & Current Events|National Government',
+            11264 => 'Books|Politics & Current Events|Political Science',
+            11265 => 'Books|Politics & Current Events|Public Administration',
+            11266 => 'Books|Politics & Current Events|World Affairs',
+            11273 => 'Books|Nonfiction|Family & Relationships|Family & Childcare',
+            11274 => 'Books|Nonfiction|Family & Relationships|Love & Romance',
+            11275 => 'Books|Sci-Fi & Fantasy|Fantasy|Urban',
+            11276 => 'Books|Reference|Foreign Languages|Arabic',
+            11277 => 'Books|Reference|Foreign Languages|Bilingual Editions',
+            11278 => 'Books|Reference|Foreign Languages|African Languages',
+            11279 => 'Books|Reference|Foreign Languages|Ancient Languages',
+            11280 => 'Books|Reference|Foreign Languages|Chinese',
+            11281 => 'Books|Reference|Foreign Languages|English',
+            11282 => 'Books|Reference|Foreign Languages|French',
+            11283 => 'Books|Reference|Foreign Languages|German',
+            11284 => 'Books|Reference|Foreign Languages|Hebrew',
+            11285 => 'Books|Reference|Foreign Languages|Hindi',
+            11286 => 'Books|Reference|Foreign Languages|Italian',
+            11287 => 'Books|Reference|Foreign Languages|Japanese',
+            11288 => 'Books|Reference|Foreign Languages|Korean',
+            11289 => 'Books|Reference|Foreign Languages|Linguistics',
+            11290 => 'Books|Reference|Foreign Languages|Other Languages',
+            11291 => 'Books|Reference|Foreign Languages|Portuguese',
+            11292 => 'Books|Reference|Foreign Languages|Russian',
+            11293 => 'Books|Reference|Foreign Languages|Spanish',
+            11294 => 'Books|Reference|Foreign Languages|Speech Pathology',
+            11295 => 'Books|Science & Nature|Mathematics|Advanced Mathematics',
+            11296 => 'Books|Science & Nature|Mathematics|Algebra',
+            11297 => 'Books|Science & Nature|Mathematics|Arithmetic',
+            11298 => 'Books|Science & Nature|Mathematics|Calculus',
+            11299 => 'Books|Science & Nature|Mathematics|Geometry',
+            11300 => 'Books|Science & Nature|Mathematics|Statistics',
+            11301 => 'Books|Professional & Technical|Medical|Veterinary',
+            11302 => 'Books|Professional & Technical|Medical|Neuroscience',
+            11303 => 'Books|Professional & Technical|Medical|Immunology',
+            11304 => 'Books|Professional & Technical|Medical|Nursing',
+            11305 => 'Books|Professional & Technical|Medical|Pharmacology & Toxicology',
+            11306 => 'Books|Professional & Technical|Medical|Anatomy & Physiology',
+            11307 => 'Books|Professional & Technical|Medical|Dentistry',
+            11308 => 'Books|Professional & Technical|Medical|Emergency Medicine',
+            11309 => 'Books|Professional & Technical|Medical|Genetics',
+            11310 => 'Books|Professional & Technical|Medical|Psychiatry',
+            11311 => 'Books|Professional & Technical|Medical|Radiology',
+            11312 => 'Books|Professional & Technical|Medical|Alternative Medicine',
+            11317 => 'Books|Nonfiction|Philosophy|Political Philosophy',
+            11319 => 'Books|Nonfiction|Philosophy|Philosophy of Language',
+            11320 => 'Books|Nonfiction|Philosophy|Philosophy of Religion',
+            11327 => 'Books|Nonfiction|Social Science|Sociology',
+            11329 => 'Books|Professional & Technical|Engineering|Aeronautics',
+            11330 => 'Books|Professional & Technical|Engineering|Chemical & Petroleum Engineering',
+            11331 => 'Books|Professional & Technical|Engineering|Civil Engineering',
+            11332 => 'Books|Professional & Technical|Engineering|Computer Science',
+            11333 => 'Books|Professional & Technical|Engineering|Electrical Engineering',
+            11334 => 'Books|Professional & Technical|Engineering|Environmental Engineering',
+            11335 => 'Books|Professional & Technical|Engineering|Mechanical Engineering',
+            11336 => 'Books|Professional & Technical|Engineering|Power Resources',
+            11337 => 'Books|Comics & Graphic Novels|Manga|Boys',
+            11338 => 'Books|Comics & Graphic Novels|Manga|Men',
+            11339 => 'Books|Comics & Graphic Novels|Manga|Girls',
+            11340 => 'Books|Comics & Graphic Novels|Manga|Women',
+            11341 => 'Books|Comics & Graphic Novels|Manga|Other',
             12001 => 'Mac App Store|Business',
             12002 => 'Mac App Store|Developer Tools',
             12003 => 'Mac App Store|Education',
@@ -3541,8 +3917,8 @@ my %graphicsMode = (
             15211 => 'Textbooks|Religion & Spirituality|Spirituality',
             15212 => 'Textbooks|Romance',
             15213 => 'Textbooks|Romance|Contemporary',
-            15214 => 'Textbooks|Romance|Erotica',
-            15215 => 'Textbooks|Romance|Fantasy, Futuristic & Ghost',
+            15214 => 'Textbooks|Romance|Erotic Romance',
+            15215 => 'Textbooks|Romance|Paranormal',
             15216 => 'Textbooks|Romance|Historical',
             15217 => 'Textbooks|Romance|Short Stories',
             15218 => 'Textbooks|Romance|Suspense',
@@ -3641,6 +4017,28 @@ my %graphicsMode = (
             15311 => 'Textbooks|Comics & Graphic Novels|Comics',
             15312 => 'Textbooks|Reference|Manuals',
             100000 => 'Music|Christian & Gospel',
+            100001 => 'Music|Classical|Art Song',
+            100002 => 'Music|Classical|Brass & Woodwinds',
+            100003 => 'Music|Classical|Solo Instrumental',
+            100004 => 'Music|Classical|Contemporary Era',
+            100005 => 'Music|Classical|Oratorio',
+            100006 => 'Music|Classical|Cantata',
+            100007 => 'Music|Classical|Electronic',
+            100008 => 'Music|Classical|Sacred',
+            100009 => 'Music|Classical|Guitar',
+            100010 => 'Music|Classical|Piano',
+            100011 => 'Music|Classical|Violin',
+            100012 => 'Music|Classical|Cello',
+            100013 => 'Music|Classical|Percussion',
+            100014 => 'Music|Electronic|Dubstep',
+            100015 => 'Music|Electronic|Bass',
+            100016 => 'Music|Hip-Hop/Rap|UK Hip-Hop',
+            100017 => 'Music|Reggae|Lovers Rock',
+            100018 => 'Music|Alternative|EMO',
+            100019 => 'Music|Alternative|Pop Punk',
+            100020 => 'Music|Alternative|Indie Pop',
+            100021 => 'Music|New Age|Yoga',
+            100022 => 'Music|Pop|Tribute',
             40000000 => 'iTunes U',
             40000001 => 'iTunes U|Business',
             40000002 => 'iTunes U|Business|Economics',
@@ -3863,6 +4261,7 @@ my %graphicsMode = (
             50000087 => 'Books|Comics & Graphic Novels|Manga|Sports',
             50000088 => 'Books|Fiction & Literature|Light Novels',
             50000089 => 'Books|Comics & Graphic Novels|Manga|Horror',
+            50000090 => 'Books|Comics & Graphic Novels|Comics',
         },
     },
     grup => 'Grouping', #10
@@ -4076,6 +4475,7 @@ my %graphicsMode = (
             21 => 'Podcast', #15
         },
     },
+    rate => 'RatingPercent', #PH
     titl => 'Title',
     tven => 'TVEpisodeID', #7
     tves => { #7/10
@@ -4101,6 +4501,23 @@ my %graphicsMode = (
     gssd => { Name => 'GoogleSourceData',   Format => 'string' },
     gsst => { Name => 'GoogleStartTime',    Format => 'string' },
     gstd => { Name => 'GoogleTrackDuration',Format => 'string' },
+
+    # atoms observed in AAX audiobooks (ref PH)
+    "\xa9cpy" => { Name => 'Copyright',  Groups => { 2 => 'Author' } },
+    "\xa9pub" => 'Publisher',
+    "\xa9nrt" => 'Narrator',
+    '@pti' => 'ParentTitle', # (guess -- same as "\xa9nam")
+    '@PST' => 'ParentShortTitle', # (guess -- same as "\xa9nam")
+    '@ppi' => 'ParentProductID', # (guess -- same as 'prID')
+    '@sti' => 'ShortTitle', # (guess -- same as "\xa9nam")
+    prID => 'ProductID',
+    rldt => { Name => 'ReleaseDate', Groups => { 2 => 'Time' }},
+    CDEK => { Name => 'Unknown_CDEK', Unknown => 1 }, # eg: "B004ZMTFEG" - used in URL's ("asin=")
+    CDET => { Name => 'Unknown_CDET', Unknown => 1 }, # eg: "ADBL"
+    VERS => 'ProductVersion',
+    GUID => 'GUID',
+    AACR => { Name => 'Unknown_AACR', Unknown => 1 }, # eg: "CR!1T1H1QH6WX7T714G2BMFX3E9MC4S"
+    # ausr - 30 bytes (User Alias?)
 );
 
 # item list keys (ref PH)
@@ -4132,9 +4549,11 @@ my %graphicsMode = (
     },
     description => { },
     director    => { },
+    title       => { }, #22
     genre       => { },
     information => { },
     keywords    => { },
+    producer    => { }, #22
     make        => { Name => 'Make',        Groups => { 2 => 'Camera' } },
     model       => { Name => 'Model',       Groups => { 2 => 'Camera' } },
     publisher   => { },
@@ -4194,6 +4613,7 @@ my %graphicsMode = (
         PrintConv => { 0 => 'Off', 1 => 'On' },
     },
     'rating.user'  => 'UserRating', # (Canon ELPH 510 HS)
+    'collection.user' => 'UserCollection', #22
     'Encoded_With' => 'EncodedWith',
 );
 
@@ -4262,8 +4682,11 @@ my %graphicsMode = (
     'Encoding Params' => {
         Name => 'EncodingParams',
         SubDirectory => { TagTable => 'Image::ExifTool::QuickTime::EncodingParams' },
-    }
+    },
     # also heard about 'iTunPGAP', but I haven't seen a sample
+    DISCNUMBER => 'DiscNumber', #PH
+    TRACKNUMBER => 'TrackNumber', #PH
+    popularimeter => 'Popularimeter', #PH
 );
 
 # iTunes audio encoding parameters
@@ -4744,6 +5167,8 @@ my %graphicsMode = (
         SubDirectory => { TagTable => 'Image::ExifTool::QuickTime::Wave' },
     },
     # alac - 28 bytes
+    # adrm - AAX DRM atom? 148 bytes
+    # aabd - AAX unknown 17kB (contains 'aavd' strings)
 );
 
 # AMR decode config box (ref 3)
@@ -5085,6 +5510,7 @@ my %graphicsMode = (
     },
     28 => {
         Name => 'PreviewImage',
+        Groups => { 2 => 'Preview' },
         Format => 'undef[$val{13}]',
         RawConv => '$self->ValidateImage(\$val, $tag)',
     },
@@ -5113,7 +5539,7 @@ my %graphicsMode = (
             my $size = $val[0];
             for (;;) {
                 $key = $self->NextTagKey($key) or last;
-                $size += $self->GetValue($key);
+                $size += $self->GetValue($key, 'ValueConv');
             }
             return int($size * 8 / $val[1] + 0.5);
         },
@@ -5632,7 +6058,7 @@ sub ProcessKeys($$$)
         if ($newInfo) {
             $msg or $msg = '';
             AddTagToTable($infoTable, $id, $newInfo);
-            $out and printf $out "$$et{INDENT}Added ItemList Tag $id = $tag$msg\n";
+            $out and print $out "$$et{INDENT}Added ItemList Tag $id = $tag$msg\n";
         }
         $pos += $len;
         ++$index;
@@ -5689,7 +6115,7 @@ sub ProcessMOV($$;$)
                 if ($ftypLookup{$type} and $ftypLookup{$type} =~ /\(\.(\w+)/) {
                     $fileType = $1;
                 # check compatible brands
-                } elsif ($buff =~ /^.{8}(.{4})+(mp41|mp42)/s) {
+                } elsif ($buff =~ /^.{8}(.{4})+(mp41|mp42|avc1)/s) {
                     $fileType = 'MP4';
                 } elsif ($buff =~ /^.{8}(.{4})+(f4v )/s) {
                     $fileType = 'F4V';
@@ -5791,8 +6217,21 @@ sub ProcessMOV($$;$)
             $et->HandleTag($tagTablePtr, "$tag-size", $size);
             $et->HandleTag($tagTablePtr, "$tag-offset", $raf->Tell()) if $$tagTablePtr{"$tag-offset"};
         }
-        # load values only if associated with a tag (or verbose) and < 16MB long
-        if ((defined $tagInfo or $verbose) and $size < 0x1000000) {
+        # load values only if associated with a tag (or verbose) and not too big
+        my $ignore;
+        if ($size > 0x2000000) {    # start to get worried above 32 MB
+            $ignore = 1;
+            if ($tagInfo and not $$tagInfo{Unknown}) {
+                my $t = $tag;
+                $t =~ s/([\x00-\x1f\x7f-\xff])/'x'.unpack('H*',$1)/eg;
+                if ($size > 0x8000000) {
+                    $et->Warn("Skipping '$t' atom > 128 MB", 1);
+                } else {
+                    $et->Warn("Skipping '$t' atom > 32 MB", 2) or $ignore = 0;
+                }
+            }
+        }
+        if (defined $tagInfo and not $ignore) {
             my $val;
             my $missing = $size - $raf->Read($val, $size);
             if ($missing) {
@@ -5908,6 +6347,8 @@ sub ProcessMOV($$;$)
                             if ($stringEncoding{$flags}) {
                                 # handle all string formats
                                 $value = $et->Decode($value, $stringEncoding{$flags});
+                                # (shouldn't be null terminated, but some software writes it anyway)
+                                $value =~ s/\0$// unless $$tagInfo{Binary};
                             } else {
                                 if (not $format) {
                                     if ($flags == 0x15 or $flags == 0x16) {
@@ -6099,7 +6540,7 @@ information from QuickTime and MP4 video, and M4A audio files.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

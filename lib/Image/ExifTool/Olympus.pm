@@ -34,10 +34,11 @@ package Image::ExifTool::Olympus;
 
 use strict;
 use vars qw($VERSION);
+use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::APP12;
 
-$VERSION = '2.24';
+$VERSION = '2.34';
 
 sub PrintLensInfo($$$);
 
@@ -58,7 +59,7 @@ my %olympusLensTypes = (
     '0 02 00' => 'Olympus Zuiko Digital ED 150mm F2.0',
     '0 02 10' => 'Olympus M.Zuiko Digital 17mm F2.8 Pancake', #PH (E-P1 pre-production)
     '0 03 00' => 'Olympus Zuiko Digital ED 300mm F2.8',
-    '0 03 10' => 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6', #11
+    '0 03 10' => 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6 [II]', #11 (The second version of this lens seems to have the same lens ID number as the first version #20)
     '0 04 10' => 'Olympus M.Zuiko Digital ED 9-18mm F4.0-5.6', #11
     '0 05 00' => 'Olympus Zuiko Digital 14-54mm F2.8-3.5',
     '0 05 01' => 'Olympus Zuiko Digital Pro ED 90-250mm F2.8', #9
@@ -78,7 +79,7 @@ my %olympusLensTypes = (
     '0 12 10' => 'Olympus M.Zuiko Digital ED 60mm F2.8 Macro', #20
     '0 13 10' => 'Olympus M.Zuiko Digital 14-42mm F3.5-5.6 II R', #PH/20
     '0 14 10' => 'Olympus M.Zuiko Digital ED 40-150mm F4.0-5.6 R', #19
-  # '0 14 10.1' => 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6 II', #11 (questionable & unconfirmed)
+  # '0 14 10.1' => 'Olympus M.Zuiko Digital ED 14-150mm F4.0-5.6 II', #11 (questionable & unconfirmed -- all samples I can find are '0 3 10' - PH)
     '0 15 00' => 'Olympus Zuiko Digital ED 7-14mm F4.0',
     '0 15 10' => 'Olympus M.Zuiko Digital ED 75mm F1.8', #PH
     '0 16 10' => 'Olympus M.Zuiko Digital 17mm F1.8', #20
@@ -87,12 +88,14 @@ my %olympusLensTypes = (
     '0 18 10' => 'Olympus M.Zuiko Digital ED 75-300mm F4.8-6.7 II', #20
     '0 19 10' => 'Olympus M.Zuiko Digital ED 12-40mm F2.8 Pro', #PH
     '0 20 00' => 'Olympus Zuiko Digital 35mm F3.5 Macro', #9
-  # '0 20 10' => 'Olympus M.Zuiko Digital ED 40-150mm F2.8 Pro', #PH (guess)
+    '0 20 10' => 'Olympus M.Zuiko Digital ED 40-150mm F2.8 Pro', #20
     '0 21 10' => 'Olympus M.Zuiko Digital ED 14-42mm F3.5-5.6 EZ', #20
     '0 22 00' => 'Olympus Zuiko Digital 17.5-45mm F3.5-5.6', #9
     '0 22 10' => 'Olympus M.Zuiko Digital 25mm F1.8', #20
     '0 23 00' => 'Olympus Zuiko Digital ED 14-42mm F3.5-5.6', #PH
+    '0 23 10' => 'Olympus M.Zuiko Digital ED 7-14mm F2.8 Pro', #20
     '0 24 00' => 'Olympus Zuiko Digital ED 40-150mm F4.0-5.6', #PH
+    '0 25 10' => 'Olympus M.Zuiko Digital ED 8mm F1.8 Fisheye Pro', #20
     '0 30 00' => 'Olympus Zuiko Digital ED 50-200mm F2.8-3.5 SWD', #7
     '0 31 00' => 'Olympus Zuiko Digital ED 12-60mm F2.8-4.0 SWD', #7
     '0 32 00' => 'Olympus Zuiko Digital ED 14-35mm F2.0 SWD', #PH
@@ -122,10 +125,10 @@ my %olympusLensTypes = (
     '1 15 00' => 'Sigma 10-20mm F4.0-5.6 EX DC HSM', #11
     '1 16 00' => 'Sigma APO 70-200mm F2.8 II EX DG Macro HSM', #11
     '1 17 00' => 'Sigma 50mm F1.4 EX DG HSM', #11
-    # Panasonic/Leica lenses (ref 11)
-    '2 01 00' => 'Leica D Vario Elmarit 14-50mm F2.8-3.5 Asph.',
+    # Panasonic/Leica lenses
+    '2 01 00' => 'Leica D Vario Elmarit 14-50mm F2.8-3.5 Asph.', #11
     '2 01 10' => 'Lumix G Vario 14-45mm F3.5-5.6 Asph. Mega OIS', #16
-    '2 02 00' => 'Leica D Summilux 25mm F1.4 Asph.',
+    '2 02 00' => 'Leica D Summilux 25mm F1.4 Asph.', #11
     '2 02 10' => 'Lumix G Vario 45-200mm F4.0-5.6 Mega OIS', #16
     '2 03 00' => 'Leica D Vario Elmar 14-50mm F3.8-5.6 Asph. Mega OIS', #11
     '2 03 01' => 'Leica D Vario Elmar 14-50mm F3.8-5.6 Asph.', #14 (L10 kit)
@@ -150,8 +153,11 @@ my %olympusLensTypes = (
     '2 20 10' => 'Lumix G Vario 12-32mm F3.5-5.6 Asph. Mega OIS', #20
     '2 21 10' => 'Leica DG Nocticron 42.5mm F1.2 Asph. Power OIS', #20
     '2 22 10' => 'Leica DG Summilux 15mm F1.7 Asph.', #20
-    '3 01 00' => 'Leica D Vario Elmarit 14-50mm F2.8-3.5 Asph.',
-    '3 02 00' => 'Leica D Summilux 25mm F1.4 Asph.',
+  # '2 23 10' => 'Lumix G Vario 35-100mm F4.0-5.6 Asph. Mega OIS', #20 (guess)
+    '2 24 10' => 'Lumix G Macro 30mm F2.8 Asph. Mega OIS', #20
+    '2 25 10' => 'Lumix G 42.5mm F1.7 Asph. Power OIS', #20
+    '3 01 00' => 'Leica D Vario Elmarit 14-50mm F2.8-3.5 Asph.', #11
+    '3 02 00' => 'Leica D Summilux 25mm F1.4 Asph.', #11
     # Tamron lenses
     '5 01 10' => 'Tamron 14-150mm F3.5-5.8 Di III', #20 (model C001)
 );
@@ -340,12 +346,16 @@ my %olympusCameraTypes = (
     D4580 => 'SH-60',
     D4581 => 'SH-1',
     D4582 => 'TG-835',
+    D4585 => 'SH-2',
+    D4586 => 'TG-4',
     D4809 => 'C2500L',
     D4842 => 'E-10',
     D4856 => 'C-1',
     D4857 => 'C-1Z,D-150Z',
+    D4587 => 'TG-860',
     DCHC => 'D500L',
     DCHT => 'D600L / D620L',
+    K0055 => 'AIR-A01',
     S0003 => 'E-330',
     S0004 => 'E-500',
     S0009 => 'E-400',
@@ -375,6 +385,8 @@ my %olympusCameraTypes = (
     S0046 => 'E-PL7', #21
     S0047 => 'E-M1',
     S0051 => 'E-M10',
+    S0052 => 'E-M5MarkII', #21
+    S0059 => 'E-M10MarkII',
     SR45 => 'D220',
     SR55 => 'D320L',
     SR83 => 'D340L',
@@ -483,7 +495,7 @@ my %filters = (
     12 => 'Fish Eye', # (SZ-10 magic filter 3)
     13 => 'Drawing', # (SZ-10 magic filter 4)
     14 => 'Gentle Sepia', # (E-5)
-    15 => 'Tender Light', #11
+    15 => 'Pale & Light Color II', #forum6269 ('Tender Light' ref 11)
     16 => 'Pop Art II', #11 (E-PL3 "(dark)" - PH)
     17 => 'Pin Hole II', #11 (E-PL3 "(color 2)" - PH)
     18 => 'Pin Hole III', #11 (E-M5, E-PL3 "(color 3)" - PH)
@@ -494,11 +506,21 @@ my %filters = (
     23 => 'Sparkle', # (SZ-10 magic filter 7)
     24 => 'Watercolor', # (SZ-10 magic filter 8)
     25 => 'Key Line', # (E-M5)
+    26 => 'Key Line II', #forum6269
     27 => 'Miniature', # (SZ-31MR)
     28 => 'Reflection', # (TG-820,SZ-31MR)
     29 => 'Fragmented', # (TG-820,SZ-31MR)
-    32 => 'Dramatic Tone B&W', # (E-M5)
-    33 => 'Watercolor II', # (E-PM2)
+    31 => 'Cross Process II', #forum6269
+    32 => 'Dramatic Tone II',  #forum6269 (Dramatic Tone B&W for E-M5)
+    33 => 'Watercolor I', # ('Watercolor I' for EM-1 ref forum6269, 'Watercolor II' for E-PM2 ref PH)
+    34 => 'Watercolor II', #forum6269
+    35 => 'Diorama II', #forum6269
+    36 => 'Vintage', #forum6269
+    37 => 'Vintage II', #forum6269
+    38 => 'Vintage III', #forum6269
+    39 => 'Partial Color', #forum6269
+    40 => 'Partial Color II', #forum6269
+    41 => 'Partial Color III', #forum6269
 );
 
 # tag information for WAV "Index" tags
@@ -563,6 +585,7 @@ my %indexInfo = (
     },
     0x0100 => {
         Name => 'ThumbnailImage',
+        Groups => { 2 => 'Preview' },
         Writable => 'undef',
         WriteCheck => '$self->CheckImage(\$val)',
         Binary => 1,
@@ -658,7 +681,7 @@ my %indexInfo = (
         PrintConvInv => '$val=~s/\s*mm$//;$val',
     },
     0x0206 => { Name => 'LensDistortionParams', Writable => 'int16s', Count => 6 }, #6
-    0x0207 => { #PH (was incorrectly FirmwareVersion, ref 1,3)
+    0x0207 => { #PH (was incorrectly FirmwareVersion, ref 1/3)
         Name => 'CameraType',
         Condition => '$$valPt ne "NORMAL"', # FE240, SP510, u730 and u1000 write this
         Writable => 'string',
@@ -686,6 +709,7 @@ my %indexInfo = (
     0x020d => { Name => 'EpsonSoftware',    Writable => 'string' }, #PH
     0x0280 => { #PH
         %Image::ExifTool::previewImageTagInfo,
+        Groups => { 2 => 'Preview' },
         Notes => 'found in ERF and JPG images from some Epson models',
         Format => 'undef',
         Writable => 'int8u',
@@ -703,7 +727,14 @@ my %indexInfo = (
     },
     0x0303 => { Name => 'WhiteBalanceBracket',  Writable => 'int16u' }, #11
     0x0304 => { Name => 'WhiteBalanceBias',     Writable => 'int16u' }, #11
-   # 0x0305 => 'PrintMaching', ? #11
+   # 0x0305 => 'PrintMatching', ? #11
+    0x0401 => { #21
+        Name => 'BlackLevel',
+        Condition => '$format eq "int32u" and $count == 4',
+        Writable => 'int32u',
+        Count => 4,
+        Notes => 'found in Epson ERF images',
+    },
     0x0403 => { #11
         Name => 'SceneMode',
         Writable => 'int16u',
@@ -1880,22 +1911,28 @@ my %indexInfo = (
         Writable => 'int16u',
         PrintConv => {
             0 => 'Auto',
+            1 => 'Auto (Keep Warm Color Off)', #21
             16 => '7500K (Fine Weather with Shade)',
             17 => '6000K (Cloudy)',
             18 => '5300K (Fine Weather)',
             20 => '3000K (Tungsten light)',
             21 => '3600K (Tungsten light-like)',
+            22 => 'Auto Setup', #21
+            23 => '5500K (Flash)', #21
             33 => '6600K (Daylight fluorescent)',
             34 => '4500K (Neutral white fluorescent)',
             35 => '4000K (Cool white fluorescent)',
+            36 => 'White Fluorescent', #21
             48 => '3600K (Tungsten light-like)',
-            256 => 'Custom WB 1',
-            257 => 'Custom WB 2',
-            258 => 'Custom WB 3',
-            259 => 'Custom WB 4',
-            512 => 'Custom WB 5400K',
-            513 => 'Custom WB 2900K',
-            514 => 'Custom WB 8000K',
+            67 => 'Underwater', #21
+            256 => 'One Touch WB 1', #21
+            257 => 'One Touch WB 2', #21
+            258 => 'One Touch WB 3', #21
+            259 => 'One Touch WB 4', #21
+            512 => 'Custom WB 1', #21
+            513 => 'Custom WB 2', #21
+            514 => 'Custom WB 3', #21
+            515 => 'Custom WB 4', #21
         },
     },
     0x501 => { #PH/4
@@ -2297,14 +2334,21 @@ my %indexInfo = (
         PrintConv => \%offOn,
     },
     0x903 => { #11
-        Name => 'LevelGaugeRoll',
-        Writable => 'int16u',
-        PrintConv => \%offOn,
+        Name => 'RollAngle',
+        Notes => 'converted to degrees of clockwise camera rotation',
+        Writable => 'int16s',
+        Count => 2, # (second value is 0 if level gauge is off)
+        # negate to express as clockwise rotation
+        ValueConv => '$val=~s/ 1$// ? -$val/10 : "n/a"',
+        ValueConvInv => 'IsFloat($val) ? sprintf("%.0f 1",-$val*10) : "0 0"',
     },
     0x904 => { #11
-        Name => 'LevelGaugePitch',
-        Writable => 'int16u',
-        PrintConv => \%offOn,
+        Name => 'PitchAngle',
+        Notes => 'converted to degrees of upward camera tilt',
+        Writable => 'int16s',
+        Count => 2, # (second value is 0 if level gauge is off)
+        ValueConv => '$val =~ s/ 1$// ? $val / 10 : "n/a"',
+        ValueConvInv => 'IsFloat($val) ? sprintf("%.0f 1",$val*10) : "0 0"',
     },
     0x908 => { #PH (NC, E-M1)
         Name => 'DateTimeUTC',
@@ -2515,6 +2559,7 @@ my %indexInfo = (
         Count => 4,
     },
     0x100 => { Name => 'WB_RBLevels',       Writable => 'int16u', Count => 2 }, #6
+    # 0x101 - in-camera AutoWB unless it is all 0's or all 256's (ref 21)
     0x102 => { Name => 'WB_RBLevels3000K',  Writable => 'int16u', Count => 2 }, #11
     0x103 => { Name => 'WB_RBLevels3300K',  Writable => 'int16u', Count => 2 }, #11
     0x104 => { Name => 'WB_RBLevels3600K',  Writable => 'int16u', Count => 2 }, #11
@@ -2544,6 +2589,8 @@ my %indexInfo = (
     0x11d => { Name => 'WB_GLevel6600K',    Writable => 'int16u' }, #11
     0x11e => { Name => 'WB_GLevel7500K',    Writable => 'int16u' }, #11
     0x11f => { Name => 'WB_GLevel',         Writable => 'int16u' }, #11
+    # 0x121 = WB preset for flash (about 6000K) (ref 21)
+    # 0x125 = WB preset for underwater (ref 21)
     0x200 => { #6
         Name => 'ColorMatrix',
         Writable => 'int16u',
@@ -2632,7 +2679,7 @@ my %indexInfo = (
         # 'Drop' because too large for APP1 in JPEG images
         Flags => [ 'Unknown', 'Binary', 'Drop' ],
     },
-    0x1104 => { #PH
+    0x1104 => { #PH (overlaps data for 0x1103 in E-M5 ORF images)
         Name => 'UnknownBlock4',
         Writable => 'undef',
         Notes => 'large unknown data block in ORF images but not JPG images',
@@ -2647,13 +2694,17 @@ my %indexInfo = (
             # '0 0' - have seen this with a 16:9 XZ-1 image - PH
             '1 1' => '4:3',
             '1 4' => '1:1', #PH (E-P5 Storyboard effect, does this indicate 4:3 converted to 6:6?)
+            '2 1' => '3:2 (RAW)', #forum6285
             '2 2' => '3:2',
+            '3 1' => '16:9 (RAW)', #forum6285
             '3 3' => '16:9',
+            '4 1' => '1:1 (RAW)', #forum6285
             '4 4' => '6:6',
             '5 5' => '5:4',
             '6 6' => '7:6',
             '7 7' => '6:5',
             '8 8' => '7:5',
+            '9 1' => '3:4 (RAW)', #forum6285
             '9 9' => '3:4',
         },
     },
@@ -2696,6 +2747,7 @@ my %indexInfo = (
         ValueConv => '$val ? $val : undef', # zero for some models (how to differentiate from 0 C?)
         Notes => 'this seems to be in degrees C only for some models',
     },
+    # 0x1905 - focal length (PH, E-M1)
 );
 
 # Olympus Focus Info IFD
@@ -3288,6 +3340,7 @@ my %indexInfo = (
     },
     8 => {
         Name => 'ThumbnailImage',
+        Groups => { 2 => 'Preview' },
         Format => 'undef[$val{4}]',
         Notes => '160x120 JPEG thumbnail image',
         RawConv => '$self->ValidateImage(\$val,$tag)',
@@ -3354,6 +3407,7 @@ my %indexInfo = (
     },
     4 => {
         Name => 'ThumbnailImage',
+        Groups => { 2 => 'Preview' },
         Format => 'undef[$val{0}]',
         Notes => '160x120 JPEG thumbnail image',
         RawConv => '$self->ValidateImage(\$val,$tag)',
@@ -3371,6 +3425,7 @@ my %indexInfo = (
     },
     4 => {
         Name => 'PreviewImage',
+        Groups => { 2 => 'Preview' },
         Format => 'undef[$val{0}]',
         Notes => '640x480 JPEG preview image',
         RawConv => '$self->ValidateImage(\$val,$tag)',
@@ -3531,6 +3586,46 @@ my %indexInfo = (
     0x2a0 => { Name => 'Index16', %indexInfo },
 );
 
+# DSS information written by Olympus voice recorders (ref PH)
+%Image::ExifTool::Olympus::DSS = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Audio' },
+    FIRST_ENTRY => 0,
+    NOTES => q{
+        Information extracted from DSS/DS2 files and the ID3 XOLY frame of MP3 files
+        written by some Olympus voice recorders.
+    },
+    # 0 - file format:
+    #   "\x02dss"(DSS file and XOLY frame in MP3 file)
+    #   "\x03ds2"(DS2 file)
+    #   "\x03mp3"(ID3 XOLY frame in MP3 file)
+    12 => { Name => 'Model', Format => 'string[16]' }, # (name truncated by some models)
+    38 => {
+        Name => 'StartTime',
+        Format => 'string[12]',
+        Groups => { 2 => 'Time' },
+        ValueConv => '$val =~ s/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/20$1:$2:$3 $4:$5:$6/; $val',
+        PrintConv => '$self->ConvertDateTime($val)',
+    },
+    50 => {
+        Name => 'EndTime',
+        Format => 'string[12]',
+        Groups => { 2 => 'Time' },
+        ValueConv => '$val =~ s/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/20$1:$2:$3 $4:$5:$6/; $val',
+        PrintConv => '$self->ConvertDateTime($val)',
+    },
+    62 => {
+        Name => 'Duration',
+        Format => 'string[6]',
+        ValueConv => '$val =~ /(\d{2})(\d{2})(\d{2})/ ? ($1 * 60 + $2) * 60 + $3 : undef',
+        PrintConv => 'ConvertDuration($val)',
+    },
+    798 => { # (ref http://search.cpan.org/~rgibson/Audio-DSS-0.02/)
+        Name => 'Comment',
+        Format => 'string[100]',
+    },
+);
+
 # Olympus composite tags
 %Image::ExifTool::Olympus::Composite = (
     GROUPS => { 2 => 'Camera' },
@@ -3553,6 +3648,7 @@ my %indexInfo = (
         },
     },
     ZoomedPreviewImage => {
+        Groups => { 2 => 'Preview' },
         Require => {
             0 => 'ZoomedPreviewStart',
             1 => 'ZoomedPreviewLength',
@@ -3618,6 +3714,27 @@ sub PrintAFAreas($)
 }
 
 #------------------------------------------------------------------------------
+# Extract information from a DSS/DS2 voice recorder audio file or ID3 XOLY frame
+# Inputs: 0) ExifTool object reference, 1) dirInfo reference
+# Returns: 1 on success
+sub ProcessDSS($$;$)
+{
+    my ($et, $dirInfo) = @_;
+
+    # allow this to be called with either RAF or DataPt
+    my $raf = $$dirInfo{RAF};
+    if ($raf) {
+        my $buff;
+        $raf->Read($buff, 898) > 68 or return 0;
+        $buff =~ /^(\x02dss|\x03ds2)/ or return 0;
+        $dirInfo = { DataPt => \$buff };
+        $et->SetFileType(uc substr $buff, 1, 3);
+    }
+    my $tagTablePtr = GetTagTable('Image::ExifTool::Olympus::DSS');
+    return $et->ProcessBinaryData($dirInfo, $tagTablePtr);
+}
+
+#------------------------------------------------------------------------------
 # Process ORF file
 # Inputs: 0) ExifTool object reference, 1) directory information reference
 # Returns: 1 if this looked like a valid ORF file, 0 otherwise
@@ -3646,7 +3763,7 @@ Olympus or Epson maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

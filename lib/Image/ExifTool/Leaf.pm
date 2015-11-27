@@ -13,7 +13,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 sub ProcessLeaf($$$);
 
@@ -47,6 +47,7 @@ sub ProcessLeaf($$$);
     },
     JPEG_preview_data => {
         %Image::ExifTool::previewImageTagInfo,
+        Groups => { 2 => 'Preview' },
     },
     JPEG_preview_info => 'PreviewInfo',
     icc_camera_to_tone_space_flow => {
@@ -502,7 +503,7 @@ Capture.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

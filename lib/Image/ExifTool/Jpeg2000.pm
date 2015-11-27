@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.23';
+$VERSION = '1.25';
 
 sub ProcessJpeg2000Box($$$);
 
@@ -367,7 +367,7 @@ my %j2cMarker = (
         Name => 'CompatibleBrands',
         Format => 'undef[$size-8]',
         # ignore any entry with a null, and return others as a list
-        ValueConv => 'my @a=($val=~/.{4}/sg); @a=grep(!/\0/,@a); \@a', 
+        ValueConv => 'my @a=($val=~/.{4}/sg); @a=grep(!/\0/,@a); \@a',
     },
 );
 
@@ -514,7 +514,7 @@ sub CreateNewBoxes($$)
         # (native JPEG2000 information is always preferred, so don't check IsCreating)
         next unless $$tagInfo{List} or $et->IsOverwriting($nvHash) > 0;
         next if $$nvHash{EditOnly};
-        my @vals = $et->GetNewValues($nvHash);
+        my @vals = $et->GetNewValue($nvHash);
         my $val;
         foreach $val (@vals) {
             my $boxhdr = pack('N', length($val) + 8) . $$tagInfo{TagID};
@@ -583,10 +583,11 @@ sub ProcessJpeg2000Box($$$)
     my ($pos, $boxLen);
     for ($pos=$dirStart; ; $pos+=$boxLen) {
         my ($boxID, $buff, $valuePtr);
+        my $hdrLen = 8;     # the box header length
         if ($raf) {
             $dataPos = $raf->Tell() - $base;
-            my $n = $raf->Read($buff,8);
-            unless ($n == 8) {
+            my $n = $raf->Read($buff,$hdrLen);
+            unless ($n == $hdrLen) {
                 $n and $err = '', last;
                 if ($outfile) {
                     CreateNewBoxes($et, $outfile) or $err = 1;
@@ -594,22 +595,30 @@ sub ProcessJpeg2000Box($$$)
                 last;
             }
             $dataPt = \$buff;
-            $dirLen = 8;
+            $dirLen = $dirEnd = $hdrLen;
             $pos = 0;
-        } elsif ($pos >= $dirEnd - 8) {
+        } elsif ($pos >= $dirEnd - $hdrLen) {
             $err = '' unless $pos == $dirEnd;
             last;
         }
-        $boxLen = unpack("x$pos N",$$dataPt);
+        $boxLen = unpack("x$pos N",$$dataPt);   # (length includes header and data)
         $boxID = substr($$dataPt, $pos+4, 4);
-        $pos += 8;
+        $pos += $hdrLen;                # move to end of box header
         if ($boxLen == 1) {
-            if (not $raf and $pos < $dirLen - 8) {
-                $err = 'JPEG 2000 format error';
-            } else {
-                $err = "Can't currently handle huge JPEG 2000 boxes";
+            # box header contains an additional 8-byte integer for length
+            $hdrLen += 8;
+            if ($raf) {
+                my $buf2;
+                if ($raf->Read($buf2,8) == 8) {
+                    $buff .= $buf2;
+                    $dirLen = $dirEnd = $hdrLen;
+                }
             }
-            last;
+            $pos > $dirEnd - 8 and $err = '', last;
+            my ($hi, $lo) = unpack("x$pos N2",$$dataPt);
+            $hi and $err = "Can't currently handle JPEG 2000 boxes > 4 GB", last;
+            $pos += 8;                  # move to end of extended-length box header
+            $boxLen = $lo - $hdrLen;    # length of remaining box data
         } elsif ($boxLen == 0) {
             if ($raf) {
                 if ($outfile) {
@@ -625,9 +634,9 @@ sub ProcessJpeg2000Box($$$)
                 }
                 last;   # (ignore the rest of the file when reading)
             }
-            $boxLen = $dirLen - $pos;
+            $boxLen = $dirEnd - $pos;   # data runs to end of file
         } else {
-            $boxLen -= 8;
+            $boxLen -= $hdrLen;         # length of remaining box data
         }
         $boxLen < 0 and $err = 'Invalid JPEG 2000 box length', last;
         my $tagInfo = $et->GetTagInfo($tagTablePtr, $boxID);
@@ -642,7 +651,7 @@ sub ProcessJpeg2000Box($$$)
                     $raf->Seek($boxLen, 1) or $err = 'Seek error', last;
                 }
             } elsif ($outfile) {
-                Write($outfile, substr($$dataPt, $pos-8, $boxLen+8)) or $err = '', last;
+                Write($outfile, substr($$dataPt, $pos-$hdrLen, $boxLen+$hdrLen)) or $err = '', last;
             }
             next;
         }
@@ -652,7 +661,7 @@ sub ProcessJpeg2000Box($$$)
             $raf->Read($buff,$boxLen) == $boxLen or $err = '', last;
             $valuePtr = 0;
             $dataLen = $boxLen;
-        } elsif ($boxLen + $pos > $dirStart + $dirLen) {
+        } elsif ($pos + $boxLen > $dirEnd) {
             $err = '';
             last;
         } else {
@@ -849,7 +858,7 @@ files.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

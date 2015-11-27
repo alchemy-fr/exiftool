@@ -8,7 +8,7 @@
 package Image::ExifTool::XMP;
 
 use strict;
-use vars qw(%specialStruct %dateTimeInfo $xlatNamespace);
+use vars qw(%specialStruct %dateTimeInfo %stdXlatNS);
 
 use Image::ExifTool qw(:DataAccess :Utils);
 
@@ -56,7 +56,7 @@ sub XMPOpen($)
     my $nv = $$et{NEW_VALUE}{$Image::ExifTool::XMP::x{xmptk}};
     my $tk;
     if (defined $nv) {
-        $tk = $et->GetNewValues($nv);
+        $tk = $et->GetNewValue($nv);
         $et->VerboseValue(($tk ? '+' : '-') . ' XMP-x:XMPToolkit', $tk);
         ++$$et{CHANGED};
     } else {
@@ -180,7 +180,7 @@ sub CheckXMP($$$)
             ($format eq 'rational' and ($$valPtr eq 'inf' or
              $$valPtr eq 'undef' or Image::ExifTool::IsRational($$valPtr))))
         {
-            return 'Not a floating point number' 
+            return 'Not a floating point number';
         }
         if ($format eq 'rational') {
             $$valPtr = join('/', Image::ExifTool::Rationalize($$valPtr));
@@ -235,13 +235,25 @@ sub SetPropertyPath($$;$$$$)
     my ($tagTablePtr, $tagID, $parentID, $structPtr, $propList, $isType) = @_;
     my $table = $structPtr || $tagTablePtr;
     my $tagInfo = $$table{$tagID};
+    my $flatInfo;
 
-    return if ref($tagInfo) ne 'HASH' or $$tagInfo{PropertyPath};
+    return if ref($tagInfo) ne 'HASH'; # (shouldn't happen)
 
-    # don't override existing main table entry if already set by a Struct
     if ($structPtr) {
+        my $flatID = $parentID . ucfirst($tagID);
+        $flatInfo = $$tagTablePtr{$flatID};
+        if ($flatInfo) {
+            return if $$flatInfo{PropertyPath};
+        } else {
+            # flattened tag doesn't exist, so create it now
+            # (could happen if we were just writing a structure)
+            $flatInfo = { Name => ucfirst($flatID), Flat => 1 };
+            AddTagToTable($tagTablePtr, $flatID, $flatInfo);
+        }
         $isType = 1 if $$structPtr{TYPE};
     } else {
+        # don't override existing main table entry if already set by a Struct
+        return if $$tagInfo{PropertyPath};
         # use property path from original tagInfo if this is an alternate-language tag
         my $srcInfo = $$tagInfo{SrcTagInfo};
         $$tagInfo{PropertyPath} = GetPropertyPath($srcInfo) if $srcInfo;
@@ -294,14 +306,7 @@ sub SetPropertyPath($$;$$$$)
     # if this was a structure field and not a normal tag,
     # we set PropertyPath in the corresponding flattened tag
     if ($structPtr) {
-        my $flatID = $parentID . ucfirst($tagID);
-        $tagInfo = $$tagTablePtr{$flatID};
-        # create flattened tag now if necessary
-        # (could happen if we were just writing a structure)
-        unless ($tagInfo) {
-            $tagInfo = { Name => ucfirst($flatID), Flat => 1 };
-            AddTagToTable($tagTablePtr, $flatID, $tagInfo);
-        }
+        $tagInfo = $flatInfo;
         # set StructType flag if any containing structure has a TYPE
         $$tagInfo{StructType} = 1 if $isType;
     }
@@ -662,7 +667,7 @@ sub WriteXMP($$;$)
         }
         $tagInfo = $Image::ExifTool::XMP::rdf{about};
         if (defined $$et{NEW_VALUE}{$tagInfo}) {
-            $about = $et->GetNewValues($$et{NEW_VALUE}{$tagInfo}) || '';
+            $about = $et->GetNewValue($$et{NEW_VALUE}{$tagInfo}) || '';
             if ($verbose > 1) {
                 my $wasAbout = $$et{XMP_ABOUT};
                 $et->VerboseValue('- XMP-rdf:About', UnescapeXML($wasAbout)) if defined $wasAbout;
@@ -685,7 +690,7 @@ sub WriteXMP($$;$)
         $tagInfo = $Image::ExifTool::Extra{XMP};
         if ($tagInfo and $$et{NEW_VALUE}{$tagInfo}) {
             my $rtnVal = 1;
-            my $newVal = $et->GetNewValues($$et{NEW_VALUE}{$tagInfo});
+            my $newVal = $et->GetNewValue($$et{NEW_VALUE}{$tagInfo});
             if (defined $newVal and length $newVal) {
                 $et->VPrint(0, "  Writing XMP as a block\n");
                 ++$$et{CHANGED};
@@ -708,7 +713,7 @@ sub WriteXMP($$;$)
             my @propList = split('/',$path); # get property list
             my ($tag, $ns) = GetXMPTagID(\@propList);
             # translate namespace if necessary
-            $ns = $$xlatNamespace{$ns} if $$xlatNamespace{$ns};
+            $ns = $stdXlatNS{$ns} if $stdXlatNS{$ns};
             my ($grp, @g);
             # no "XMP-" added to most groups in exiftool RDF/XML output file
             if ($nsUsed{$ns} and (@g = ($nsUsed{$ns} =~ m{^http://ns.exiftool.ca/(.*?)/(.*?)/}))) {
@@ -743,11 +748,19 @@ sub WriteXMP($$;$)
 # add, delete or change information as specified
 #
     # get hash of all information we want to change
-    # (sorted by tag name so alternate languages come last)
-    my @tagInfoList = sort ByTagName $et->GetNewTagInfoList();
-    foreach $tagInfo (@tagInfoList) {
+    # (sorted by tag name so alternate languages come last, but with structures
+    # first so flattened tags may be used to override individual structure elements)
+    my @tagInfoList;
+    foreach $tagInfo (sort ByTagName $et->GetNewTagInfoList()) {
         next unless $et->GetGroup($tagInfo, 0) eq 'XMP';
         next if $$tagInfo{Name} eq 'XMP'; # (ignore full XMP block if we didn't write it already)
+        if ($$tagInfo{Struct}) {
+            unshift @tagInfoList, $tagInfo;
+        } else {
+            push @tagInfoList, $tagInfo;
+        }
+    }
+    foreach $tagInfo (@tagInfoList) {
         my $tag = $$tagInfo{TagID};
         my $path = GetPropertyPath($tagInfo);
         unless ($path) {
@@ -764,7 +777,7 @@ sub WriteXMP($$;$)
         # to the ones used in this file
         $path = ConformPathToNamespace($et, $path);
         # find existing property
-        my $cap = $capture{$path}; 
+        my $cap = $capture{$path};
         # MicrosoftPhoto screws up the case of some tags, and some other software,
         # including Adobe software, has been known to write the wrong list type or
         # not properly enclose properties in a list, so we check for this
@@ -794,7 +807,7 @@ sub WriteXMP($$;$)
                 my $regex = quotemeta($fixPath);
                 $regex =~ s/ \d+/ \\d\+/g;  # match any list index
                 my $ok = $regex;
-                my ($ok2, $match, $i, @fixed, %fixed, $fixed, $changed);
+                my ($ok2, $match, $i, @fixed, %fixed, $fixed);
                 # check for incorrect list types
                 if ($regex =~ s{\\/rdf\\:(Bag|Seq|Alt)\\/}{/rdf:(Bag|Seq|Alt)/}g) {
                     # also look for missing bottom-level list
@@ -841,6 +854,7 @@ sub WriteXMP($$;$)
                     $et->Warn("Incorrect $wrn for existing $tg (not changed)");
                 } else {
                     # fix the incorrect property paths for all values of this tag
+                    my $didFix;
                     foreach $fixed (@fixed) {
                         my $match = shift @matches;
                         next if $fixed eq $match;
@@ -848,10 +862,13 @@ sub WriteXMP($$;$)
                         delete $capture{$match};
                         # remove xml:lang attribute from incorrect lang-alt list if necessary
                         delete $capture{$fixed}[1]{'xml:lang'} if $ok2 and $match !~ /^$ok2$/;
-                        $changed = 1;
+                        $didFix = 1;
                     }
                     $cap = $capture{$path} || $capture{$fixed[0]} unless @fixInfo;
-                    $et->Warn("Fixed incorrect $wrn for $tg", 1) if $changed;
+                    if ($didFix) {
+                        $et->Warn("Fixed incorrect $wrn for $tg", 1);
+                        ++$changed;
+                    }
                 }
             }
             last;
@@ -1011,7 +1028,7 @@ sub WriteXMP($$;$)
             (not $cap and $isCreating);
 
         # get list of new values (all done if no new values specified)
-        my @newValues = $et->GetNewValues($nvHash) or next;
+        my @newValues = $et->GetNewValue($nvHash) or next;
 
         # set language attribute for lang-alt lists
         $attrs{'xml:lang'} = $$tagInfo{LangCode} || 'x-default' if $writable eq 'lang-alt';
@@ -1337,7 +1354,7 @@ This file contains routines to write XMP metadata.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

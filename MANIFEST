@@ -14,8 +14,10 @@ arg_files/xmp2exif.args
 arg_files/xmp2gps.args
 arg_files/xmp2iptc.args
 arg_files/xmp2pdf.args
-config_files/ExifTool_config
 config_files/convert_regions.config
+config_files/example.config
+config_files/photoshop_paths.config
+config_files/picasa_faces.config
 exiftool
 fmt_files/gpx.fmt
 fmt_files/gpx_wpt.fmt
@@ -29,6 +31,7 @@ html/TagNames/APE.html
 html/TagNames/APP12.html
 html/TagNames/ASF.html
 html/TagNames/Apple.html
+html/TagNames/Audible.html
 html/TagNames/BMP.html
 html/TagNames/Canon.html
 html/TagNames/CanonCustom.html
@@ -77,6 +80,7 @@ html/TagNames/M2TS.html
 html/TagNames/MIE.html
 html/TagNames/MIFF.html
 html/TagNames/MNG.html
+html/TagNames/MOI.html
 html/TagNames/MPC.html
 html/TagNames/MPEG.html
 html/TagNames/MPF.html
@@ -86,6 +90,7 @@ html/TagNames/Matroska.html
 html/TagNames/Microsoft.html
 html/TagNames/Minolta.html
 html/TagNames/MinoltaRaw.html
+html/TagNames/Motorola.html
 html/TagNames/Nikon.html
 html/TagNames/NikonCapture.html
 html/TagNames/NikonCustom.html
@@ -132,6 +137,7 @@ html/TagNames/Stim.html
 html/TagNames/Theora.html
 html/TagNames/Torrent.html
 html/TagNames/Unknown.html
+html/TagNames/VCard.html
 html/TagNames/Vorbis.html
 html/TagNames/XMP.html
 html/TagNames/ZIP.html
@@ -171,6 +177,7 @@ lib/Image/ExifTool/APE.pm
 lib/Image/ExifTool/APP12.pm
 lib/Image/ExifTool/ASF.pm
 lib/Image/ExifTool/Apple.pm
+lib/Image/ExifTool/Audible.pm
 lib/Image/ExifTool/BMP.pm
 lib/Image/ExifTool/BZZ.pm
 lib/Image/ExifTool/BigTIFF.pm
@@ -275,6 +282,7 @@ lib/Image/ExifTool/MIE.pm
 lib/Image/ExifTool/MIEUnits.pod
 lib/Image/ExifTool/MIFF.pm
 lib/Image/ExifTool/MNG.pm
+lib/Image/ExifTool/MOI.pm
 lib/Image/ExifTool/MPC.pm
 lib/Image/ExifTool/MPEG.pm
 lib/Image/ExifTool/MPF.pm
@@ -285,6 +293,7 @@ lib/Image/ExifTool/Matroska.pm
 lib/Image/ExifTool/Microsoft.pm
 lib/Image/ExifTool/Minolta.pm
 lib/Image/ExifTool/MinoltaRaw.pm
+lib/Image/ExifTool/Motorola.pm
 lib/Image/ExifTool/Nikon.pm
 lib/Image/ExifTool/NikonCapture.pm
 lib/Image/ExifTool/NikonCustom.pm
@@ -337,6 +346,7 @@ lib/Image/ExifTool/TagNames.pod
 lib/Image/ExifTool/Theora.pm
 lib/Image/ExifTool/Torrent.pm
 lib/Image/ExifTool/Unknown.pm
+lib/Image/ExifTool/VCard.pm
 lib/Image/ExifTool/Vorbis.pm
 lib/Image/ExifTool/WriteCanonRaw.pl
 lib/Image/ExifTool/WriteExif.pl
@@ -364,6 +374,8 @@ t/APE_2.out
 t/APE_3.out
 t/ASF.t
 t/ASF_2.out
+t/Audible.t
+t/Audible_2.out
 t/BMP.t
 t/BMP_2.out
 t/BigTIFF.t
@@ -378,7 +390,16 @@ t/CanonRaw_7.out
 t/CanonVRD.t
 t/CanonVRD_11.out
 t/CanonVRD_12.out
+t/CanonVRD_13.out
+t/CanonVRD_14.out
+t/CanonVRD_15.out
+t/CanonVRD_16.out
+t/CanonVRD_17.out
+t/CanonVRD_18.out
+t/CanonVRD_19.out
 t/CanonVRD_2.out
+t/CanonVRD_20.out
+t/CanonVRD_21.out
 t/CanonVRD_3.out
 t/CanonVRD_4.out
 t/CanonVRD_5.out
@@ -420,6 +441,9 @@ t/ExifTool_23.out
 t/ExifTool_24.out
 t/ExifTool_25.out
 t/ExifTool_26.out
+t/ExifTool_27.out
+t/ExifTool_28.out
+t/ExifTool_29.out
 t/ExifTool_3.out
 t/ExifTool_4.out
 t/ExifTool_5.out
@@ -470,6 +494,7 @@ t/GeoTiff_2.out
 t/GeoTiff_3.out
 t/GeoTiff_4.out
 t/Geotag.t
+t/Geotag_10.out
 t/Geotag_2.out
 t/Geotag_3.out
 t/Geotag_5.out
@@ -536,6 +561,8 @@ t/MIE_5.out
 t/MIE_6.out
 t/MIFF.t
 t/MIFF_2.out
+t/MOI.t
+t/MOI_2.out
 t/MP3.t
 t/MP3_2.out
 t/MWG.t
@@ -552,6 +579,8 @@ t/Minolta.t
 t/Minolta_2.out
 t/Minolta_3.out
 t/Minolta_4.out
+t/Motorola.t
+t/Motorola_2.out
 t/Nikon.t
 t/Nikon_2.out
 t/Nikon_3.out
@@ -566,6 +595,7 @@ t/Olympus_4.out
 t/Olympus_5.out
 t/Olympus_6.out
 t/Olympus_7.out
+t/Olympus_8.out
 t/OpenEXR.t
 t/OpenEXR_2.out
 t/PDF.t
@@ -665,6 +695,9 @@ t/Torrent_2.out
 t/Unknown.t
 t/Unknown_2.out
 t/Unknown_3.out
+t/VCard.t
+t/VCard_2.out
+t/VCard_3.out
 t/Vorbis.t
 t/Vorbis_2.out
 t/Writer.t
@@ -747,6 +780,9 @@ t/XMP_37.out
 t/XMP_39.out
 t/XMP_40.out
 t/XMP_41.out
+t/XMP_42.out
+t/XMP_43.out
+t/XMP_44.out
 t/XMP_5.out
 t/XMP_6.out
 t/XMP_7.out
@@ -764,12 +800,14 @@ t/images/AIFF.aif
 t/images/APE.ape
 t/images/APE.mpc
 t/images/ASF.wmv
+t/images/Audible.aa
 t/images/BMP.bmp
 t/images/BigTIFF.btf
 t/images/Canon.jpg
 t/images/Canon1DmkIII.jpg
 t/images/CanonRaw.cr2
 t/images/CanonRaw.crw
+t/images/CanonVRD.dr4
 t/images/CanonVRD.vrd
 t/images/CaptureOne.eip
 t/images/Casio.jpg
@@ -813,6 +851,7 @@ t/images/Geotag.kml
 t/images/Geotag.log
 t/images/Geotag.xml
 t/images/Geotag2.log
+t/images/Geotag3.log
 t/images/HTML.html
 t/images/IPTC.jpg
 t/images/ITC.itc
@@ -828,17 +867,20 @@ t/images/Lytro.lfp
 t/images/M2TS.mts
 t/images/MIE.mie
 t/images/MIFF.miff
+t/images/MOI.moi
 t/images/MP3.mp3
 t/images/MWG.jpg
 t/images/MXF.mxf
 t/images/Matroska.mkv
 t/images/Minolta.jpg
 t/images/Minolta.mrw
+t/images/Motorola.jpg
 t/images/Nikon.jpg
 t/images/Nikon.nef
 t/images/NikonD2Hs.jpg
 t/images/NikonD70.jpg
 t/images/OOXML.docx
+t/images/Olympus.dss
 t/images/Olympus.jpg
 t/images/Olympus2.jpg
 t/images/OlympusE1.jpg
@@ -882,6 +924,8 @@ t/images/Sony.jpg
 t/images/Sony.pmp
 t/images/Torrent.torrent
 t/images/Unknown.jpg
+t/images/VCard.ics
+t/images/VCard.vcf
 t/images/Vorbis.ogg
 t/images/Writer.jpg
 t/images/XMP.inx
@@ -893,6 +937,7 @@ t/images/XMP2.xmp
 t/images/XMP3.xmp
 t/images/XMP4.xmp
 t/images/XMP5.xmp
+t/images/XMP6.xmp
 t/images/ZIP.gz
 t/images/ZIP.zip
 t/images/iWork.numbers

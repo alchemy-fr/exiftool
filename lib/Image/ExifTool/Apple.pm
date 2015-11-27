@@ -10,9 +10,10 @@ package Image::ExifTool::Apple;
 
 use strict;
 use vars qw($VERSION);
+use Image::ExifTool::Exif;
 use Image::ExifTool::PLIST;
 
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 %Image::ExifTool::Apple::Main = (
     WRITE_PROC => \&Image::ExifTool::Exif::WriteExif,
@@ -20,7 +21,7 @@ $VERSION = '1.01';
     WRITABLE => 1,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Image' },
     NOTES => 'Tags extracted from maker notes of images from the iPhone 5 with iOS 7.',
-    # 0x0001 - int32s: seen 0, 1
+    # 0x0001 - int32s: seen 0, 1, 2, 3
     # 0x0002 - binary plist with a single data object of size 512 bytes (iPhone5s)
     0x0003 => {
         Name => 'RunTime',
@@ -30,6 +31,7 @@ $VERSION = '1.01';
     # 0x0005 - int32s: seen values 147-247, and 100 for blank images
     # 0x0006 - int32s: seen values 129-241, and 20 for blank images
     # 0x0007 - int32s: seen 1
+    # 0x0008 - rational64s[3]: eg) "0.02683717579 -0.7210501641 -0.6948792783"
     # 0x0009 - int32s: seen 19
     0x000a => {
         Name => 'HDRImageType',
@@ -39,6 +41,18 @@ $VERSION = '1.01';
             4 => 'Original Image',
         },
     },
+    0x000b => {
+        Name => 'BurstUUID',
+        Writable => 'string',
+        Notes => 'unique ID for all images in a burst',
+    },
+    # 0x000c - rational64s[2]: eg) "0.1640625 0.19921875"
+    # 0x000d - int32s: 0
+    # 0x000e - int32s: 0,1,12
+    # 0x000f - int32s: 3
+    # 0x0010 - int32s: 1
+    # 0x0011 - string[37]: some type of UID, eg. "FFCBAC24-E547-4BBC-AF47-38B1A3D845E3\0" (iPhone 6s, iOS 6.1)
+    # 0x0014 - int32s: 1,3 (iPhone 6s, iOS 6.1)
 );
 
 # PLIST-format CMTime structure (ref PH)
@@ -102,7 +116,7 @@ Apple maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -28,6 +28,8 @@ $VERSION = '1.21';
 @ISA = qw(Exporter);
 @EXPORT = qw(check writeCheck writeInfo testCompare binaryCompare testVerbose);
 
+my $noTimeLocal;
+
 sub nearEnough($$);
 sub nearTime($$$$);
 sub formatValue($);
@@ -135,7 +137,7 @@ sub nearEnough($$)
 
     # allow CurrentIPTCDigest to be zero if Digest::MD5 isn't installed
     return 1 if $line1 =~ /Current IPTC Digest/ and
-                $line2 =~ /Current IPTC Digest: 0{32}/ and
+                $line2 =~ /Current IPTC Digest: (0|#){32}/ and
                 not eval 'require Digest::MD5';
 
     # analyze every token in the line, and allow rounding
@@ -155,8 +157,16 @@ sub nearEnough($$)
             return 1 if $tok1=~ /^[-+]?\d+\./ or $tok2=~/^[-+]?\d+\./;  # check for float
             return $lenChanged
         }
+        if ($tok1 =~ /^(\d{2}|\d{4}):\d{2}:\d{2}/ and $tok2 =~ /^(\d{2}|\d{4}):\d{2}:\d{2}/ and
+            not eval { require Time::Local })
+        {
+            unless ($noTimeLocal) {
+                warn "Ignored time difference(s) because Time::Local is not installed\n";
+                $noTimeLocal = 1;
+            }
+            next;   # ignore times if Time::Local not available
         # account for different timezones
-        if ($tok1 =~ /^(\d{2}:\d{2}:\d{2})(Z|[-+]\d{2}:\d{2})$/i) {
+        } elsif ($tok1 =~ /^(\d{2}:\d{2}:\d{2})(Z|[-+]\d{2}:\d{2})$/i) {
             my $time = $1;  # remove timezone
             # timezone may be wrong if writing date/time value in a different timezone
             next if $tok2 =~ /^(\d{2}:\d{2}:\d{2})(Z|[-+]\d{2}:\d{2})$/i and $time eq $1;
@@ -176,6 +186,10 @@ sub nearEnough($$)
             $tok1 .= ' ' . $toks1[$i];      # add time to give date/time value
             $tok2 .= ' ' . $toks2[$i];
             last unless nearTime($tok1, $tok2, $line1, $line2);
+        # handle floating point numbers filtered by ExifTool test 29
+        } elsif ($tok1 =~ s/(\.#)#*(e[-+]\#+)?/$1/g or $tok2 =~ s/(\.#)#*(e[-+]\#+)?/$1/g) {
+            $tok2 =~ s/(\.#)#*(e[-+]\#+)?/$1/g;
+            last if $tok1 ne $tok2;
         } else {
             # check to see if both tokens are floating point numbers (with decimal points!)
             if ($tok1 =~ s/([^\d.]+)$//) {  # remove trailing units

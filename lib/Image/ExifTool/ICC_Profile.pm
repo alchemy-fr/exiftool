@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.29';
+$VERSION = '1.30';
 
 sub ProcessICC($$);
 sub ProcessICC_Profile($$$);
@@ -633,7 +633,7 @@ sub ProcessMetadata($$$)
     my $dirStart = $$dirInfo{DirStart};
     my $dirLen = $$dirInfo{DirLen};
     my $dirEnd = $dirStart + $dirLen;
-    
+
     if ($dirLen < 16 or substr($$dataPt, $dirStart, 4) ne 'dict') {
         $et->Warn('Invalid ICC meta dictionary');
         return 0;
@@ -716,7 +716,7 @@ sub WriteICC_Profile($$;$)
     # (don't write AsShotICCProfile or CurrentICCProfile here)
     return undef unless $dirName eq 'ICC_Profile';
     my $nvHash = $et->GetNewValueHash($Image::ExifTool::Extra{$dirName});
-    my $val = $et->GetNewValues($nvHash);
+    my $val = $et->GetNewValue($nvHash);
     $val = '' unless defined $val;
     return undef unless $et->IsOverwriting($nvHash, $val);
     ++$$et{CHANGED};
@@ -882,7 +882,7 @@ sub ProcessICC_Profile($$$)
                     }
                     my $strLen = Get32u($dataPt, $recPos + 4);
                     my $strPos = Get32u($dataPt, $recPos + 8);
-                    last if $strPos + $strLen > $size; 
+                    last if $strPos + $strLen > $size;
                     my $str = substr($$dataPt, $valuePtr + $strPos, $strLen);
                     $str = $et->Decode($str, 'UTF16');
                     $et->HandleTag($tagTablePtr, $tagID, $str,
@@ -977,7 +977,7 @@ data created on one device into another device's native color space.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

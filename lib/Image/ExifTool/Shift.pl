@@ -546,7 +546,7 @@ Below are some specific examples applied to real date and/or time values
     '07:00:00Z'            '+2:30'   -   '07:00:00-02:30'
     '1970:01:01'           '35::'    +   '2005:01:01'
     '2005:01:01'           '400'     +   '2006:02:05'
-    '10:00:00.00'          '::1.33'  +   '09:59:58.67'
+    '10:00:00.00'          '::1.33'  -   '09:59:58.67'
 
 =head1 NOTES
 
@@ -584,7 +584,7 @@ limited to the range 1970 to 2038 on 32-bit systems.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

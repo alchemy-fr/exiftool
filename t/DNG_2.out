@@ -1,12 +1,13 @@
-[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.60
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 9.94
 [File, System, Image] FileName - File Name: DNG.dng
 [File, System, Image] Directory - Directory: t/images
 [File, System, Image] FileSize - File Size: 13 kB
 [File, System, Time] FileModifyDate - File Modification Date/Time: 2006:02:26 09:30:53-05:00
-[File, System, Time] FileAccessDate - File Access Date/Time: 2014:05:08 10:42:15-04:00
-[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2014:05:03 08:53:45-04:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2015:04:29 20:10:23-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2015:04:25 10:57:00-04:00
 [File, System, Image] FilePermissions - File Permissions: rw-r--r--
 [File, File, Image] FileType - File Type: DNG
+[File, File, Image] FileTypeExtension - File Type Extension: dng
 [File, File, Image] MIMEType - MIME Type: image/x-adobe-dng
 [File, File, Image] ExifByteOrder - Exif Byte Order: Big-endian (Motorola, MM)
 [EXIF, IFD0, Image] 254 - Subfile Type: Reduced-resolution image
@@ -308,10 +309,11 @@
 [Composite, Composite, Other] Flash - Flash: Off, Did not fire
 [Composite, Composite, Camera] ISO - ISO: 400
 [Composite, Composite, Image] ImageSize - Image Size: 3516x2328
-[Composite, Composite, Image] JpgFromRaw - Jpg From Raw: (Binary data 29 bytes)
+[Composite, Composite, Preview] JpgFromRaw - Jpg From Raw: (Binary data 29 bytes)
 [Composite, Composite, Camera] Lens - Lens: 18.0 - 55.0 mm
 [Composite, Composite, Camera] LensID - Lens ID: Unknown 18-55mm
-[Composite, Composite, Image] PreviewImage - Preview Image: (Binary data 26 bytes)
+[Composite, Composite, Image] Megapixels - Megapixels: 8.2
+[Composite, Composite, Preview] PreviewImage - Preview Image: (Binary data 26 bytes)
 [Composite, Composite, Camera] ScaleFactor35efl - Scale Factor To 35 mm Equivalent: 1.6
 [Composite, Composite, Camera] ShootingMode - Shooting Mode: Aperture-priority AE
 [Composite, Composite, Image] ShutterSpeed - Shutter Speed: 1/15

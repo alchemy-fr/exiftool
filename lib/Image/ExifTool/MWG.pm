@@ -16,7 +16,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::XMP;
 
-$VERSION = '1.14';
+$VERSION = '1.16';
 
 sub RecoverTruncatedIPTC($$$);
 sub ListToString($);
@@ -58,7 +58,8 @@ my $mwgLoaded;  # flag set if we alreaded Load()ed the MWG tags
         Contrary to the EXIF specification, the MWG recommends that EXIF "ASCII"
         string values be stored as UTF-8.  To honour this, the exiftool application
         sets the default internal EXIF string encoding to "UTF8" when the MWG module
-        is loaded (but this setting does not change automatically via the API).
+        is loaded, but via the API this must be done manually by setting the
+        CharsetEXIF option.
 
         A complication of the MWG specification is that although the MWG:Creator
         property may consist of multiple values, the associated EXIF tag
@@ -421,6 +422,10 @@ my %sRegionStruct = (
     },
     BarCodeValue=> { },
     Extensions  => { Struct => \%sExtensions },
+    Rotation    => { # (observed in LR6 XMP)
+        Writable => 'real',
+        Notes => 'RegionsRegionListRotation, not part of MWG 2.0 spec',
+    },
     seeAlso => { Namespace => 'rdfs', Resource => 1 },
 );
 my %sKeywordStruct;
@@ -677,7 +682,7 @@ sub RecoverTruncatedIPTC($$$)
             push @vals, RecoverTruncatedIPTC($$iptc[$i], $$xmp[$i], $limit);
         }
         return \@vals;
-    } elsif (defined $iptc and length $iptc == $limit) {    
+    } elsif (defined $iptc and length $iptc == $limit) {
         $xmp = $$xmp[0] if ref $xmp;    # take first element of list
         return $xmp if length $xmp > $limit and $iptc eq substr($xmp, 0, $limit);
     }
@@ -727,7 +732,7 @@ must be loaded explicitly as described above.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

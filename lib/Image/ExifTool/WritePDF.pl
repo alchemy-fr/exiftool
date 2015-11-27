@@ -399,7 +399,7 @@ sub WritePDF($$)
 
     # must encrypt all values in dictionary if they came from an encrypted stream
     CryptObject($infoDict) if $$infoDict{_needCrypt};
-    
+
     # must set line separator before calling WritePDFValue()
     local $/ = $capture{newline};
 
@@ -443,9 +443,9 @@ sub WritePDF($$)
         # decide whether we want to write this tag
         # (native PDF information is always preferred, so don't check IsCreating)
         next unless $deleted or $$tagInfo{List} or not exists $$infoDict{$tagID};
-        
+
         # add new values to existing ones
-        my @newVals = $et->GetNewValues($nvHash);
+        my @newVals = $et->GetNewValue($nvHash);
         if (@newVals) {
             push @vals, @newVals;
             ++$infoChanged;
@@ -713,6 +713,9 @@ sub WritePDF($$)
             Write($outfile, $buff) or $rtn = -1;
         }
     }
+    if ($rtn > 0 and $$et{CHANGED} and ($$et{DEL_GROUP}{PDF} or $$et{DEL_GROUP}{XMP})) {
+        $et->Warn('ExifTool PDF edits are reversible. Deleted tags may be recovered!', 1);
+    }
     undef $newTool;
     undef %capture;
     return $rtn;
@@ -744,7 +747,7 @@ C<PDF-update> pseudo group).
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

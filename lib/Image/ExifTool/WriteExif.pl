@@ -440,6 +440,7 @@ my %writeTable = (
         Shift => 'Time',
         PrintConvInv => '$self->InverseDateTime($val,0)',
     },
+    0x9009 => 'undef',      # GooglePlusUploadCode
     0x9101 => {             # ComponentsConfiguration
         Protected => 1,
         Writable => 'undef',
@@ -454,7 +455,6 @@ my %writeTable = (
     0x9201 => {             # ShutterSpeedValue
         Writable => 'rational64s',
         ValueConvInv => '$val>0 ? -log($val)/log(2) : -100',
-        # do eval to convert things like '1/100'
         PrintConvInv => 'Image::ExifTool::Exif::ConvertFraction($val)',
     },
     0x9202 => {             # ApertureValue
@@ -465,7 +465,6 @@ my %writeTable = (
     0x9203 => 'rational64s',# BrightnessValue
     0x9204 => {             # ExposureCompensation
         Writable => 'rational64s',
-        # do eval to convert things like '+2/3'
         PrintConvInv => 'Image::ExifTool::Exif::ConvertFraction($val)',
     },
     0x9205 => {             # MaxApertureValue
@@ -1147,7 +1146,7 @@ my %writeTable = (
         Protected => 1,
     },
     0xc7a5 => {             # BaselineExposureOffset
-        Writable => 'rational64u',
+        Writable => 'rational64s', # (incorrectly "RATIONAL" in DNG 1.4 spec)
         WriteGroup => 'IFD0',
         Protected => 1,
     },
@@ -1372,7 +1371,7 @@ sub EncodeExifText($$)
     my ($et, $val) = @_;
     # does the string contain special characters?
     if ($val =~ /[\x80-\xff]/) {
-        my $order = $et->GetNewValues('ExifUnicodeByteOrder');
+        my $order = $et->GetNewValue('ExifUnicodeByteOrder');
         return "UNICODE\0" . $et->Encode($val,'UTF16',$order);
     } else {
         return "ASCII\0\0\0$val";
@@ -1833,7 +1832,7 @@ sub WriteExif($$$)
                 my $curInfo = $et->GetTagInfo($tagTablePtr, $tagID);
                 if (defined $curInfo and not $curInfo) {
                     # need value to evaluate the condition
-                    my ($val) = $et->GetNewValues($tagInfo);
+                    my ($val) = $et->GetNewValue($tagInfo);
                     # must convert to binary for evaluating in Condition
                     if ($$tagInfo{Format} and defined $val) {
                         $val = WriteValue($val, $$tagInfo{Format}, $$tagInfo{Count});
@@ -1902,7 +1901,7 @@ sub WriteExif($$$)
             }
             $set{$tagID} = $tagInfo;
         }
-        
+
         # fix base offsets (some cameras incorrectly write maker notes in IFD0)
         if ($dirName eq 'MakerNotes' and $$dirInfo{Parent} =~ /^(ExifIFD|IFD0)$/ and
             $$et{TIFF_TYPE} !~ /^(ARW|SR2)$/ and not $$et{LeicaTrailerPos} and
@@ -2361,7 +2360,7 @@ Entry:  for (;;) {
                         }
                     }
                     if ($isOverwriting) {
-                        $newVal = $et->GetNewValues($nvHash) unless defined $newVal;
+                        $newVal = $et->GetNewValue($nvHash) unless defined $newVal;
                         # value undefined if deleting this tag
                         # (also delete tag if cross-deleting and this isn't a date/time shift)
                         if (not defined $newVal or ($xDelete{$newID} and not defined $$nvHash{Shift})) {
@@ -2517,7 +2516,7 @@ NoOverwrite:            next if $isNew > 0;
                         # prefer tag from Composite table if it exists (otherwise
                         # PreviewImage data would be taken from Extra tag)
                         my $compInfo = $Image::ExifTool::Composite{$dataTag};
-                        $offsetData{$dataTag} = $et->GetNewValues($compInfo || $dataTag);
+                        $offsetData{$dataTag} = $et->GetNewValue($compInfo || $dataTag);
                         my $err;
                         if (defined $offsetData{$dataTag}) {
                             my $len = length $offsetData{$dataTag};
@@ -2937,7 +2936,7 @@ NoOverwrite:            next if $isNew > 0;
                         my $hasVRD;
                         if ($$et{NEW_VALUE}{$Image::ExifTool::Extra{CanonVRD}}) {
                             # adding or deleting as a block
-                            $hasVRD = $et->GetNewValues('CanonVRD') ? 1 : 0;
+                            $hasVRD = $et->GetNewValue('CanonVRD') ? 1 : 0;
                         } elsif ($$et{DEL_GROUP}{CanonVRD} or
                                  $$et{DEL_GROUP}{Trailer})
                         {
@@ -2960,7 +2959,7 @@ NoOverwrite:            next if $isNew > 0;
                         my $odd;
                         my $oddInfo = $Image::ExifTool::Composite{OriginalDecisionData};
                         if ($oddInfo and $$et{NEW_VALUE}{$oddInfo}) {
-                            $odd = $et->GetNewValues($dataTag);
+                            $odd = $et->GetNewValue($dataTag);
                             if ($verbose > 1) {
                                 print $out "    - $dirName:$dataTag\n" if $$newValuePt ne "\0\0\0\0";
                                 print $out "    + $dirName:$dataTag\n" if $odd;
@@ -3179,9 +3178,15 @@ NoOverwrite:            next if $isNew > 0;
             $entryBasedFixup->ApplyFixup(\$dirBuff);
             undef $entryBasedFixup;
         }
+        # initialize next IFD pointer to zero
+        my $nextIFD = Set32u(0);
+        # some cameras use a different amount of padding after the makernote IFD
+        if ($dirName eq 'MakerNotes' and $$dirInfo{Parent} =~ /^(ExifIFD|IFD0)$/) {
+            my ($rel, $pad) = Image::ExifTool::MakerNotes::GetMakerNoteOffset($et);
+            $nextIFD = "\0" x $pad if defined $pad and ($pad==0 or ($pad>4 and $pad<=32));
+        }
         # add directory entry count to start of IFD and next IFD pointer to end
-        # (temporarily set next IFD pointer to zero)
-        $newData .= Set16u($newEntries) . $dirBuff . Set32u(0);
+        $newData .= Set16u($newEntries) . $dirBuff . $nextIFD;
         # get position of value data in newData
         my $valPos = length($newData);
         # go back now and set next IFD pointer if this isn't the first IFD
@@ -3191,7 +3196,7 @@ NoOverwrite:            next if $isNew > 0;
             $fixup->AddFixup($nextIfdPos,'NextIFD');    # add fixup for this offset in newData
         }
         # remember position of 'next IFD' pointer so we can set it next time around
-        $nextIfdPos = $valPos - 4;
+        $nextIfdPos = length($nextIFD) ? $valPos - length($nextIFD) : undef;
         # add value data after IFD
         $newData .= $valBuff;
 #
@@ -3611,7 +3616,7 @@ NoOverwrite:            next if $isNew > 0;
                     my $subIfdDataFixup = new Image::ExifTool::Fixup;
                     $subIfdDataFixup->AddFixup($entry + 8);
                     # save fixup in imageData list
-                    $$blockInfo[4] = $subIfdDataFixup; 
+                    $$blockInfo[4] = $subIfdDataFixup;
                 }
                 # must reset entry pointer so we don't use it again in a parent IFD!
                 $$blockInfo[3] = undef;
@@ -3667,7 +3672,7 @@ NoOverwrite:            next if $isNew > 0;
                 $fixup->SetMarkerPointers(\$newData, 'PreviewImage', $newPos);
                 $newData .= $$pt;
                 # set flag to delete old preview unless it was contained in the EXIF
-                $$et{DEL_PREVIEW} = 1 unless $$et{PREVIEW_INFO}{WasContained};       
+                $$et{DEL_PREVIEW} = 1 unless $$et{PREVIEW_INFO}{WasContained};
                 delete $$et{PREVIEW_INFO};   # done with our preview data
             } else {
                 # Doesn't fit, or we still don't know, so save fixup information
@@ -3723,7 +3728,7 @@ This file contains routines to write EXIF metadata.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

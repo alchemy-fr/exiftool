@@ -19,7 +19,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::ASF;   # for GetGUID()
 
-$VERSION = '1.25';
+$VERSION = '1.26';
 
 sub ProcessFPX($$);
 sub ProcessFPXR($$$);
@@ -79,7 +79,7 @@ my %oleFormat = (
 #   29 => 'VT_USERDEFINED',
     30 => 'VT_LPSTR',   # VT_LPSTR (int32u count, followed by string)
     31 => 'VT_LPWSTR',  # VT_LPWSTR (int32u word count, followed by Unicode string)
-    64 => 'VT_FILETIME',# VT_FILETIME (int64u, number of nanoseconds since Jan 1, 1601)
+    64 => 'VT_FILETIME',# VT_FILETIME (int64u, 100 ns increments since Jan 1, 1601)
     65 => 'VT_BLOB',    # VT_BLOB
 #   66 => 'VT_STREAM',
 #   67 => 'VT_STORAGE',
@@ -427,6 +427,7 @@ my %fpxFileType = (
     },
     Preview => {
         Name => 'PreviewImage',
+        Groups => { 2 => 'Preview' },
         Binary => 1,
         Notes => 'written by some FujiFilm models',
         # skip 47-byte Fuji header
@@ -482,7 +483,11 @@ my %fpxFileType = (
     0x0e => 'Pages',
     0x0f => 'Words',
     0x10 => 'Characters',
-    0x11 => { Name => 'ThumbnailClip',  Binary => 1 },
+    0x11 => {
+        Name => 'ThumbnailClip',
+        # (not a displayable format, so not in the "Preview" group)
+        Binary => 1,
+    },
     0x12 => {
         Name => 'Software',
         RawConv => '$$self{Software} = $val', # (use to determine file type)
@@ -1027,6 +1032,7 @@ my %fpxFileType = (
 %Image::ExifTool::FlashPix::Composite = (
     GROUPS => { 2 => 'Image' },
     PreviewImage => {
+        Groups => { 2 => 'Preview' },
         # extract JPEG preview from ScreenNail if possible
         Require => {
             0 => 'ScreenNail',
@@ -1216,7 +1222,7 @@ sub ProcessContents($$$)
     # then 0x01) followed by a number of zero bytes (from 0x18 to 0x26 of them, related
     # somehow to the value of the first byte), followed by the string "DocumentPage"
     $isFLA = 1 if $$dataPt =~ /^..\0+\xff\xff\x01\0\x0d\0CDocumentPage/s;
-    
+
     # do a brute-force scan of the "Contents" for UTF-16 XMP
     # (this may always be little-endian, but allow for either endianness)
     if ($$dataPt =~ /<\0\?\0x\0p\0a\0c\0k\0e\0t\0 \0b\0e\0g\0i\0n\0=\0['"](\0\xff\xfe|\xfe\xff)/g) {
@@ -1595,7 +1601,7 @@ sub SetDocNum($$;$$$)
         } elsif (@subDoc) {
             $subDoc[-1] = ++$$used[$#subDoc];
         }
-        SetDocNum($hier, $$obj{Child}, \@subDoc, $used, not $meta) 
+        SetDocNum($hier, $$obj{Child}, \@subDoc, $used, not $meta);
     }
 }
 
@@ -1900,7 +1906,7 @@ JPEG images.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -201,6 +201,11 @@ is an explanation of the meaning of each special key:
     LONG_TAGS     Suppress "Long tags" warning when generating documentation.
                   Value is the number of long tag names to expect.
 
+    SORT_PROC     Reference to sort procedure for sorting tag ID's in the
+                  documentation.  Takes two arguments and returns -1, 0 or 1
+                  if the first argument is less than, equal to, or greater than
+                  the second argument.
+
   DATAMEMBER : BinaryData tables only.  A reference to a list of sorted tag ID's
   which must be extracted as data members when writing.  Must also list "var_"
   format tags and tags with Hook so offsets are properly calculated if the table
@@ -226,9 +231,9 @@ numerical.
                   tag information hash, the key of the previous tag is changed
                   to the form "TagName (N)", where N starts at 1 and increments
                   for subsequent duplicate tags.  A tag name should start with
-                  an uppercase letter, and contain only the charcters in the set
-                  [A-Za-z0-9_-].  If not given, the Name is taken from the tag
-                  ID with the first character changed to upper case.
+                  an uppercase letter, and contain only the characters in the
+                  set [A-Za-z0-9_-].  If not given, the Name is taken from the
+                  tag ID with the first character changed to upper case.
 
   Description   : A more readable description of tag name.  If a tag doesn't
                   specify a Description, then the tag Name is used instead, with
@@ -248,13 +253,13 @@ numerical.
                   Writable tags where the value must be converted for a
                   Condition.  For BinaryData tables, the format may have a size
                   in trailing brackets which is a Perl expression to be
-                  evaluated. The expression may access any of the previous table
-                  entries through a %val hash (read-only tags), the data size
-                  via $size, or the ExifTool object via $self.  For example,
-                  'string[$val{3}]' defines a string with length given by the
-                  table entry with tag index '3'.  An initial "var_" may be
-                  added to the Format name of any BinaryData tag with a size in
-                  brackets.  In this case, subsequent offsets are adjusted by
+                  evaluated.  The expression may access any of the previous
+                  table entries through a %val hash (read-only tags), the data
+                  size via $size, or the ExifTool object via $self.  For
+                  example, 'string[$val{3}]' defines a string with length given
+                  by the table entry with tag index '3'.  An initial "var_" may
+                  be added to the Format name of any BinaryData tag with a size
+                  in brackets.  In this case, subsequent offsets are adjusted by
                   the value length minus the size of the default table FORMAT
                   (eg. "var_int16u[10]" causes subsequent offsets to be
                   incremented by sizeof(int16u) * 10 - sizeof(int8u) if the
@@ -303,6 +308,10 @@ numerical.
                   specified explicitly.  Also used for Jpeg2000 and QuickTime
                   XMP-like tags to extract as a block with a name other than
                   'XMP'.
+
+                  'ConvertBinary' - true to apply ValueConv and/or PrintConv to
+                  Binary values (ie. SCALAR references).  (By default, these
+                  conversions are not done for Binary values.)
 
                   'DataMember' - name of exiftool data member associated with
                   this tag if it should be stored as a special data member when
@@ -483,12 +492,12 @@ numerical.
                   ValueConv and PrintConv evals will no longer have access to
                   the source @val and @prt values unless the input $val is
                   returned.  RawConv may generate Warning or Error tags, while
-                  ValueConv and PrintConv may not.  Note: RawConv should only be
-                  used if necessary (in general, only if the conversion may
-                  return undef to ignore the tag, or if a Warning may be issued)
-                  because ValueConv is more efficient since it is only executed
-                  if the tag value is requested, while RawConv is executed for
-                  all extracted tags.
+                  ValueConv and PrintConv should not (see ValueConv note below).
+                   Note: RawConv should only be used if necessary (in general,
+                  only if the conversion may return undef to ignore the tag, or
+                  if a Warning may be issued) because ValueConv is more
+                  efficient since it is only executed if the tag value is
+                  requested, while RawConv is executed for all extracted tags.
 
   ValueConv     : Used to convert the Raw value to a useable form. May be a hash
                   reference to act as a lookup table, a scalar which is
@@ -528,13 +537,18 @@ numerical.
                   the converted values of the source tags are needed), set the
                   Priority to 0 to avoid taking priority over a valid tag.  If
                   ValueConv is not specified, the Raw value is not converted.
-                  Composite tags which Require or Desire other tags may access
-                  the ValueConv, PrintConv and Raw values of these tags through
-                  the elements of the @val, @prt and @raw lists respectively
-                  (only if there was no RawConv or it returned a hash
-                  reference).  For these tags, $val may be used in an expression
-                  to represent $val[0], and the first argument passed for a code
-                  reference is a reference to @val.
+                  Composite tags which Require or Desire
+                  other tags may access the ValueConv, PrintConv and Raw values
+                  of these tags through the elements of the @val, @prt and @raw
+                  lists respectively (only if there was no RawConv or it
+                  returned a hash reference).  For these tags, $val may be used
+                  in an expression to represent $val[0], and the first argument
+                  passed for a code reference is a reference to @val.
+                  Note:  Warnings issued by these conversions are intercepted by
+                  ExifTool and saved as Warning tags, but since ValueConv and
+                  PrintConv conversions are done on demand, the warnings may be
+                  generated after the list of extracted tags is returned, so may
+                  easily be missed.
 
   PrintConv     : This entry is similar to ValueConv above, except that it is
                   used to further convert the tag value to a human readable
@@ -851,15 +865,15 @@ numerical.
                   the position of the new subdirectory.  The expression
                   should use the position of the current tag ($valuePtr).
 
-     Base       : This specifies the base offset for all pointers in the
-                  subdirectory.  This need not be specified if the offset is the
-                  same as the current directory, which is normally the case.
+     Base       : This expression specifies the base offset for all pointers in
+                  the subdirectory.  This need not be specified if the offset is
+                  the same as the current directory, which is normally the case.
                   May use $start to represent the subdirectory start location
                   relative to the current base, and $base for the value of the
                   current base.  If this is defined, the automatic validation of
-                  base offsets is disabled for maker notes directories.  The
-                  IFD is flagged as using relative offsets when writing if
-                  '$start' is used in this expression.
+                  base offsets is disabled for maker notes directories.  The IFD
+                  is flagged as using relative offsets when writing if '$start'
+                  is used in this expression.
 
      EntryBased : [EXIF directories only] Flag indicating that the offsets are
                   based on the individual directory entry position, so offsets

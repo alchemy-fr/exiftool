@@ -46,6 +46,8 @@
 #              31) Michael Relt private communication
 #              32) Stefan http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4494.0.html
 #              33) Iliah Borg private communication (LibRaw)
+#              34) Stewart Bennett private communication (D4S, D810)
+#              35) David Puschel private communication
 #              JD) Jens Duttke private communication
 #------------------------------------------------------------------------------
 
@@ -56,15 +58,18 @@ use vars qw($VERSION %nikonLensIDs %nikonTextEncoding);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '2.92';
+$VERSION = '3.12';
 
 sub LensIDConv($$$);
 sub ProcessNikonAVI($$$);
 sub ProcessNikonMOV($$$);
 sub FormatString($);
 sub ProcessNikonCaptureEditVersions($$$);
-sub PrintAFPoints($$;$);
-sub PrintAFPointsInv($$;$);
+sub PrintAFPoints($$);
+sub PrintAFPointsInv($$$);
+sub PrintAFPointsGrid($$);
+sub PrintAFPointsGridInv($$$);
+sub GetAFPointGrid($$;$);
 
 # nikon lens ID numbers (ref 8/11)
 %nikonLensIDs = (
@@ -121,6 +126,7 @@ sub PrintAFPointsInv($$;$);
     '23 30 BE CA 3C 48 17 00' => 'Zoom-Nikkor 1200-1700mm f/5.6-8 P ED IF',
     '24 48 60 80 24 24 1A 02' => 'AF Zoom-Nikkor 80-200mm f/2.8D ED',
     '25 48 44 5C 24 24 1B 02' => 'AF Zoom-Nikkor 35-70mm f/2.8D',
+    '25 48 44 5C 24 24 3A 02' => 'AF Zoom-Nikkor 35-70mm f/2.8D',
     '25 48 44 5C 24 24 52 02' => 'AF Zoom-Nikkor 35-70mm f/2.8D',
     '26 40 3C 5C 2C 34 1C 02' => 'AF Zoom-Nikkor 28-70mm f/3.5-4.5D',
     '27 48 8E 8E 24 24 1D 02' => 'AF-I Nikkor 300mm f/2.8D IF-ED',
@@ -184,11 +190,14 @@ sub PrintAFPointsInv($$;$);
     '4E 48 72 72 18 18 51 02' => 'AF DC-Nikkor 135mm f/2D',
     '4F 40 37 5C 2C 3C 53 06' => 'IX-Nikkor 24-70mm f/3.5-5.6',
     '50 48 56 7C 30 3C 54 06' => 'IX-Nikkor 60-180mm f/4-5.6',
+    '52 54 44 44 18 18 00 00' => 'Zeiss Milvus 35mm f/2', #33
     '53 48 60 80 24 24 57 02' => 'AF Zoom-Nikkor 80-200mm f/2.8D ED',
     '53 48 60 80 24 24 60 02' => 'AF Zoom-Nikkor 80-200mm f/2.8D ED',
     '54 44 5C 7C 34 3C 58 02' => 'AF Zoom-Micro Nikkor 70-180mm f/4.5-5.6D ED',
     '54 44 5C 7C 34 3C 61 02' => 'AF Zoom-Micro Nikkor 70-180mm f/4.5-5.6D ED',
+    '54 54 50 50 18 18 00 00' => 'Zeiss Milvus 50mm f/2 Makro', #33
     '56 48 5C 8E 30 3C 5A 02' => 'AF Zoom-Nikkor 70-300mm f/4-5.6D ED',
+    '56 54 68 68 18 18 00 00' => 'Zeiss Milvus 100mm f/2 Makro', #33
     '59 48 98 98 24 24 5D 02' => 'AF-S Nikkor 400mm f/2.8D IF-ED',
     '59 48 98 98 24 24 F1 02' => 'AF-S Nikkor 400mm f/2.8D IF-ED + TC-14E',
     '59 48 98 98 24 24 E1 02' => 'AF-S Nikkor 400mm f/2.8D IF-ED + TC-17E',
@@ -272,13 +281,13 @@ sub PrintAFPointsInv($$;$);
     'A8 48 80 98 30 30 AA 0E' => 'AF-S VR Zoom-Nikkor 200-400mm f/4G IF-ED II', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3218.msg15495.html#msg15495
     'A9 54 80 80 18 18 AB 0E' => 'AF-S Nikkor 200mm f/2G ED VR II',
     'AA 3C 37 6E 30 30 AC 0E' => 'AF-S Nikkor 24-120mm f/4G ED VR',
-    'AC 38 53 8E 34 3C AE 0E' => 'AF-S DX VR Nikkor 55-300mm 4.5-5.6G ED',
-    'AD 3C 2D 8E 2C 3C AF 0E' => 'AF-S DX Nikkor 18-300mm 3.5-5.6G ED VR',
+    'AC 38 53 8E 34 3C AE 0E' => 'AF-S DX VR Nikkor 55-300mm f/4.5-5.6G ED',
+    'AD 3C 2D 8E 2C 3C AF 0E' => 'AF-S DX Nikkor 18-300mm f/3.5-5.6G ED VR',
     'AE 54 62 62 0C 0C B0 06' => 'AF-S Nikkor 85mm f/1.4G',
     'AF 54 44 44 0C 0C B1 06' => 'AF-S Nikkor 35mm f/1.4G',
     'B0 4C 50 50 14 14 B2 06' => 'AF-S Nikkor 50mm f/1.8G',
     'B1 48 48 48 24 24 B3 06' => 'AF-S DX Micro Nikkor 40mm f/2.8G', #27
-    'B2 48 5C 80 30 30 B4 0E' => 'AF-S Nikkor 70-200mm f/4G ED VR', #David Puschel
+    'B2 48 5C 80 30 30 B4 0E' => 'AF-S Nikkor 70-200mm f/4G ED VR', #35
     'B3 4C 62 62 14 14 B5 06' => 'AF-S Nikkor 85mm f/1.8G',
     'B4 40 37 62 2C 34 B6 0E' => 'AF-S VR Zoom-Nikkor 24-85mm f/3.5-4.5G IF-ED', #30
     'B5 4C 3C 3C 14 14 B7 06' => 'AF-S Nikkor 28mm f/1.8G', #30
@@ -287,6 +296,17 @@ sub PrintAFPointsInv($$;$);
     'A0 40 2D 74 2C 3C BB 0E' => 'AF-S DX Nikkor 18-140mm f/3.5-5.6G ED VR', #PH
     'A1 54 55 55 0C 0C BC 06' => 'AF-S Nikkor 58mm f/1.4G', #33
     'A2 40 2D 53 2C 3C BD 0E' => 'AF-S DX VR Nikkor 18-55mm f/3.5-5.6G II',
+    'A4 40 2D 8E 2C 40 BF 0E' => 'AF-S DX Nikkor 18-300mm f/3.5-6.3G ED VR',
+    'A5 4C 44 44 14 14 C0 06' => 'AF-S Nikkor 35mm f/1.8G', #35
+    'A7 3C 53 80 30 3C C2 0E' => 'AF-S DX Nikkor 55-200mm f/4-5.6G ED VR II', #33
+    'A8 48 8E 8E 30 30 C3 4E' => 'AF-S Nikkor 300mm f/4E PF ED VR', #35
+    'A8 48 8E 8E 30 30 C3 0E' => 'AF-S Nikkor 300mm f/4E PF ED VR', #30
+    'A9 4C 31 31 14 14 C4 06' => 'AF-S Nikkor 20mm f/1.8G ED', #30
+    'AA 48 37 5C 24 24 C5 4E' => 'AF-S Nikkor 24-70mm f/2.8E ED VR',
+    'AD 48 28 60 24 30 C8 4E' => 'AF-S VR DX 16-80mm f/2.8-4.0E ED',
+    'AE 3C 80 A0 3C 3C C9 4E' => 'AF-S Nikkor 200-500mm f/5.6E ED VR', #PH
+    'AE 3C 80 A0 3C 3C C9 0E' => 'AF-S Nikkor 200-500mm f/5.6E ED VR',
+    'AF 4C 37 37 14 14 CC 06' => 'AF-S Nikkor 24mm f/1.8G ED', #33
     '01 00 00 00 00 00 02 00' => 'TC-16A',
     '01 00 00 00 00 00 08 00' => 'TC-16A',
     '00 00 00 00 00 00 F1 0C' => 'TC-14E [II] or Sigma APO Tele Converter 1.4x EX DG or Kenko Teleplus PRO 300 DG 1.4x',
@@ -309,6 +329,7 @@ sub PrintAFPointsInv($$;$);
     'F8 54 3E 3E 0C 0C 4B 06' => 'Sigma 30mm F1.4 EX DC HSM', #JD
     '91 54 44 44 0C 0C 4B 06' => 'Sigma 35mm F1.4 DG HSM', #30
     'DE 54 50 50 0C 0C 4B 06' => 'Sigma 50mm F1.4 EX DG HSM',
+    '88 54 50 50 0C 0C 4B 06' => 'Sigma 50mm F1.4 DG HSM | A',
     '02 48 50 50 24 24 02 00' => 'Sigma Macro 50mm F2.8', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,4027.0.html
     '32 54 50 50 24 24 35 02' => 'Sigma Macro 50mm F2.8 EX DG',
     'E3 54 50 50 24 24 35 02' => 'Sigma Macro 50mm F2.8 EX DG', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3215.0.html
@@ -317,6 +338,7 @@ sub PrintAFPointsInv($$;$);
     '02 48 65 65 24 24 02 00' => 'Sigma Macro 90mm F2.8',
     '32 54 6A 6A 24 24 35 02.2' => 'Sigma Macro 105mm F2.8 EX DG', #JD
     'E5 54 6A 6A 24 24 35 02' => 'Sigma Macro 105mm F2.8 EX DG',
+    '97 48 6A 6A 24 24 4B 0E' => 'Sigma Macro 105mm F2.8 EX DG OS HSM',
     '48 48 76 76 24 24 4B 06' => 'Sigma APO Macro 150mm F2.8 EX DG HSM',
     'F5 48 76 76 24 24 4B 06' => 'Sigma APO Macro 150mm F2.8 EX DG HSM', #24
     '99 48 76 76 24 24 4B 0E' => 'Sigma APO Macro 150mm F2.8 EX DG OS HSM', #(Christian Hesse)
@@ -362,9 +384,10 @@ sub PrintAFPointsInv($$;$);
     '26 40 2D 70 2B 3C 1C 06' => 'Sigma 18-125mm F3.5-5.6 DC',
     'CD 3D 2D 70 2E 3C 4B 0E' => 'Sigma 18-125mm F3.8-5.6 DC OS HSM',
     '26 40 2D 80 2C 40 1C 06' => 'Sigma 18-200mm F3.5-6.3 DC',
+    'FF 40 2D 80 2C 40 4B 06' => 'Sigma 18-200mm F3.5-6.3 DC', #30
     '7A 40 2D 80 2C 40 4B 0E' => 'Sigma 18-200mm F3.5-6.3 DC OS HSM',
     'ED 40 2D 80 2C 40 4B 0E' => 'Sigma 18-200mm F3.5-6.3 DC OS HSM', #JD
-    'FF 40 2D 80 2C 40 4B 06' => 'Sigma 18-200mm F3.5-6.3 DC', #30
+    '90 40 2D 80 2C 40 4B 0E' => 'Sigma 18-200mm F3.5-6.3 II DC OS HSM', #JohnHelour
     'A5 40 2D 88 2C 40 4B 0E' => 'Sigma 18-250mm F3.5-6.3 DC OS HSM',
   #  LensFStops varies with FocalLength for this lens (ref 2):
     '92 2C 2D 88 2C 40 4B 0E' => 'Sigma 18-250mm F3.5-6.3 DC Macro OS HSM', #2
@@ -392,6 +415,7 @@ sub PrintAFPointsInv($$;$);
     '67 54 37 5C 24 24 1C 02' => 'Sigma 24-70mm F2.8 EX DG Macro',
     'E9 54 37 5C 24 24 1C 02' => 'Sigma 24-70mm F2.8 EX DG Macro',
     '26 40 37 5C 2C 3C 1C 02' => 'Sigma 24-70mm F3.5-5.6 Aspherical HF',
+    '8A 3C 37 6A 30 30 4B 0E' => 'Sigma 24-105mm F4 DG OS HSM', #33
     '26 54 37 73 24 34 1C 02' => 'Sigma 24-135mm F2.8-4.5',
     '02 46 3C 5C 25 25 02 00' => 'Sigma 28-70mm F2.8',
     '26 54 3C 5C 24 24 1C 02' => 'Sigma 28-70mm F2.8 EX',
@@ -413,6 +437,7 @@ sub PrintAFPointsInv($$;$);
     '02 40 44 73 2B 36 02 00' => 'Sigma 35-135mm F3.5-4.5 a',
     '7A 47 50 76 24 24 4B 06' => 'Sigma 50-150mm F2.8 EX APO DC HSM',
     'FD 47 50 76 24 24 4B 06' => 'Sigma 50-150mm F2.8 EX APO DC HSM II',
+    '98 48 50 76 24 24 4B 0E' => 'Sigma 50-150mm F2.8 EX APO DC OS HSM', #30
     '48 3C 50 A0 30 40 4B 02' => 'Sigma 50-500mm F4-6.3 EX APO RF HSM',
     '9F 37 50 A0 34 40 4B 0E' => 'Sigma 50-500mm F4.5-6.3 DG OS HSM', #16
     '26 3C 54 80 30 3C 1C 06' => 'Sigma 55-200mm F4-5.6 DC',
@@ -439,6 +464,8 @@ sub PrintAFPointsInv($$;$);
     'CF 38 6E 98 34 3C 4B 0E' => 'Sigma APO 120-400mm F4.5-5.6 DG OS HSM',
     '26 44 73 98 34 3C 1C 02' => 'Sigma 135-400mm F4.5-5.6 APO Aspherical',
     'CE 34 76 A0 38 40 4B 0E' => 'Sigma 150-500mm F5-6.3 DG OS APO HSM', #JD
+    '81 34 76 A6 38 40 4B 0E' => 'Sigma 150-600mm F5-6.3 DG OS HSM | S', #Jaap Voets
+    '82 34 76 A6 38 40 4B 0E' => 'Sigma 150-600mm F5-6.3 DG OS HSM | C',
     '26 40 7B A0 34 40 1C 02' => 'Sigma APO 170-500mm F5-6.3 Aspherical RF',
     'A7 49 80 A0 24 24 4B 06' => 'Sigma APO 200-500mm F2.8 EX DG',
     '48 3C 8E B0 3C 3C 4B 02' => 'Sigma APO 300-800mm F5.6 EX DG HSM',
@@ -456,7 +483,10 @@ sub PrintAFPointsInv($$;$);
     '21 56 8E 8E 24 24 14 00' => 'Tamron SP AF 300mm f/2.8 LD-IF (60E)',
     '27 54 8E 8E 24 24 1D 02' => 'Tamron SP AF 300mm f/2.8 LD-IF (360E)',
     'F6 3F 18 37 2C 34 84 06' => 'Tamron SP AF 10-24mm f/3.5-4.5 Di II LD Aspherical (IF) (B001)',
+    'F6 3F 18 37 2C 34 DF 06' => 'Tamron SP AF 10-24mm f/3.5-4.5 Di II LD Aspherical (IF) (B001)', #30
     '00 36 1C 2D 34 3C 00 06' => 'Tamron SP AF 11-18mm f/4.5-5.6 Di II LD Aspherical (IF) (A13)',
+    'E9 48 27 3E 24 24 DF 0E' => 'Tamron SP 15-30mm f/2.8 Di VC USD (A012)', #33
+    'EA 40 29 8E 2C 40 DF 0E' => 'Tamron AF 16-300mm f/3.5-6.3 Di II VC PZD (B016)',
     '07 46 2B 44 24 30 03 02' => 'Tamron SP AF 17-35mm f/2.8-4 Di LD Aspherical (IF) (A05)',
     '00 53 2B 50 24 24 00 06' => 'Tamron SP AF 17-50mm f/2.8 XR Di II LD Aspherical (IF) (A16)', #PH
     '00 54 2B 50 24 24 00 06' => 'Tamron SP AF 17-50mm f/2.8 XR Di II LD Aspherical (IF) (A16NII)',
@@ -482,6 +512,7 @@ sub PrintAFPointsInv($$;$);
     '10 3D 3C 60 2C 3C D2 02' => 'Tamron AF 28-80mm f/3.5-5.6 Aspherical (177D)',
     '45 3D 3C 60 2C 3C 48 02' => 'Tamron AF 28-80mm f/3.5-5.6 Aspherical (177D)',
     '00 48 3C 6A 24 24 00 02' => 'Tamron SP AF 28-105mm f/2.8 LD Aspherical IF (176D)',
+    '4D 3E 3C 80 2E 3C 62 02' => 'Tamron AF 28-200mm F/3.8-5.6 XR Aspherical (IF) Macro (A03N)',
     '0B 3E 3D 7F 2F 3D 0E 00' => 'Tamron AF 28-200mm f/3.8-5.6 (71D)',
     '0B 3E 3D 7F 2F 3D 0E 02' => 'Tamron AF 28-200mm f/3.8-5.6D (171D)',
     '12 3D 3C 80 2E 3C DF 02' => 'Tamron AF 28-200mm f/3.8-5.6 AF Aspherical LD (IF) (271D)',
@@ -511,14 +542,19 @@ sub PrintAFPointsInv($$;$);
     '12 3B 98 98 3D 3D 09 00' => 'Tokina AT-X 400 AF SD (AF 400mm f/5.6)',
     '00 40 18 2B 2C 34 00 06' => 'Tokina AT-X 107 AF DX Fisheye (AF 10-17mm f/3.5-4.5)',
     '00 48 1C 29 24 24 00 06' => 'Tokina AT-X 116 PRO DX (AF 11-16mm f/2.8)',
+    '7A 48 1C 29 24 24 7E 06' => 'Tokina AT-X 116 PRO DX II (AF 11-16mm f/2.8)',
+    '7A 48 1C 30 24 24 7E 06' => 'Tokina AT-X 11-20 F2.8 PRO DX (AF 11-20mm f/2.8)',
     '00 3C 1F 37 30 30 00 06' => 'Tokina AT-X 124 AF PRO DX (AF 12-24mm f/4)',
     '7A 3C 1F 37 30 30 7E 06.2' => 'Tokina AT-X 124 AF PRO DX II (AF 12-24mm f/4)',
+    '7A 3C 1F 3C 30 30 7E 06' => 'Tokina AT-X 12-28 PRO DX (AF 12-28mm F/4)',
     '00 48 29 3C 24 24 00 06' => 'Tokina AT-X 16-28 AF PRO FX (AF 16-28mm f/2.8)',
     '00 48 29 50 24 24 00 06' => 'Tokina AT-X 165 PRO DX (AF 16-50mm f/2.8)',
     '00 40 2A 72 2C 3C 00 06' => 'Tokina AT-X 16.5-135 DX (AF 16.5-135mm F3.5-5.6)',
+    '00 3C 2B 44 30 30 00 06' => 'Tokina AT-X 17-35 F4 PRO FX (AF 17-35mm f/4)',
     '2F 40 30 44 2C 34 29 02.2' => 'Tokina AF 193 (AF 19-35mm f/3.5-4.5)',
     '2F 48 30 44 24 24 29 02.2' => 'Tokina AT-X 235 AF PRO (AF 20-35mm f/2.8)',
     '2F 40 30 44 2C 34 29 02.1' => 'Tokina AF 235 II (AF 20-35mm f/3.5-4.5)',
+    '00 48 37 5C 24 24 00 06' => 'Tokina AT-X 24-70 F2.8 PRO FX (AF 24-70mm f/2.8)',
     '00 40 37 80 2C 3C 00 02' => 'Tokina AT-X 242 AF (AF 24-200mm f/3.5-5.6)',
     '25 48 3C 5C 24 24 1B 02.1' => 'Tokina AT-X 270 AF PRO II (AF 28-70mm f/2.6-2.8)',
     '25 48 3C 5C 24 24 1B 02.2' => 'Tokina AT-X 287 AF PRO SV (AF 28-70mm f/2.8)',
@@ -528,6 +564,8 @@ sub PrintAFPointsInv($$;$);
     '00 48 3C 60 24 24 00 02' => 'Tokina AT-X 280 AF PRO (AF 28-80mm f/2.8)',
     '25 44 44 8E 34 42 1B 02' => 'Tokina AF 353 (AF 35-300mm f/4.5-6.7)',
     '00 48 50 72 24 24 00 06' => 'Tokina AT-X 535 PRO DX (AF 50-135mm f/2.8)',
+    '00 3C 5C 80 30 30 00 0E' => 'Tokina AT-X 70-200 F4 FX VCM-S (AF 70-200mm f/4)',
+    '00 48 5C 80 30 30 00 0E' => 'Tokina AT-X 70-200 F4 FX VCM-S (AF 70-200mm f/4)',
     '12 44 5E 8E 34 3C 09 00' => 'Tokina AF 730 (AF 75-300mm F4.5-5.6)',
     '14 54 60 80 24 24 0B 00' => 'Tokina AT-X 828 AF (AF 80-200mm f/2.8)',
     '24 54 60 80 24 24 1A 02' => 'Tokina AT-X 828 AF PRO (AF 80-200mm f/2.8)',
@@ -542,7 +580,10 @@ sub PrintAFPointsInv($$;$);
     '12 39 5C 8E 34 3D 08 02' => 'Cosina AF Zoom 70-300mm F4.5-5.6 MC Macro',
     '12 3B 68 8D 3D 43 09 02' => 'Cosina AF Zoom 100-300mm F5.6-6.7 MC Macro',
 #
+    '12 38 69 97 35 42 09 02' => 'Promaster Spectrum 7 100-400mm F4.5-6.7',
+#
     '00 40 31 31 2C 2C 00 00' => 'Voigtlander Color Skopar 20mm F3.5 SLII Aspherical',
+    '00 48 3C 3C 24 24 00 00' => 'Voigtlander Color Skopar 28mm F2.8 SL II',
     '00 54 48 48 18 18 00 00' => 'Voigtlander Ultron 40mm F2 SLII Aspherical',
     '00 54 55 55 0C 0C 00 00' => 'Voigtlander Nokton 58mm F1.4 SLII',
     '00 40 64 64 2C 2C 00 00' => 'Voigtlander APO-Lanthar 90mm F3.5 SLII Close Focus',
@@ -550,19 +591,29 @@ sub PrintAFPointsInv($$;$);
     '00 40 2D 2D 2C 2C 00 00' => 'Carl Zeiss Distagon T* 3.5/18 ZF.2',
     '00 48 32 32 24 24 00 00' => 'Carl Zeiss Distagon T* 2.8/21 ZF.2',
     '00 54 3C 3C 18 18 00 00' => 'Carl Zeiss Distagon T* 2/28 ZF.2',
+    '00 54 44 44 0C 0C 00 00' => 'Carl Zeiss Distagon T* 1.4/35 ZF.2',
     '00 54 44 44 18 18 00 00' => 'Carl Zeiss Distagon T* 2/35 ZF.2',
     '00 54 50 50 0C 0C 00 00' => 'Carl Zeiss Planar T* 1.4/50 ZF.2',
     '00 54 50 50 18 18 00 00' => 'Carl Zeiss Makro-Planar T* 2/50 ZF.2',
     '00 54 62 62 0C 0C 00 00' => 'Carl Zeiss Planar T* 1.4/85 ZF.2',
     '00 54 68 68 18 18 00 00' => 'Carl Zeiss Makro-Planar T* 2/100 ZF.2',
+    '00 54 72 72 18 18 00 00' => 'Carl Zeiss Apo Sonnar T* 2/135 ZF.2',
+    '00 54 53 53 0C 0C 00 00' => 'Zeiss Otus 1.4/55', #33
+    '01 54 62 62 0C 0C 00 00' => 'Zeiss Otus 1.4/85',
+    '52 54 44 44 18 18 00 00' => 'Zeiss Milvus 35mm f/2',
+    '53 54 50 50 0C 0C 00 00' => 'Zeiss Milvus 50mm f/1.4', #33
+    '54 54 50 50 18 18 00 00' => 'Zeiss Milvus 50mm f/2 Macro',
+    '55 54 62 62 0C 0C 00 00' => 'Zeiss Milvus 85mm f/1.4', #33
+    '56 54 68 68 18 18 00 00' => 'Zeiss Milvus 100mm f/2 Macro',
 #
     '00 54 56 56 30 30 00 00' => 'Coastal Optical Systems 60mm 1:4 UV-VIS-IR Macro Apo',
 #
     '4A 40 11 11 2C 0C 4D 02' => 'Samyang 8mm f/3.5 Fish-Eye CS',
+    '4A 48 1E 1E 24 0C 4D 02' => 'Samyang 12mm f/2.8 ED AS NCS Fish-Eye', #Jurgen Sahlberg
     '4A 48 24 24 24 0C 4D 02' => 'Samyang AE 14mm f/2.8 ED AS IF UMC', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,3150.0.html
+    '4A 54 29 29 18 0C 4D 02' => 'Samyang 16mm F2.0 ED AS UMC CS', #Jon Bloom (by email)
     '4A 60 44 44 0C 0C 4D 02' => 'Samyang 35mm f/1.4 AS UMC',
     '4A 60 62 62 0C 0C 4D 02' => 'Samyang AE 85mm f/1.4 AS IF UMC', #http://u88.n24.queensu.ca/exiftool/forum/index.php/topic,2888.0.html
-    '4A 54 29 29 18 0C 4D 02' => 'Samyang 16mm F2.0 ED AS UMC CS', #Jon Bloom (by email)
 #
     '02 40 44 5C 2C 34 02 00' => 'Exakta AF 35-70mm 1:3.5-4.5 MC',
 #
@@ -575,7 +626,9 @@ sub PrintAFPointsInv($$;$);
 #
     '00 00 48 48 53 53 00 01' => 'Loreo 40mm F11-22 3D Lens in a Cap 9005', #PH
     '00 47 10 10 24 24 00 00' => 'Fisheye Nikkor 8mm f/2.8 AiS',
-    '00 54 44 44 0C 0C 00 00' => 'Nikkor 35mm f/1.4 AiS',
+    '00 47 3C 3C 24 24 00 00' => 'Nikkor 28mm f/2.8 AiS', #35
+  # '00 54 44 44 0C 0C 00 00' => 'Nikkor 35mm f/1.4 AiS', comment out in favour of Zeiss with same ID because this lens is rare (requires CPU upgrade)
+    '00 57 50 50 14 14 00 00' => 'Nikkor 50mm f/1.8 AI', #35
     '00 48 50 50 18 18 00 00' => 'Nikkor H 50mm f/2',
     '00 48 68 68 24 24 00 00' => 'Series E 100mm f/2.8',
     '00 4C 6A 6A 20 20 00 00' => 'Nikkor 105mm f/2.5 AiS',
@@ -818,8 +871,8 @@ my %binaryDataAttrs = (
     #   both:     "Built-in,TTL&Comdr."
     #   no flash: ""
     0x0009 => { Name => 'FlashType',    Writable => 'string' }, #2 (count varies by model - PH)
-    # 0x000a - rational values: 5.6 to 9.283 - found in coolpix models - PH
-    #          (not correlated with any LV or scale factor)
+    # 0x000a - rational values: 5.6 to 9.33 - found in Coolpix models - PH
+    #          (seems constant for a given camera model, but not correlated with scale factor)
     0x000b => { #2
         Name => 'WhiteBalanceFineTune',
         Writable => 'int16s',
@@ -1188,10 +1241,12 @@ my %binaryDataAttrs = (
                 0 => 'Continuous',
                 1 => 'Delay',
                 2 => 'PC Control',
+                3 => 'Self-timer', #forum6281 (NC)
                 4 => 'Exposure Bracketing',
                 5 => $$self{Model}=~/D70\b/ ? 'Unused LE-NR Slowdown' : 'Auto ISO',
                 6 => 'White-Balance Bracketing',
                 7 => 'IR Control',
+                8 => 'D-Lighting Bracketing', #forum6281 (NC)
             });
         ],
     },
@@ -1290,11 +1345,10 @@ my %binaryDataAttrs = (
             SubDirectory => {
                 TagTable => 'Image::ExifTool::Nikon::ShotInfoD3S',
                 DecryptStart => 4,
-                DecryptLen => 0x2e6,
+                DecryptLen => 0x2e9,
                 ByteOrder => 'BigEndian',
             },
         },
-        # 0223 - D4
         { #JD (D300, firmware 0.25 and 1.00)
             # D3 and D300 use the same version number, but the length is different
             Condition => '$$valPt =~ /^0210/ and $count == 5291',
@@ -1334,8 +1388,6 @@ my %binaryDataAttrs = (
             Name => 'ShotInfoD700',
             SubDirectory => {
                 TagTable => 'Image::ExifTool::Nikon::ShotInfoD700',
-                ProcessProc => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
-                WriteProc => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
                 DecryptStart => 4,
                 DecryptLen => 0x358,
                 ByteOrder => 'BigEndian',
@@ -1346,11 +1398,22 @@ my %binaryDataAttrs = (
             Name => 'ShotInfoD800',
             SubDirectory => {
                 TagTable => 'Image::ExifTool::Nikon::ShotInfoD800',
-                ProcessProc => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
-                WriteProc => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
                 DecryptStart => 4,
                 DecryptLen => 0x720,
                 ByteOrder => 'BigEndian',
+            },
+        },
+        { #28 (D810 firmware 1.01)
+            Condition => '$$valPt =~ /^0233/',
+            Name => 'ShotInfoD810',
+            SubDirectory => {
+                TagTable => 'Image::ExifTool::Nikon::ShotInfoD810',
+                DecryptStart => 4,
+                # initially only decrypt enough to extract CustomSettingsOffset
+                DecryptLen => 0x40,
+                # then decrypt through to the end of the custom settings
+                DecryptMore => 'Get32u(\$data, 0x40) + 53 + 4',
+                ByteOrder => 'LittleEndian',
             },
         },
         # 0217 - D3000
@@ -1391,11 +1454,29 @@ my %binaryDataAttrs = (
             Name => 'ShotInfoD7000',
             SubDirectory => {
                 TagTable => 'Image::ExifTool::Nikon::ShotInfoD7000',
-                ProcessProc => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
-                WriteProc => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
                 DecryptStart => 4,
                 DecryptLen => 0x448,
                 ByteOrder => 'BigEndian',
+            },
+        },
+        { # (D4 firmware version 1.00g)
+            Condition => '$$valPt =~ /^0223/',
+            Name => 'ShotInfoD4',
+            SubDirectory => {
+                TagTable => 'Image::ExifTool::Nikon::ShotInfoD4',
+                DecryptStart => 4,
+                DecryptLen => 0x789,
+                ByteOrder => 'BigEndian',
+            },
+        },
+        { # (D4S firmware version 1.00d and 1.01a)
+            Condition => '$$valPt =~ /^0231/',
+            Name => 'ShotInfoD4S',
+            SubDirectory => {
+                TagTable => 'Image::ExifTool::Nikon::ShotInfoD4S',
+                DecryptStart => 4,
+                DecryptLen => 0x3517,
+                ByteOrder => 'LittleEndian',
             },
         },
         # 0227 - D7100
@@ -1778,7 +1859,21 @@ my %binaryDataAttrs = (
         # unfortunately, some newer models write this as little-endian
         # (and CaptureNX can change the byte order of the maker notes,
         #  but leaves this structure unchanged)
-        Condition => '$$self{Model} =~ /^NIKON (D5200|D7100)$/',
+        # - it will be an ongoing pain to keep this list of models up-to-date,
+        #   so if only one ordering yields valid DirectoryNumber and FileNumber values,
+        #   use it, otherwise default to a-priori knowledge of the camera model
+        #   (assume that a valid DirectoryNumber is 100-999, and a valid FileNumber
+        #   is 0000-9999, although I have some samples with a DirectoryNumber of 99)
+        Condition => q{
+            if (length($$valPt) >= 0) {
+                my ($dir, $file) = unpack('x6vv', $$valPt);
+                my $littleEndian = ($dir >= 100 and $dir <= 999 and $file <= 9999);
+                ($dir, $file) = unpack('x6nn', $$valPt);
+                my $bigEndian = ($dir >= 100 and $dir <= 999 and $file <= 9999);
+                return $littleEndian if $littleEndian xor $bigEndian;
+            }
+            return $$self{Model} =~ /^NIKON (D4S|D750|D810|D3300|D5200|D5300|D5500|D7100)$/;
+        },
         SubDirectory => {
             TagTable => 'Image::ExifTool::Nikon::FileInfo',
             ByteOrder => 'LittleEndian',
@@ -1795,6 +1890,11 @@ my %binaryDataAttrs = (
         SubDirectory => { TagTable => 'Image::ExifTool::Nikon::AFTune' },
     },
     # 0x00ba - custom curve data? (ref 28?) (only in NEF images)
+    0x00bb => { #forum6281
+        Name => 'RetouchInfo',
+        SubDirectory => { TagTable => 'Image::ExifTool::Nikon::RetouchInfo' },
+    },
+    # 0x00bc - NEFThumbnail? (forum6281)
     0x00bd => { #PH (P6000)
         Name => 'PictureControlData',
         Writable => 'undef',
@@ -2245,7 +2345,7 @@ my %binaryDataAttrs = (
     %binaryDataAttrs,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Time' },
     0 => {
-        Name => 'Timezone',
+        Name => 'TimeZone',
         Format => 'int16s',
         PrintConv => q{
             my $sign = $val < 0 ? '-' : '+';
@@ -2497,10 +2597,12 @@ my %binaryDataAttrs = (
                 10 => 'Single Area (wide)', #PH
                 11 => 'Dynamic Area (wide)', #PH
                 12 => 'Dynamic Area (wide, 3D-tracking)', #PH
-                128 => 'Single (135 points)', #PH (1J1)
-                129 => 'Auto (41 points)', #PH (1J1)
-                130 => 'Subject Tracking (41 points)', #PH (1J1)
-                131 => 'Face Priority (41 points)', #PH (1J1)
+                128 => 'Single', #PH (1J1,1J2,1J3,1J4,1S1,1S2,1V2,1V3)
+                129 => 'Auto (41 points)', #PH (1J1,1J2,1J3,1J4,1S1,1S2,1V1,1V2,1V3,AW1)
+                130 => 'Subject Tracking (41 points)', #PH (1J1,1J4,1J3)
+                131 => 'Face Priority (41 points)', #PH (1J1,1J3,1S1,1V2,AW1)
+                # 134 - seen for 1V1[PhaseDetectAF=0] (PH)
+                # 135 - seen for 1J2[PhaseDetectAF=4] (PH)
             },
         },
         { #PH (D3/D90/D5000)
@@ -2515,6 +2617,10 @@ my %binaryDataAttrs = (
                 2 => 'Contrast-detect (wide area)', # (D90/D5000)
                 3 => 'Contrast-detect (face priority)', # (ViewNX)
                 4 => 'Contrast-detect (subject tracking)', # (ViewNX)
+                128 => 'Single', #PH (1V3)
+                129 => 'Auto (41 points)', #PH (NC)
+                130 => 'Subject Tracking (41 points)', #PH (NC)
+                131 => 'Face Priority (41 points)', #PH (NC)
             },
         },
     ],
@@ -2523,12 +2629,14 @@ my %binaryDataAttrs = (
         Notes => 'PrimaryAFPoint and AFPointsUsed below are only valid when this is On',
         RawConv => '$$self{PhaseDetectAF} = $val',
         PrintConv => {
+            # [observed AFAreaMode values in square brackets for each PhaseDetectAF value]
             0 => 'Off',
             1 => 'On (51-point)', #PH
             2 => 'On (11-point)', #PH
             3 => 'On (39-point)', #29 (D7000)
-            4 => 'On (hybrid)', #PH (1J1)
-            5 => 'On (105-point)', #PH (1J4)
+            4 => 'On (73-point)', #PH (1J1[128/129],1J2[128/129/135],1J3/1S1/1V2[128/129/131],1V1[129],AW1[129/131])
+            5 => 'On (5)', #PH (1S2[128/129], 1J4/1V3[129])
+            6 => 'On (105-point)', #PH (1J4/1V3[128/130])
         },
     },
     7 => [
@@ -2577,12 +2685,50 @@ my %binaryDataAttrs = (
         { #PH
             Name => 'PrimaryAFPoint',
             Condition => '$$self{PhaseDetectAF} == 4',
-            Notes => 'models with 135-point AF: Nikon 1 models',
+            Notes => 'Nikon 1 models with older 135-point AF and 73-point phase-detect AF',
             PrintConvColumns => 5,
             PrintConv => {
                 0 => '(none)',
                 %afPoints135,
                 1 => 'E8 (Center)', # (add " (Center)" to central point)
+            },
+        },
+        { #PH (NC)
+            Name => 'PrimaryAFPoint',
+            Condition => '$$self{PhaseDetectAF} == 5',
+            Notes => q{
+                Nikon 1 models with newer 135-point AF and 73-point phase-detect AF -- 9
+                rows (B-J) and 15 columns (1-15), inside a grid of 11 rows by 15 columns. 
+                The points are numbered sequentially, with F8 at the center
+            },
+            PrintConv => {
+                0 => '(none)',
+                82 => 'F8 (Center)',
+                OTHER => sub {
+                    my ($val, $inv) = @_;
+                    return GetAFPointGrid($val, 15, $inv);
+                },
+            },
+        },
+        { #PH
+            Name => 'PrimaryAFPoint',
+            Condition => '$$self{PhaseDetectAF} == 6',
+            Notes => q{
+                Nikon 1 models with 171-point AF and 105-point phase-detect AF -- 9 rows
+                (B-J) and 19 columns (2-20), inside a grid of 11 rows by 21 columns.  The
+                points are numbered sequentially, with F11 at the center
+            },
+            PrintConv => {
+                0 => '(none)',
+                #22 => 'B2 (Top-left)',
+                #40 => 'B20 (Top-right)',
+                115 => 'F11 (Center)',
+                #190 => 'J2 (Bottom-left)',
+                #208 => 'J20 (Bottom-right)',
+                OTHER => sub {
+                    my ($val, $inv) = @_;
+                    return GetAFPointGrid($val, 21, $inv);
+                },
             },
         },
         {
@@ -2603,8 +2749,10 @@ my %binaryDataAttrs = (
                 point is C6
             },
             Format => 'undef[7]',
+            ValueConv => 'join(" ", unpack("H2"x7, $val))',
+            ValueConvInv => '$val=~tr/ //d; pack("H*",$val)',
             PrintConv => sub { PrintAFPoints(shift, \%afPoints51); },
-            PrintConvInv => sub { PrintAFPointsInv(shift, \%afPoints51); },
+            PrintConvInv => sub { PrintAFPointsInv(shift, \%afPoints51, 7); },
         },
         { #10
             Name => 'AFPointsUsed',
@@ -2641,26 +2789,58 @@ my %binaryDataAttrs = (
                 point is C6
             },
             Format => 'undef[7]',
+            ValueConv => 'join(" ", unpack("H2"x7, $val))',
+            ValueConvInv => '$val=~tr/ //d; pack("H*",$val)',
             PrintConv => sub { PrintAFPoints(shift, \%afPoints39); },
-            PrintConvInv => sub { PrintAFPointsInv(shift, \%afPoints39); },
+            PrintConvInv => sub { PrintAFPointsInv(shift, \%afPoints39, 7); },
         },
-        { #PH (1J1, AFInfo2Version = "0200")
+        { #PH (1AW1,1J1,1J2,1J3,1S1,1V1,1V2)
             Name => 'AFPointsUsed',
             Condition => '$$self{PhaseDetectAF} == 4',
             Notes => q{
-                models with 135-point AF -- 9 rows (A-I) and 15 columns (1-15).  Center
-                point is E8.  The odd-numbered columns, columns 2 and 14, and the remaining
-                corner points are not used for 41-point AF mode
+                older models with 135-point AF -- 9 rows (A-I) and 15 columns (1-15). 
+                Center point is E8.  The odd-numbered columns, columns 2 and 14, and the
+                remaining corner points are not used for 41-point AF mode
             },
             Format => 'undef[17]',
-            PrintConv => sub { PrintAFPoints(shift, \%afPoints135, 17); },
+            ValueConv => 'join(" ", unpack("H2"x17, $val))',
+            ValueConvInv => '$val=~tr/ //d; pack("H*",$val)',
+            PrintConv => sub { PrintAFPoints(shift, \%afPoints135); },
             PrintConvInv => sub { PrintAFPointsInv(shift, \%afPoints135, 17); },
+        },
+        { #PH (1S2)
+            Name => 'AFPointsUsed',
+            Condition => '$$self{PhaseDetectAF} == 5',
+            Notes => q{
+                newer models with 135-point AF -- 9 rows (B-J) and 15 colums (1-15).  Center
+                point is F8
+            },
+            Format => 'undef[21]',
+            ValueConv => 'join(" ", unpack("H2"x21, $val))',
+            ValueConvInv => '$val=~tr/ //d; pack("H*",$val)',
+            PrintConv => sub { PrintAFPointsGrid(shift, 15); },
+            PrintConvInv => sub { PrintAFPointsGridInv(shift, 15, 21); },
+        },
+        { #PH (1J4,1V3)
+            Name => 'AFPointsUsed',
+            Condition => '$$self{PhaseDetectAF} == 6',
+            Notes => q{
+                models with 171-point AF -- 9 rows (B-J) and 19 columns (2-20).  Center
+                point is F10
+            },
+            Format => 'undef[29]',
+            ValueConv => 'join(" ", unpack("H2"x29, $val))',
+            ValueConvInv => '$val=~tr/ //d; pack("H*",$val)',
+            PrintConv => sub { PrintAFPointsGrid(shift, 21); },
+            PrintConvInv => sub { PrintAFPointsGridInv(shift, 21, 29); },
         },
         {
             Name => 'AFPointsUsed',
             Format => 'undef[7]',
-            PrintConv => '$_=unpack("H*",$val); "Unknown (".join(" ", /(..)/g).")"',
-            PrintConvInv => '$val=~s/Unknown \\((.*)\\)/$1/;$val=~tr/ //d;pack("H*",$val)',
+            ValueConv => 'join(" ", unpack("H2"x7, $val))',
+            ValueConvInv => '$val=~tr/ //d; pack("H*",$val)',
+            PrintConv => '"Unknown ($val)"',
+            PrintConvInv => '$val=~s/Unknown \\((.*)\\)/$1/; $val',
         },
     ],
     0x10 => { #PH (D90 and D5000)
@@ -2742,24 +2922,46 @@ my %binaryDataAttrs = (
     },
 );
 
+# Nikon NEF processing information (ref forum6281)
+%Image::ExifTool::Nikon::RetouchInfo = (
+    %binaryDataAttrs,
+    FORMAT => 'int8s',
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    DATAMEMBER => [ 0 ],
+    0 => {
+        Name => 'RetouchInfoVersion',
+        Format => 'undef[4]',
+        Writable => 0,
+        RawConv => '$$self{RetouchInfoVersion} = $val',
+    },
+    # 4 - RetouchExposureComp (+$val/6 or -$val/6?)
+    5 => {
+        Name => 'RetouchNEFProcessing',
+        Condition => '$$self{RetouchInfoVersion} ge "0200"',
+        PrintConv => {
+            -1 => 'Off',
+            1 => 'On',
+        },
+    },
+);
+
 # Nikon File information - D60, D3 and D300 (ref PH)
 %Image::ExifTool::Nikon::FileInfo = (
     %binaryDataAttrs,
     GROUPS => { 0 => 'MakerNotes', 2 => 'Image' },
+    FORMAT => 'int16u',
     0 => {
         Name => 'FileInfoVersion',
         Format => 'undef[4]',
         Writable => 0,
     },
-    6 => {
+    3 => {
         Name => 'DirectoryNumber',
-        Format => 'int16u',
         PrintConv => 'sprintf("%.3d", $val)',
         PrintConvInv => '$val',
     },
-    8 => {
+    4 => {
         Name => 'FileNumber',
-        Format => 'int16u',
         PrintConv => 'sprintf("%.4d", $val)',
         PrintConvInv => '$val',
     },
@@ -2768,7 +2970,7 @@ my %binaryDataAttrs = (
 # ref PH
 %Image::ExifTool::Nikon::BarometerInfo = (
     %binaryDataAttrs,
-    GROUPS => { 0 => 'MakerNotes', 2 => 'Image' },
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Location' },
     0 => {
         Name => 'BarometerInfoVersion',
         Format => 'undef[4]',
@@ -3593,7 +3795,7 @@ my %nikonFocalConversions = (
     },
     0x27f => {
         Name => 'ShutterCount',
-        Condition => '$$self{FirmwareVersion} =~ /^2.0[012]/',
+        Condition => '$$self{FirmwareVersion} =~ /^2.0/',
         Notes => 'firmware 2.00, 2.01 and 2.02',
         Format => 'int32u',
         Priority => 0,
@@ -3731,12 +3933,12 @@ my %nikonFocalConversions = (
     },
     0x2ce => { #(NC)
         Name => 'CustomSettingsD3S',
-        Format => 'undef[24]',
+        Format => 'undef[27]',
         SubDirectory => {
             TagTable => 'Image::ExifTool::NikonCustom::SettingsD3',
         },
     },
-    # note: DecryptLen currently set to 0x2e6
+    # note: DecryptLen currently set to 0x2e9
 );
 
 # shot information for the D300 firmware 1.00 (encrypted) - ref JD
@@ -4358,6 +4560,172 @@ my %nikonFocalConversions = (
         },
     },
     # note: DecryptLen currently set to 0x720
+);
+
+# shot information for the D810 firmware 1.00(PH)/1.01 (encrypted) - ref 28
+%Image::ExifTool::Nikon::ShotInfoD810 = (
+    PROCESS_PROC => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
+    WRITE_PROC => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
+    CHECK_PROC => \&Image::ExifTool::CheckBinaryData,
+    VARS => { ID_LABEL => 'Index' },
+    DATAMEMBER => [ 0x40, 0x175e ],
+    IS_SUBDIR => [ 0x18ab ],
+    WRITABLE => 1,
+    FIRST_ENTRY => 0,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    NOTES => 'These tags are extracted from encrypted data in images from the D810.',
+    0x00 => {
+        Name => 'ShotInfoVersion',
+        Format => 'string[4]',
+        Writable => 0,
+    },
+    0x04 => {
+        Name => 'FirmwareVersion',
+        Format => 'string[5]',
+        Writable => 0,
+    },
+    # 0x0c - number of entries in offset table (= 0x21)
+    # 0x10 - int32u[val 0x0c]: offset table
+    0x40 => {
+        Name => 'CustomSettingsOffset', # (relative offset from start of ShotInfo data)
+        DataMember => 'CustomSettingsOffset',
+        Format => 'int32u',
+        Writable => 0,
+        RawConv => '$$self{CustomSettingsOffset} = $val',
+    },
+    0x175e => {
+        Name => 'D810MeteringMode',
+        Mask => 0x03,
+        PrintConv => {
+            0 => 'Matrix',
+            1 => 'Center',
+            2 => 'Spot',
+            3 => 'Highlight'
+        },
+        Hook => '$varSize += $$self{CustomSettingsOffset} - 0x18ab',
+    },
+    0x18ab => { # (actual offset adjusted by Hook above)
+        Name => 'CustomSettingsD810',
+        Notes => 'actual offset determined by CustomSettingsOffset',
+        Format => 'undef[53]',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::NikonCustom::SettingsD810',
+        },
+    },
+    # note: DecryptMore currently set to 53+4 bytes after CustomSettingsOffset
+);
+
+# shot information for the D4 firmware 1.00g (ref PH)
+%Image::ExifTool::Nikon::ShotInfoD4 = (
+    PROCESS_PROC => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
+    WRITE_PROC => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
+    CHECK_PROC => \&Image::ExifTool::CheckBinaryData,
+    VARS => { ID_LABEL => 'Index' },
+    IS_SUBDIR => [ 0x0751 ],
+    WRITABLE => 1,
+    FIRST_ENTRY => 0,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    NOTES => q{
+        These tags are extracted from encrypted data in images from the D4.
+    },
+    0x00 => {
+        Name => 'ShotInfoVersion',
+        Format => 'string[4]',
+        Writable => 0,
+    },
+    0x04 => {
+        Name => 'FirmwareVersion',
+        Format => 'string[5]',
+        Writable => 0,
+    },
+    0x0751 => { #PH (NC)
+        Name => 'CustomSettingsD4',
+        # (seems to work for 1.00g and 1.02b)
+        Format => 'undef[56]',
+        SubDirectory => { TagTable => 'Image::ExifTool::NikonCustom::SettingsD4' },
+    },
+    # note: DecryptLen currently set to 0x789
+);
+
+# shot information for the D4S firmware 1.01a (ref 28, encrypted)
+%Image::ExifTool::Nikon::ShotInfoD4S = (
+    PROCESS_PROC => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
+    WRITE_PROC => \&Image::ExifTool::Nikon::ProcessNikonEncrypted,
+    CHECK_PROC => \&Image::ExifTool::CheckBinaryData,
+    VARS => { ID_LABEL => 'Index' },
+    DATAMEMBER => [ 4 ],
+    IS_SUBDIR => [ 0x189d, 0x193d ],
+    WRITABLE => 1,
+    FIRST_ENTRY => 0,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    NOTES => q{
+        These tags are extracted from encrypted data in images from the D4S.
+    },
+    0x00 => {
+        Name => 'ShotInfoVersion',
+        Format => 'string[4]',
+        Writable => 0,
+    },
+    0x04 => {
+        Name => 'FirmwareVersion',
+        DataMember => 'FirmwareVersion',
+        Format => 'string[5]',
+        Writable => 0,
+        RawConv => '$$self{FirmwareVersion} = $val',
+    },
+    0x189d => { #PH (NC)
+        Name => 'CustomSettingsD4S',
+        Condition => '$$self{FirmwareVersion} =~ /^1.00/',
+        Notes => 'firmware version 1.00',
+        Format => 'undef[56]',
+        SubDirectory => { TagTable => 'Image::ExifTool::NikonCustom::SettingsD4' },
+    },
+    0x18c2 => { # CSf1-c (no idea why it is so far away from the rest of the settings)
+        Name => 'MultiSelectorLiveViewMode',
+        Groups => { 1 => 'NikonCustom' },
+        Condition => '$$self{FirmwareVersion} !~ /^1.00/',
+        Mask => 0xc0,
+        PrintConv => {
+            0x00 => 'Reset',
+            0x40 => 'Zoom',
+            0xc0 => 'None',
+        },
+    },
+    0x193d => {
+        Name => 'CustomSettingsD4S',
+        Condition => '$$self{FirmwareVersion} !~ /^1.00/',
+        Notes => 'firmware version 1.01',
+        Format => 'undef[56]',
+        SubDirectory => { TagTable => 'Image::ExifTool::NikonCustom::SettingsD4' },
+    },
+    0x350b => {
+        Name => 'RollAngle',
+        Format => 'fixed32u',
+        Notes => 'converted to degrees of clockwise camera rotation',
+        ValueConv => '$val < 180 ? -$val : 360 - $val',
+        ValueConvInv => '$val <= 0 ? -$val : 360 - $val',
+        PrintConv => 'sprintf("%.1f", $val)',
+        PrintConvInv => '$val',
+    },
+    0x350f => {
+        Name => 'PitchAngle',
+        Format => 'fixed32u',
+        Notes => 'converted to degrees of upward camera tilt',
+        ValueConv => '$val <= 180 ? $val : $val - 360',
+        ValueConvInv => '$val >= 0 ? $val : $val + 360',
+        PrintConv => 'sprintf("%.1f", $val)',
+        PrintConvInv => '$val',
+    },
+    0x3513 => {
+        Name => 'YawAngle',
+        Format => 'fixed32u',
+        Notes => 'the camera pitch angle when shooting in portrait orientation',
+        ValueConv => '$val <= 180 ? $val : $val - 360',
+        ValueConvInv => '$val >= 0 ? $val : $val + 360',
+        PrintConv => 'sprintf("%.1f", $val)',
+        PrintConvInv => '$val',
+    },
+    # note: DecryptLen currently set to 0x3517
 );
 
 # Flash information (ref JD)
@@ -5118,6 +5486,7 @@ my %nikonFocalConversions = (
     },
     ncth => {
         Name => 'ThumbnailImage',
+        Groups => { 2 => 'Preview' },
         Binary => 1,
     },
     ncvr => {
@@ -5126,6 +5495,7 @@ my %nikonFocalConversions = (
     },
     ncvw => {
         Name => 'PreviewImage',
+        Groups => { 2 => 'Preview' },
         RawConv => 'length($val) ? $val : undef',
         Binary => 1,
     },
@@ -5318,8 +5688,18 @@ my %nikonFocalConversions = (
         Name => 'NikonTags',
         SubDirectory => { TagTable => 'Image::ExifTool::Nikon::NCTG' },
     },
-    NCTH => { Name => 'ThumbnailImage', Format => 'undef', Binary => 1 },
-    NCVW => { Name => 'PreviewImage',   Format => 'undef', Binary => 1 },
+    NCTH => {
+        Name => 'ThumbnailImage',
+        Groups => { 2 => 'Preview' },
+        Format => 'undef',
+        Binary => 1,
+    },
+    NCVW => {
+        Name => 'PreviewImage',
+        Groups => { 2 => 'Preview' },
+        Format => 'undef',
+        Binary => 1,
+    },
     NCDB => { # (often 0 bytes long, or 4 null bytes)
         Name => 'NikonNCDB',
         SubDirectory => { TagTable => 'Image::ExifTool::Nikon::NCDB' },
@@ -5380,7 +5760,7 @@ my %nikonFocalConversions = (
         Groups => { 2 => 'Video' },
     },
     # 0x24 - int16u: 1, 2
-    # 0x31 - int16u: 1, 2
+    # 0x31 - int16u: 0, 1, 2
     0x32 => { #(guess)
         Name => 'AudioChannels',
         Groups => { 2 => 'Audio' },
@@ -5396,9 +5776,18 @@ my %nikonFocalConversions = (
     # 0x1001 - int16s: 0
     # 0x1011 - int32u: 0
     # 0x1012 - int32u: 0
+    # 0x1021 - int32u[32]: all zeros
 #
 # 0x110**** tags correspond to 0x**** tags in Exif::Main
 #
+    0x110829a => { #34
+        Name => 'ExposureTime',
+        PrintConv => 'Image::ExifTool::Exif::PrintExposureTime($val)',
+    },
+    0x110829d => { #34
+        Name => 'FNumber',
+        PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
+    },
     0x1108822 => {
         Name => 'ExposureProgram',
         PrintConv => {
@@ -5431,18 +5820,22 @@ my %nikonFocalConversions = (
             255 => 'Other',
         },
     },
+    0x110920a => { #34
+        Name => 'FocalLength',
+        PrintConv => 'sprintf("%.1f mm",$val)',
+    },
     0x110a434 => 'LensModel',
 #
 # 0x120**** tags correspond to 0x**** tags in GPS::Main
 #
     0x1200000 => {
         Name => 'GPSVersionID',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
         PrintConv => '$val =~ tr/ /./; $val',
     },
     0x1200001 => {
         Name => 'GPSLatitudeRef',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
         PrintConv => {
             N => 'North',
             S => 'South',
@@ -5450,7 +5843,7 @@ my %nikonFocalConversions = (
     },
     0x1200002 => {
         Name => 'GPSLatitude',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
         ValueConv => q{
             require Image::ExifTool::GPS;
             Image::ExifTool::GPS::ToDegrees($val);
@@ -5459,7 +5852,7 @@ my %nikonFocalConversions = (
     },
     0x1200003 => {
         Name => 'GPSLongitudeRef',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
         PrintConv => {
             E => 'East',
             W => 'West',
@@ -5467,7 +5860,7 @@ my %nikonFocalConversions = (
     },
     0x1200004 => {
         Name => 'GPSLongitude',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
         ValueConv => q{
             require Image::ExifTool::GPS;
             Image::ExifTool::GPS::ToDegrees($val);
@@ -5476,7 +5869,7 @@ my %nikonFocalConversions = (
     },
     0x1200005 => {
         Name => 'GPSAltitudeRef',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
         PrintConv => {
             0 => 'Above Sea Level',
             1 => 'Below Sea Level',
@@ -5484,12 +5877,12 @@ my %nikonFocalConversions = (
     },
     0x1200006 => {
         Name => 'GPSAltitude',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
         PrintConv => '$val =~ /^(inf|undef)$/ ? $val : "$val m"',
     },
     0x1200007 => {
         Name => 'GPSTimeStamp',
-        Groups => { 2 => 'Time' },
+        Groups => { 1 => 'GPS', 2 => 'Time' },
         ValueConv => q{
             require Image::ExifTool::GPS;
             Image::ExifTool::GPS::ConvertTimeStamp($val);
@@ -5498,11 +5891,11 @@ my %nikonFocalConversions = (
     },
     0x1200008 => {
         Name => 'GPSSatellites',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
     },
     0x1200010 => {
         Name => 'GPSImgDirectionRef',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
         PrintConv => {
             M => 'Magnetic North',
             T => 'True North',
@@ -5510,15 +5903,15 @@ my %nikonFocalConversions = (
     },
     0x1200011 => {
         Name => 'GPSImgDirection',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
     },
     0x1200012 => {
         Name => 'GPSMapDatum',
-        Groups => { 2 => 'Location' },
+        Groups => { 1 => 'GPS', 2 => 'Location' },
     },
     0x120001d => {
         Name => 'GPSDateStamp',
-        Groups => { 2 => 'Time' },
+        Groups => { 1 => 'GPS', 2 => 'Time' },
         ValueConv => 'Image::ExifTool::Exif::ExifDate($val)',
     },
 #
@@ -5529,13 +5922,29 @@ my %nikonFocalConversions = (
         PrintConv => '$_=$val;s/^(\d{2})/$1\./;s/^0//;$_',
     },
     0x2000005 => 'WhiteBalance',
+    0x2000007 => { Name => 'FocusMode',    Writable => 'string' }, #34
     0x200000b => 'WhiteBalanceFineTune',
+    0x200001b => {
+        Name => 'CropHiSpeed',
+        Writable => 'int16u',
+        Count => 7,
+        PrintConv => q{
+            my @a = split ' ', $val;
+            return "Unknown ($val)" unless @a == 7;
+            $a[0] = $a[0] ? "On" : "Off";
+            return "$a[0] ($a[1]x$a[2] cropped to $a[3]x$a[4] at pixel $a[5],$a[6])";
+        }
+    },
     0x200001e => {
         Name => 'ColorSpace',
         PrintConv => {
             1 => 'sRGB',
             2 => 'Adobe RGB',
         },
+    },
+    0x200001f => {
+        Name => 'VRInfo',
+        SubDirectory => { TagTable => 'Image::ExifTool::Nikon::VRInfo' },
     },
     0x2000023 => {
         Name => 'PictureControlData',
@@ -5545,6 +5954,13 @@ my %nikonFocalConversions = (
     0x2000024 => {
         Name => 'WorldTime',
         SubDirectory => { TagTable => 'Image::ExifTool::Nikon::WorldTime' },
+    },
+    0x2000025 => { #34
+        Name => 'ISOInfo',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Nikon::ISOInfo',
+            ByteOrder => 'BigEndian',
+        },
     },
     0x200002c => {
         Name => 'UnknownInfo',
@@ -5578,7 +5994,37 @@ my %nikonFocalConversions = (
         # short focal, long focal, aperture at short focal, aperture at long focal
         PrintConv => \&Image::ExifTool::Exif::PrintLensInfo,
     },
+    0x2000087 => {
+        Name => 'FlashMode',
+        Writable => 'int8u',
+        PrintConv => {
+            0 => 'Did Not Fire',
+            1 => 'Fired, Manual', #14
+            3 => 'Not Ready', #28
+            7 => 'Fired, External', #14
+            8 => 'Fired, Commander Mode',
+            9 => 'Fired, TTL Mode',
+        },
+    },
+    # 0x20000a8 - Flash Info (seen 0107 - not yet decoded, PH)
     0x20000ab => { Name => 'VariProgram', Writable => 'string' }, #2 (scene mode for DSLR's - PH)
+    0x20000b1 => { #34
+        Name => 'HighISONoiseReduction',
+        Writable => 'int16u',
+        PrintConv => {
+            0 => 'Off',
+            1 => 'Minimal', # for high ISO (>800) when setting is "Off"
+            2 => 'Low',     # Low,Normal,High take effect for ISO > 400
+            3 => 'Medium Low',
+            4 => 'Normal',
+            5 => 'Medium High',
+            6 => 'High',
+        },
+    },
+    0x20000b7 => {
+        Name => 'AFInfo2',
+        SubDirectory => { TagTable => 'Image::ExifTool::Nikon::AFInfo2' },
+    },
 );
 
 # Nikon composite tags
@@ -5651,22 +6097,22 @@ sub ProcessNikonAVI($$$)
 
 #------------------------------------------------------------------------------
 # Print conversion for Nikon AF points
-# Inputs: 0) value to convert (undef[7]),
+# Inputs: 0) value to convert (as a string of hex bytes),
 #         1) lookup for AF point bit number (starting at 1)
-#         2) size of data
-sub PrintAFPoints($$;$)
+sub PrintAFPoints($$)
 {
-    my ($val, $afPoints, $size) = @_;
-    $size or $size = 7;
-    return 'Unknown' unless length $val == $size;
-    my ($i, @points);
-    my @dat = unpack('C*', $val);
-    my $num = scalar(keys %$afPoints);
-    my ($byte, $mask) = (0, 0x01);
-    # loop through all AF points to find active ones
-    for ($i=1; $i<=$num; ++$i) {
-        push @points, $$afPoints{$i} if $dat[$byte] & $mask;
-        ($mask <<= 1) > 0x80 and $mask = 0x01, ++$byte;
+    my ($val, $afPoints) = @_;
+    my ($i, $j, @points);
+    $val =~ tr/ //d;    # remove spaces from hex string
+    my @dat = unpack 'C*', pack 'H*', $val; # convert to array of bytes
+    # loop through all bytes to find active AF points
+    for ($i=0; $i<=@dat; ++$i) {
+        next unless $dat[$i];
+        for ($j=0; $j<8; ++$j) {
+            next unless $dat[$i] & (1 << $j);
+            my $point = $$afPoints{$i*8 + $j + 1};
+            push @points, $point if defined $point;
+        }
     }
     return '(none)' unless @points;
     # sort the points and return as comma-separated string
@@ -5680,11 +6126,10 @@ sub PrintAFPoints($$;$)
 #------------------------------------------------------------------------------
 # Inverse print conversion for AF points
 # Inputs: 0) AF point string, 1) AF point lookup, 2) size of data
-# Returns: undef[7] AF point data
-sub PrintAFPointsInv($$;$)
+# Returns: AF point data as a string of hex bytes
+sub PrintAFPointsInv($$$)
 {
     my ($val, $afPoints, $size) = @_;
-    $size or $size = 7;
     my @points = ($val =~ /[A-Za-z]\d+/g);
     my @dat = (0) x $size;
     if (@points) {
@@ -5696,7 +6141,66 @@ sub PrintAFPointsInv($$;$)
             $dat[$byte] |= (1 << (($bitNum - 1) % 8));
         }
     }
-    return pack('C*', @dat);
+    return join(" ", unpack("H2"x$size, pack('C*', @dat)));
+}
+
+#------------------------------------------------------------------------------
+# Get AF point name for grid-type AF
+# Inputs: 0) AF point number, 1) number of columns, 2) true for inverse conversion
+# Returns: AF point name, or undef
+sub GetAFPointGrid($$;$)
+{
+    my ($val, $ncol, $inv) = @_;
+    if ($inv) {
+        return undef unless $val =~ /^([A-J])(\d+)$/i;
+        return (ord(uc($1))-65) * $ncol + $2 - 1;
+    } else {
+        my $row = int(($val + 0.5) / $ncol);
+        my $col = $val - $ncol * $row + 1;
+        return chr(65+$row) . $col;
+    }
+}
+
+#------------------------------------------------------------------------------
+# Print conversion for grid-type AF points
+# Inputs: 0) value to convert (as a string of hex bytes),
+#         1) number of columns in grid
+sub PrintAFPointsGrid($$)
+{
+    my ($val, $ncol) = @_;
+    my ($i, $j, @points);
+    $val =~ tr/ //d;    # remove spaces from hex string
+    my @dat = unpack 'C*', pack 'H*', $val; # convert to array of bytes
+    # loop through all bytes to find active AF points
+    for ($i=0; $i<@dat; ++$i) {
+        next unless $dat[$i];
+        for ($j=0; $j<8; ++$j) {
+            next unless $dat[$i] & (1 << $j);
+            my $point = GetAFPointGrid($i*8 + $j, $ncol);
+            push @points, $point if defined $point;
+        }
+    }
+    return '(none)' unless @points;
+    return join ',', @points;   # return as comma-separated string
+}
+
+#------------------------------------------------------------------------------
+# Inverse print conversion for AF points
+# Inputs: 0) AF point string, 1) number of columns, 2) size of data
+# Returns: AF point data as a string of hex bytes
+sub PrintAFPointsGridInv($$$)
+{
+    my ($val, $ncol, $size) = @_;
+    my @points = ($val =~ /[A-Za-z]\d+/g);
+    my @dat = (0) x $size;
+    foreach (@points) {
+        my $n = GetAFPointGrid($_, $ncol, 1);
+        next unless defined $n;
+        my $byte = int($n / 8);
+        next if $byte > $size;
+        $dat[$byte] |= (1 << ($n - $byte * 8));
+    }
+    return join(" ", unpack("H2"x$size, pack('C*', @dat)));
 }
 
 #------------------------------------------------------------------------------
@@ -5849,7 +6353,8 @@ sub Decrypt($$$;$$)
     my ($i, $dat);
 
     $start or $start = 0;
-    $len = length($$dataPt) - $start if not defined $len or $len > length($$dataPt) - $start;
+    my $maxLen = length($$dataPt) - $start;
+    $len = $maxLen if not defined $len or $len > $maxLen;
     return $$dataPt if $len <= 0;
     my $key = 0;
     for ($i=0; $i<4; ++$i) {
@@ -5946,9 +6451,10 @@ sub ProcessNikonEncrypted($$$)
     }
     my $verbose = $$dirInfo{IsWriting} ? 0 : $et->Options('Verbose');
     my $tagInfo = $$dirInfo{TagInfo};
-    my $data = substr(${$$dirInfo{DataPt}}, $$dirInfo{DirStart}, $$dirInfo{DirLen});
+    my $dirStart = $$dirInfo{DirStart};
+    my $data = substr(${$$dirInfo{DataPt}}, $dirStart, $$dirInfo{DirLen});
 
-    my ($start, $len, $offset, $byteOrder, $recrypt, $newSerial, $newCount);
+    my ($start, $len, $more, $offset, $byteOrder, $recrypt, $newSerial, $newCount);
 
     # must re-encrypt when writing if serial number or shutter count changes
     if ($$dirInfo{IsWriting}) {
@@ -5966,28 +6472,47 @@ sub ProcessNikonEncrypted($$$)
         # may decrypt only part of the information to save time
         if ($verbose < 3 and $et->Options('Unknown') < 2 and not $recrypt) {
             $len = $$tagInfo{SubDirectory}{DecryptLen};
+            $more = $$tagInfo{SubDirectory}{DecryptMore};
         }
         $offset = $$tagInfo{SubDirectory}{DirOffset};
         $byteOrder = $$tagInfo{SubDirectory}{ByteOrder};
     }
     $start or $start = 0;
     if (defined $offset) {
-        # offset, if specified, is releative to start of encrypted data
+        # offset, if specified, is relative to start of encrypted data
         $offset += $start;
     } else {
         $offset = 0;
     }
     my $maxLen = length($data) - $start;
     # decrypt all the data unless DecryptLen is given
-    $len = $maxLen unless $len and $len <= $maxLen;
+    unless ($len and $len < $maxLen) {
+        $len = $maxLen;
+        undef $more;    # (can't decrypt more than this)
+    }
 
     $data = Decrypt(\$data, $serial, $count, $start, $len);
 
+    # set appropriate byte ordering before evaluating DecryptMore
+    my $oldOrder = GetByteOrder();
+    SetByteOrder($byteOrder) if $byteOrder;
+
+    if ($more) {
+        #### eval DecryptMore ($data)
+        my $moreLen = eval $more;
+        $moreLen = $maxLen if $moreLen > $maxLen;
+        # re-decrypt with new length
+        if ($len < $moreLen) {
+            $len = $moreLen;
+            $data = substr(${$$dirInfo{DataPt}}, $dirStart, $$dirInfo{DirLen});
+            $data = Decrypt(\$data, $serial, $count, $start, $len);
+        }
+    }
     if ($verbose > 2) {
         $et->VerboseDir("Decrypted $$tagInfo{Name}");
         $et->VerboseDump(\$data,
             Prefix  => $$et{INDENT} . '  ',
-            DataPos => $$dirInfo{DirStart} + $$dirInfo{DataPos} + ($$dirInfo{Base} || 0),
+            DataPos => $dirStart + $$dirInfo{DataPos} + ($$dirInfo{Base} || 0),
         );
     }
     # process the decrypted information
@@ -5996,12 +6521,10 @@ sub ProcessNikonEncrypted($$$)
         DirStart => $offset,
         DirLen   => length($data) - $offset,
         DirName  => $$dirInfo{DirName},
-        DataPos  => $$dirInfo{DataPos} + $$dirInfo{DirStart},
+        DataPos  => $$dirInfo{DataPos} + $dirStart,
         Base     => $$dirInfo{Base},
     );
     my $rtnVal;
-    my $oldOrder = GetByteOrder();
-    SetByteOrder($byteOrder) if $byteOrder;
     if ($$dirInfo{IsWriting}) {
         my $changed = $$et{CHANGED};
         $rtnVal = $et->WriteBinaryData(\%subdirInfo, $tagTablePtr);
@@ -6137,7 +6660,7 @@ sub ProcessNikonCaptureOffsets($$$)
 }
 
 #------------------------------------------------------------------------------
-# Read/write Nikon Makernotes directory
+# Read/write Nikon MakerNotes directory
 # Inputs: 0) ExifTool object ref, 1) dirInfo ref, 2) tag table ref
 # Returns: 1 on success, otherwise returns 0 and sets a Warning when reading
 #          or new directory when writing (IsWriting set in dirInfo)
@@ -6156,8 +6679,8 @@ sub ProcessNikon($$$)
     my $rtnVal;
     if ($$dirInfo{IsWriting}) {
         # get new decryptino keys if they are being changed
-        my $serial = $et->GetNewValues($Image::ExifTool::Nikon::Main{0x001d});
-        my $count = $et->GetNewValues($Image::ExifTool::Nikon::Main{0x00a7});
+        my $serial = $et->GetNewValue($Image::ExifTool::Nikon::Main{0x001d});
+        my $count = $et->GetNewValue($Image::ExifTool::Nikon::Main{0x00a7});
         $$et{NewNikonSerialKey} = SerialKey($et, $serial);
         $$et{NewNikonCountKey} = $count;
         $rtnVal = Image::ExifTool::Exif::WriteExif($et, $dirInfo, $tagTablePtr);
@@ -6190,7 +6713,7 @@ Nikon maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

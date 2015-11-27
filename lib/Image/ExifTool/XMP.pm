@@ -24,7 +24,7 @@
 #               9) http://www.w3.org/TR/SVG11/
 #               10) http://www.adobe.com/devnet/xmp/pdfs/XMPSpecificationPart2.pdf (Oct 2008)
 #               11) http://www.extensis.com/en/support/kb_article.jsp?articleNumber=6102211
-#               12) http://www.cipa.jp/english/hyoujunka/kikaku/pdf/DC-010-2012_E.pdf
+#               12) http://www.cipa.jp/std/documents/e/DC-010-2012_E.pdf
 #
 # Notes:      - Property qualifiers are handled as if they were separate
 #               properties (with no associated namespace).
@@ -41,13 +41,13 @@
 package Image::ExifTool::XMP;
 
 use strict;
-use vars qw($VERSION $AUTOLOAD @ISA @EXPORT_OK $xlatNamespace %nsURI %dateTimeInfo
+use vars qw($VERSION $AUTOLOAD @ISA @EXPORT_OK %stdXlatNS %nsURI %dateTimeInfo
             %xmpTableDefaults %specialStruct %sDimensions %sArea %sColorant);
 use Image::ExifTool qw(:Utils);
 use Image::ExifTool::Exif;
 require Exporter;
 
-$VERSION = '2.78';
+$VERSION = '2.90';
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(EscapeXML UnescapeXML);
 
@@ -66,11 +66,8 @@ sub FormatXMPDate($);
 sub ConvertRational($);
 sub ConvertRationalList($);
 
-my %curNS;  # namespaces currently in effect while parsing the file
-
 # lookup for translating to ExifTool namespaces
-# Note: Use $xlatNamespace (only valid during processing) to do the translation
-my %stdXlatNS = (
+%stdXlatNS = (
     # shorten ugly namespace prefixes
     'Iptc4xmpCore' => 'iptcCore',
     'Iptc4xmpExt' => 'iptcExt',
@@ -146,11 +143,16 @@ my %xmpNS = (
     DICOM     => 'http://ns.adobe.com/DICOM/',
     svg       => 'http://www.w3.org/2000/svg',
     et        => 'http://ns.exiftool.ca/1.0/',
-    # namespaces defined in XMP2.pl:
+#
+# namespaces defined in XMP2.pl:
+#
     plus      => 'http://ns.useplus.org/ldf/xmp/1.0/',
-    prism     => 'http://prismstandard.org/namespaces/basic/2.1/',
+    # (prism recommendations from http://www.prismstandard.org/specifications/3.0/Image_Guide_3.0.htm)
+    prism     => 'http://prismstandard.org/namespaces/basic/2.0/',
     prl       => 'http://prismstandard.org/namespaces/prl/2.1/',
     pur       => 'http://prismstandard.org/namespaces/prismusagerights/2.1/',
+    pmi       => 'http://prismstandard.org/namespaces/pmi/2.2/',
+    prm       => 'http://prismstandard.org/namespaces/prm/3.0/',
     acdsee    => 'http://ns.acdsee.com/iptc/1.0/',
     digiKam   => 'http://www.digikam.org/ns/1.0/',
     swf       => 'http://ns.adobe.com/swf/1.0',
@@ -163,6 +165,7 @@ my %xmpNS = (
     extensis  => 'http://ns.extensis.com/extensis/1.0/',
     ics       => 'http://ns.idimager.com/ics/1.0/',
     fpv       => 'http://ns.fastpictureviewer.com/fpv/1.0/',
+    creatorAtom=>'http://ns.adobe.com/creatorAtom/1.0/',
    'apple-fi' => 'http://ns.apple.com/faceinfo/1.0/',
     GPano     => 'http://ns.google.com/photos/1.0/panorama/',
     dwc       => 'http://rs.tdwg.org/dwc/index.htm',
@@ -246,7 +249,7 @@ my %recognizedAttrs = (
     'rdf:nodeID' => 1,
     'et:toolkit' => 1,
     'rdf:xmlns'  => 1, # this is presumably the default namespace, which we currently ignore
-    'lastUpdate' => [ 'Image::ExifTool::XMP::XML', 'lastUpdate', 'LastUpdate' ], # found in XML from Sony ICLE-7S MP4
+    'lastUpdate' => [ 'Image::ExifTool::XMP::XML', 'lastUpdate', 'LastUpdate' ], # found in XML from Sony ILCE-7S MP4
 );
 
 # special tags in structures below
@@ -323,6 +326,7 @@ my %sThumbnail = (
    'format'     => { },
     image       => {
         Avoid => 1,
+        Groups => { 2 => 'Preview' },
         ValueConv => 'Image::ExifTool::XMP::DecodeBase64($val)',
         ValueConvInv => 'Image::ExifTool::XMP::EncodeBase64($val)',
     },
@@ -335,6 +339,7 @@ my %sPageInfo = (
     width       => { Writable => 'integer' },
    'format'     => { },
     image       => {
+        Groups => { 2 => 'Preview' },
         ValueConv => 'Image::ExifTool::XMP::DecodeBase64($val)',
         ValueConvInv => 'Image::ExifTool::XMP::EncodeBase64($val)',
     },
@@ -497,6 +502,16 @@ my %sLocationDetails = (
     ProvinceState=> { },
     Sublocation  => { },
     WorldRegion  => { },
+    LocationId   => { List => 'Bag' },
+);
+
+my %sCVTermDetails = (
+    STRUCT_NAME => 'CVTermDetails',
+    NAMESPACE   => 'Iptc4xmpExt',
+    CvTermId    => { },
+    CvTermName  => { Writable => 'lang-alt' },
+    CvId        => { },
+    CvTermRefinedAbout => { },
 );
 
 # main XMP tag table (tag ID's are used for the family 1 group names)
@@ -644,6 +659,14 @@ my %sLocationDetails = (
         Name => 'pur',
         SubDirectory => { TagTable => 'Image::ExifTool::XMP::pur' },
     },
+    pmi => {
+        Name => 'pmi',
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::pmi' },
+    },
+    prm => {
+        Name => 'prm',
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::prm' },
+    },
     rdf => {
         Name => 'rdf',
         SubDirectory => { TagTable => 'Image::ExifTool::XMP::rdf' },
@@ -695,6 +718,10 @@ my %sLocationDetails = (
     fpv => {
         Name => 'fpv',
         SubDirectory => { TagTable => 'Image::ExifTool::XMP::fpv' },
+    },
+    creatorAtom => {
+        Name => 'creatorAtom',
+        SubDirectory => { TagTable => 'Image::ExifTool::XMP::creatorAtom' },
     },
    'apple-fi' => {
         Name => 'apple-fi',
@@ -767,7 +794,7 @@ my %sLocationDetails = (
     NOTES => qq{
         The "x" namespace is used for the "xmpmeta" wrapper, and may contain an
         "xmptk" attribute that is extracted as the XMPToolkit tag.  When writing,
-        the XMPToolkit tag is automatically generated by ExifTool unless
+        the XMPToolkit tag is generated automatically by ExifTool unless
         specifically set to another value.
     },
     xmptk => { Name => 'XMPToolkit', Protected => 1 },
@@ -856,7 +883,14 @@ my %sLocationDetails = (
     GROUPS => { 1 => 'XMP-xmpNote' },
     NAMESPACE   => 'xmpNote',
     NOTES => 'XMP Note namespace tags.',
-    HasExtendedXMP => { Writable => 'boolean', Protected => 2 },
+    HasExtendedXMP => {
+        Notes => q{
+            this tag is protected so it is not writable directly.  Instead, it is set
+            automatically to the GUID of the extended XMP when writing extended XMP to a
+            JPEG image
+        },
+        Protected => 2,
+    },
 );
 
 # XMP xmpMM ManifestItem struct (ref PH, written by Adobe PDF library 8.0)
@@ -1023,13 +1057,15 @@ my %sPantryItem = (
     Credit          => { Groups => { 2 => 'Author' } },
     DateCreated     => { Groups => { 2 => 'Time' }, %dateTimeInfo },
     DocumentAncestors => {
-        FlatName => 'Document',
         List => 'Bag',
-        Struct => {
-            STRUCT_NAME => 'Ancestor',
-            NAMESPACE   => 'photoshop',
-            AncestorID  => { },
-        },
+        # Contrary to their own XMP specification, Adobe writes this as a simple Bag
+        # of strings instead of structures, so comment out the structure definition...
+        # FlatName => 'Document',
+        # Struct => {
+        #     STRUCT_NAME => 'Ancestor',
+        #     NAMESPACE   => 'photoshop',
+        #     AncestorID  => { },
+        # },
     },
     Headline        => { },
     History         => { }, #PH (CS3)
@@ -1263,53 +1299,53 @@ my %sPantryItem = (
         Flat => 1, List => 0,
     },
     # new tags written by LR 3 (thanks Wolfgang Guelcker)
-    ProcessVersion                       => { },
-    LensProfileEnable                    => { Writable => 'integer' },
-    LensProfileSetup                     => { },
-    LensProfileName                      => { },
-    LensProfileFilename                  => { },
-    LensProfileDigest                    => { },
-    LensProfileDistortionScale           => { Writable => 'integer' },
-    LensProfileChromaticAberrationScale  => { Writable => 'integer' },
-    LensProfileVignettingScale           => { Writable => 'integer' },
-    LensManualDistortionAmount           => { Writable => 'integer' },
-    PerspectiveVertical                  => { Writable => 'integer' },
-    PerspectiveHorizontal                => { Writable => 'integer' },
-    PerspectiveRotate                    => { Writable => 'real'    },
-    PerspectiveScale                     => { Writable => 'integer' },
-    CropConstrainToWarp                  => { Writable => 'integer' },
-    LuminanceNoiseReductionDetail        => { Writable => 'integer' },
-    LuminanceNoiseReductionContrast      => { Writable => 'integer' },
-    ColorNoiseReductionDetail            => { Writable => 'integer' },
-    GrainAmount                          => { Writable => 'integer' },
-    GrainSize                            => { Writable => 'integer' },
-    GrainFrequency                       => { Writable => 'integer' },
+    ProcessVersion                      => { },
+    LensProfileEnable                   => { Writable => 'integer' },
+    LensProfileSetup                    => { },
+    LensProfileName                     => { },
+    LensProfileFilename                 => { },
+    LensProfileDigest                   => { },
+    LensProfileDistortionScale          => { Writable => 'integer' },
+    LensProfileChromaticAberrationScale => { Writable => 'integer' },
+    LensProfileVignettingScale          => { Writable => 'integer' },
+    LensManualDistortionAmount          => { Writable => 'integer' },
+    PerspectiveVertical                 => { Writable => 'integer' },
+    PerspectiveHorizontal               => { Writable => 'integer' },
+    PerspectiveRotate                   => { Writable => 'real'    },
+    PerspectiveScale                    => { Writable => 'integer' },
+    CropConstrainToWarp                 => { Writable => 'integer' },
+    LuminanceNoiseReductionDetail       => { Writable => 'integer' },
+    LuminanceNoiseReductionContrast     => { Writable => 'integer' },
+    ColorNoiseReductionDetail           => { Writable => 'integer' },
+    GrainAmount                         => { Writable => 'integer' },
+    GrainSize                           => { Writable => 'integer' },
+    GrainFrequency                      => { Writable => 'integer' },
     # new tags written by LR4
-    AutoLateralCA                        => { Writable => 'integer' },
-    Exposure2012                         => { Writable => 'real' },
-    Contrast2012                         => { Writable => 'integer' },
-    Highlights2012                       => { Writable => 'integer' },
-    Shadows2012                          => { Writable => 'integer' },
-    Whites2012                           => { Writable => 'integer' },
-    Blacks2012                           => { Writable => 'integer' },
-    Clarity2012                          => { Writable => 'integer' },
-    PostCropVignetteHighlightContrast    => { Writable => 'integer' },
-    ToneCurveName2012                    => { },
-    ToneCurveRed                         => { List => 'Seq' },
-    ToneCurveGreen                       => { List => 'Seq' },
-    ToneCurveBlue                        => { List => 'Seq' },
-    ToneCurvePV2012                      => { List => 'Seq' },
-    ToneCurvePV2012Red                   => { List => 'Seq' },
-    ToneCurvePV2012Green                 => { List => 'Seq' },
-    ToneCurvePV2012Blue                  => { List => 'Seq' },
-    DefringePurpleAmount                 => { Writable => 'integer' },
-    DefringePurpleHueLo                  => { Writable => 'integer' },
-    DefringePurpleHueHi                  => { Writable => 'integer' },
-    DefringeGreenAmount                  => { Writable => 'integer' },
-    DefringeGreenHueLo                   => { Writable => 'integer' },
-    DefringeGreenHueHi                   => { Writable => 'integer' },
+    AutoLateralCA                       => { Writable => 'integer' },
+    Exposure2012                        => { Writable => 'real' },
+    Contrast2012                        => { Writable => 'integer' },
+    Highlights2012                      => { Writable => 'integer' },
+    Shadows2012                         => { Writable => 'integer' },
+    Whites2012                          => { Writable => 'integer' },
+    Blacks2012                          => { Writable => 'integer' },
+    Clarity2012                         => { Writable => 'integer' },
+    PostCropVignetteHighlightContrast   => { Writable => 'integer' },
+    ToneCurveName2012                   => { },
+    ToneCurveRed                        => { List => 'Seq' },
+    ToneCurveGreen                      => { List => 'Seq' },
+    ToneCurveBlue                       => { List => 'Seq' },
+    ToneCurvePV2012                     => { List => 'Seq' },
+    ToneCurvePV2012Red                  => { List => 'Seq' },
+    ToneCurvePV2012Green                => { List => 'Seq' },
+    ToneCurvePV2012Blue                 => { List => 'Seq' },
+    DefringePurpleAmount                => { Writable => 'integer' },
+    DefringePurpleHueLo                 => { Writable => 'integer' },
+    DefringePurpleHueHi                 => { Writable => 'integer' },
+    DefringeGreenAmount                 => { Writable => 'integer' },
+    DefringeGreenHueLo                  => { Writable => 'integer' },
+    DefringeGreenHueHi                  => { Writable => 'integer' },
     # new tags written by LR5
-    AutoWhiteVersion                     => { Writable => 'integer' },
+    AutoWhiteVersion                    => { Writable => 'integer' },
     CircularGradientBasedCorrections => {
         FlatName => 'CircGradBasedCorr',
         Struct => \%sCorrection,
@@ -1324,9 +1360,9 @@ my %sPantryItem = (
         Name => 'CircGradBasedCorrMaskDabs',
         Flat => 1, List => 0,
     },
-    ColorNoiseReductionSmoothness        => { Writable => 'integer' },
-    PerspectiveAspect                    => { Writable => 'integer' },
-    PerspectiveUpright                   => { Writable => 'integer' },
+    ColorNoiseReductionSmoothness       => { Writable => 'integer' },
+    PerspectiveAspect                   => { Writable => 'integer' },
+    PerspectiveUpright                  => { Writable => 'integer' },
     RetouchAreas => {
         FlatName => 'RetouchArea',
         Struct => \%sRetouchArea,
@@ -1341,20 +1377,30 @@ my %sPantryItem = (
         Name => 'RetouchAreaMaskDabs',
         Flat => 1, List => 0,
     },
-    UprightVersion                       => { Writable => 'integer' },
-    UprightCenterMode                    => { Writable => 'integer' },
-    UprightCenterNormX                   => { Writable => 'real' },
-    UprightCenterNormY                   => { Writable => 'real' },
-    UprightFocalMode                     => { Writable => 'integer' },
-    UprightFocalLength35mm               => { Writable => 'real' },
-    UprightPreview                       => { Writable => 'boolean' },
-    UprightTransformCount                => { Writable => 'integer' },
-    UprightDependentDigest               => { },
-    UprightTransform_0                   => { },
-    UprightTransform_1                   => { },
-    UprightTransform_2                   => { },
-    UprightTransform_3                   => { },
-    UprightTransform_4                   => { },
+    UprightVersion                      => { Writable => 'integer' },
+    UprightCenterMode                   => { Writable => 'integer' },
+    UprightCenterNormX                  => { Writable => 'real' },
+    UprightCenterNormY                  => { Writable => 'real' },
+    UprightFocalMode                    => { Writable => 'integer' },
+    UprightFocalLength35mm              => { Writable => 'real' },
+    UprightPreview                      => { Writable => 'boolean' },
+    UprightTransformCount               => { Writable => 'integer' },
+    UprightDependentDigest              => { },
+    UprightTransform_0                  => { },
+    UprightTransform_1                  => { },
+    UprightTransform_2                  => { },
+    UprightTransform_3                  => { },
+    UprightTransform_4                  => { },
+    # more stuff seen in lens profile file (unknown source)
+    What => { }, # (with value "LensProfileDefaultSettings")
+    LensProfileMatchKeyExifMake         => { },
+    LensProfileMatchKeyExifModel        => { },
+    LensProfileMatchKeyCameraModelName  => { },
+    LensProfileMatchKeyLensInfo         => { },
+    LensProfileMatchKeyLensID           => { },
+    LensProfileMatchKeyLensName         => { },
+    LensProfileMatchKeyIsRaw            => { Writable => 'boolean' },
+    LensProfileMatchKeySensorFormatFactor=>{ Writable => 'real' },
 );
 
 # Tiff namespace properties (tiff)
@@ -1366,7 +1412,7 @@ my %sPantryItem = (
     TABLE_DESC => 'XMP TIFF',
     NOTES => q{
         EXIF namespace for TIFF tags.  See
-        L<http://www.cipa.jp/english/hyoujunka/kikaku/pdf/DC-010-2012_E.pdf> for the
+        L<http://www.cipa.jp/std/documents/e/DC-010-2012_E.pdf> for the
         specification.
     },
     ImageWidth    => { Writable => 'integer' },
@@ -1457,7 +1503,7 @@ my %sPantryItem = (
     PRIORITY => 0, # not as reliable as actual EXIF tags
     NOTES => q{
         EXIF namespace for EXIF tags.  See
-        L<http://www.cipa.jp/english/hyoujunka/kikaku/pdf/DC-010-2012_E.pdf> for the
+        L<http://www.cipa.jp/std/documents/e/DC-010-2012_E.pdf> for the
         specification.
     },
     ExifVersion     => { },
@@ -1561,7 +1607,7 @@ my %sPantryItem = (
         Name => 'ExposureCompensation',
         Writable => 'rational',
         PrintConv => 'Image::ExifTool::Exif::PrintFraction($val)',
-        PrintConvInv => '$val',
+        PrintConvInv => 'Image::ExifTool::Exif::ConvertFraction($val)',
     },
     MaxApertureValue => {
         Groups => { 2 => 'Camera' },
@@ -1912,7 +1958,7 @@ my %sPantryItem = (
     PRIORITY => 0, # not as reliable as actual EXIF tags
     NOTES => q{
         EXIF tags added by the EXIF 2.3 for XMP specification (see
-        L<http://www.cipa.jp/english/hyoujunka/kikaku/pdf/DC-010-2012_E.pdf>).
+        L<http://www.cipa.jp/std/documents/e/DC-010-2012_E.pdf>).
     },
     Gamma                       => { Writable => 'rational' },
     PhotographicSensitivity     => { Writable => 'integer' },
@@ -2033,6 +2079,12 @@ my %sPantryItem = (
         },
     },
     ApproximateFocusDistance => { Writable => 'rational' }, #PH (LR3)
+    # the following new in LR6 (ref forum6497)
+    IsMergedPanorama         => { Writable => 'boolean' },
+    IsMergedHDR              => { Writable => 'boolean' },
+    DistortionCorrectionAlreadyApplied  => { Writable => 'boolean' },
+    VignetteCorrectionAlreadyApplied    => { Writable => 'boolean' },
+    LateralChromaticAberrationCorrectionAlreadyApplied => { Writable => 'boolean' },
 );
 
 # IPTC Core namespace properties (Iptc4xmpCore) (ref 4)
@@ -2087,6 +2139,14 @@ my %sPantryItem = (
         "Iptc4xmpExt", but ExifTool shortens this for the "XMP-iptcExt" family 1
         group name. (see L<http://www.iptc.org/IPTC4XMP/>)
     },
+    AboutCvTerm => {
+        Struct => \%sCVTermDetails,
+        List => 'Bag',
+    },
+    AboutCvTermCvId                 => { Flat => 1, Name => 'AboutCvTermCvId' },
+    AboutCvTermCvTermId             => { Flat => 1, Name => 'AboutCvTermId' },
+    AboutCvTermCvTermName           => { Flat => 1, Name => 'AboutCvTermName' },
+    AboutCvTermCvTermRefinedAbout   => { Flat => 1, Name => 'AboutCvTermRefinedAbout' },
     AddlModelInfo   => { Name => 'AdditionalModelInformation' },
     ArtworkOrObject => {
         Struct => {
@@ -2098,18 +2158,83 @@ my %sPantryItem = (
             AOSource     => { },
             AOSourceInvNo=> { },
             AOTitle      => { Writable => 'lang-alt' },
+            AOCurrentCopyrightOwnerName => { },
+            AOCurrentCopyrightOwnerId   => { },
+            AOCurrentLicensorName       => { },
+            AOCurrentLicensorId         => { },
+            AOCreatorId                 => { List => 'Seq' },
+            AOCircaDateCreated          => { },
+            AOStylePeriod               => { List => 'Bag' },
+            AOSourceInvURL              => { },
+            AOContentDescription        => { Writable => 'lang-alt' },
+            AOContributionDescription   => { Writable => 'lang-alt' },
+            AOPhysicalDescription       => { Writable => 'lang-alt' },
         },
         List => 'Bag',
     },
-    ArtworkOrObjectAOCopyrightNotice=> { Flat => 1, Name => 'ArtworkCopyrightNotice' },
-    ArtworkOrObjectAOCreator        => { Flat => 1, Name => 'ArtworkCreator' },
-    ArtworkOrObjectAODateCreated    => { Flat => 1, Name => 'ArtworkDateCreated' },
-    ArtworkOrObjectAOSource         => { Flat => 1, Name => 'ArtworkSource' },
-    ArtworkOrObjectAOSourceInvNo    => { Flat => 1, Name => 'ArtworkSourceInventoryNo' },
-    ArtworkOrObjectAOTitle          => { Flat => 1, Name => 'ArtworkTitle' },
-    OrganisationInImageCode => { List => 'Bag' },
+    ArtworkOrObjectAOCopyrightNotice           => { Flat => 1, Name => 'ArtworkCopyrightNotice' },
+    ArtworkOrObjectAOCreator                   => { Flat => 1, Name => 'ArtworkCreator' },
+    ArtworkOrObjectAODateCreated               => { Flat => 1, Name => 'ArtworkDateCreated' },
+    ArtworkOrObjectAOSource                    => { Flat => 1, Name => 'ArtworkSource' },
+    ArtworkOrObjectAOSourceInvNo               => { Flat => 1, Name => 'ArtworkSourceInventoryNo' },
+    ArtworkOrObjectAOTitle                     => { Flat => 1, Name => 'ArtworkTitle' },
+    ArtworkOrObjectAOCurrentCopyrightOwnerName => { Flat => 1, Name => 'ArtworkCopyrightOwnerName' },
+    ArtworkOrObjectAOCurrentCopyrightOwnerId   => { Flat => 1, Name => 'ArtworkCopyrightOwnerID' },
+    ArtworkOrObjectAOCurrentLicensorName       => { Flat => 1, Name => 'ArtworkLicensorName' },
+    ArtworkOrObjectAOCurrentLicensorId         => { Flat => 1, Name => 'ArtworkLicensorID' },
+    ArtworkOrObjectAOCreatorId                 => { Flat => 1, Name => 'ArtworkCreatorID' },
+    ArtworkOrObjectAOCircaDateCreated          => { Flat => 1, Name => 'ArtworkCircaDateCreated' },
+    ArtworkOrObjectAOStylePeriod               => { Flat => 1, Name => 'ArtworkStylePeriod' },
+    ArtworkOrObjectAOSourceInvURL              => { Flat => 1, Name => 'ArtworkSourceInvURL' },
+    ArtworkOrObjectAOContentDescription        => { Flat => 1, Name => 'ArtworkSContentDescription' },
+    ArtworkOrObjectAOContributionDescription   => { Flat => 1, Name => 'ArtworkContributionDescription' },
+    ArtworkOrObjectAOPhysicalDescription       => { Flat => 1, Name => 'ArtworkPhysicalDescription' },
     CVterm => {
         Name => 'ControlledVocabularyTerm',
+        List => 'Bag',
+        Notes => 'deprecated by version 1.2',
+    },
+    DigImageGUID            => { Name => 'DigitalImageGUID' },
+    DigitalSourcefileType   => {
+        Name => 'DigitalSourceFileType',
+        Notes => 'now deprecated -- replaced by DigitalSourceType',
+    },
+    DigitalSourceType       => { Name => 'DigitalSourceType' },
+    EmbdEncRightsExpr => {
+        Struct => {
+            STRUCT_NAME => 'EEREDetails',
+            NAMESPACE   => 'Iptc4xmpExt',
+            EncRightsExpr       => { },
+            RightsExprEncType   => { },
+            RightsExprLangId    => { },
+        },
+        List => 'Bag',
+    },
+    EmbdEncRightsExprEncRightsExpr      => { Flat => 1, Name => 'EmbeddedEncodedRightsExpr' },
+    EmbdEncRightsExprRightsExprEncType  => { Flat => 1, Name => 'EmbeddedEncodedRightsExprType' },
+    EmbdEncRightsExprRightsExprLangId   => { Flat => 1, Name => 'EmbeddedEncodedRightsExprLangID' },
+    Event       => { Writable => 'lang-alt' },
+    IptcLastEdited => {
+        Name => 'IPTCLastEdited',
+        Groups => { 2 => 'Time' },
+        %dateTimeInfo,
+    },
+    LinkedEncRightsExpr => {
+        Struct => {
+            STRUCT_NAME => 'LEREDetails',
+            NAMESPACE   => 'Iptc4xmpExt',
+            LinkedRightsExpr    => { },
+            RightsExprEncType   => { },
+            RightsExprLangId    => { },
+        },
+        List => 'Bag',
+    },
+    LinkedEncRightsExprLinkedRightsExpr  => { Flat => 1, Name => 'LinkedEncodedRightsExpr' },
+    LinkedEncRightsExprRightsExprEncType => { Flat => 1, Name => 'LinkedEncodedRightsExprType' },
+    LinkedEncRightsExprRightsExprLangId  => { Flat => 1, Name => 'LinkedEncodedRightsExprLangID' },
+    LocationCreated => {
+        Struct => \%sLocationDetails,
+        Groups => { 2 => 'Location' },
         List => 'Bag',
     },
     LocationShown => {
@@ -2117,40 +2242,59 @@ my %sPantryItem = (
         Groups => { 2 => 'Location' },
         List => 'Bag',
     },
+    MaxAvailHeight          => { Writable => 'integer' },
+    MaxAvailWidth           => { Writable => 'integer' },
     ModelAge                => { List => 'Bag', Writable => 'integer' },
+    OrganisationInImageCode => { List => 'Bag' },
     OrganisationInImageName => { List => 'Bag' },
     PersonInImage           => { List => 'Bag' },
-    DigImageGUID            => { Name => 'DigitalImageGUID' },
-    DigitalSourcefileType   => {
-        Name => 'DigitalSourceFileType',
-        Notes => 'now deprecated -- replaced by DigitalSourceType',
+    PersonInImageWDetails => {
+        Struct => {
+            STRUCT_NAME => 'PersonDetails',
+            NAMESPACE   => 'Iptc4xmpExt',
+            PersonId    => { List => 'Bag' },
+            PersonName  => { Writable => 'lang-alt' },
+            PersonCharacteristic => {
+                Struct  => \%sCVTermDetails,
+                List    => 'Bag',
+            },
+            PersonDescription => { Writable => 'lang-alt' },
+        },
+        List => 'Bag',
     },
-    DigitalSourceType       => { Name => 'DigitalSourceType' },
-    Event                   => { Writable => 'lang-alt' },
+    PersonInImageWDetailsPersonId                               => { Flat => 1, Name => 'PersonInImageId' },
+    PersonInImageWDetailsPersonName                             => { Flat => 1, Name => 'PersonInImageName' },
+    PersonInImageWDetailsPersonCharacteristic                   => { Flat => 1, Name => 'PersonInImageCharacteristic' },
+    PersonInImageWDetailsPersonCharacteristicCvId               => { Flat => 1, Name => 'PersonInImageCvTermCvId' },
+    PersonInImageWDetailsPersonCharacteristicCvTermId           => { Flat => 1, Name => 'PersonInImageCvTermId' },
+    PersonInImageWDetailsPersonCharacteristicCvTermName         => { Flat => 1, Name => 'PersonInImageCvTermName' },
+    PersonInImageWDetailsPersonCharacteristicCvTermRefinedAbout => { Flat => 1, Name => 'PersonInImageCvTermRefinedAbout' },
+    PersonInImageWDetailsPersonDescription                      => { Flat => 1, Name => 'PersonInImageDescription' },
+    ProductInImage => {
+        Struct => {
+            STRUCT_NAME => 'ProductDetails',
+            NAMESPACE   => 'Iptc4xmpExt',
+            ProductName => { Writable => 'lang-alt' },
+            ProductGTIN => { },
+            ProductDescription => { Writable => 'lang-alt' },
+        },
+        List => 'Bag',
+    },
+    ProductInImageProductName        => { Flat => 1, Name => 'ProductInImageName' },
+    ProductInImageProductGTIN        => { Flat => 1, Name => 'ProductInImageGTIN' },
+    ProductInImageProductDescription => { Flat => 1, Name => 'ProductInImageDescription' },
     RegistryId => {
         Name => 'RegistryID',
         Struct => {
             STRUCT_NAME => 'RegistryEntryDetails',
             NAMESPACE   => 'Iptc4xmpExt',
-            RegItemId    => { },
-            RegOrgId     => { },
+            RegItemId   => { },
+            RegOrgId    => { },
         },
         List => 'Bag',
     },
-    RegistryIdRegItemId         => { Flat => 1, Name => 'RegistryItemID' },
-    RegistryIdRegOrgId          => { Flat => 1, Name => 'RegistryOrganisationID' },
-    IptcLastEdited => {
-        Name => 'IPTCLastEdited',
-        Groups => { 2 => 'Time' },
-        %dateTimeInfo,
-    },
-    LocationCreated => {
-        Struct => \%sLocationDetails,
-        Groups => { 2 => 'Location' },
-        List => 'Bag',
-    },
-    MaxAvailHeight  => { Writable => 'integer' },
-    MaxAvailWidth   => { Writable => 'integer' },
+    RegistryIdRegItemId => { Flat => 1, Name => 'RegistryItemID' },
+    RegistryIdRegOrgId  => { Flat => 1, Name => 'RegistryOrganisationID' },
 );
 
 # Adobe Lightroom namespace properties (lr) (ref PH)
@@ -2218,9 +2362,10 @@ my %sPantryItem = (
             2 => 'LensInfo',
             3 => 'FocalLength',
             4 => 'LensModel',
+            5 => 'MaxApertureValue',
         },
         Inhibit => {
-            5 => 'Composite:LensID',    # don't override existing Composite:LensID
+            6 => 'Composite:LensID',    # don't override existing Composite:LensID
         },
         ValueConv => '$val',
         PrintConv => 'Image::ExifTool::XMP::PrintLensID($self, @val)',
@@ -2476,8 +2621,8 @@ sub GetXMPTagID($;$$)
             $nm =~ s/ .*//; # remove nodeID if it exists
             # all uppercase is ugly, so convert it
             if ($nm !~ /[a-z]/) {
-                my $xlatNS = $$xlatNamespace{$ns} || $ns;
-                my $info = $Image::ExifTool::XMP::Main{$xlatNS};
+                my $xlat = $stdXlatNS{$ns} || $ns;
+                my $info = $Image::ExifTool::XMP::Main{$xlat};
                 my $table;
                 if (ref $info eq 'HASH' and $$info{SubDirectory}) {
                     $table = GetTagTable($$info{SubDirectory}{TagTable});
@@ -2522,6 +2667,7 @@ sub RegisterNamespace($)
     if (ref $nsRef eq 'ARRAY') {
         $ns = $$nsRef[0];
         $nsURI{$ns} = $$nsRef[1];
+        $uri2ns{$$nsRef[1]} = $ns;
     } else { # must be a hash
         my @ns = sort keys %$nsRef; # allow multiple namespace definitions
         while (@ns) {
@@ -2530,6 +2676,7 @@ sub RegisterNamespace($)
                 warn "User-defined namespace prefix '$ns' conflicts with existing namespace\n";
             }
             $nsURI{$ns} = $$nsRef{$ns};
+            $uri2ns{$$nsRef{$ns}} = $ns;
         }
     }
     return $$table{NAMESPACE} = $ns;
@@ -2607,17 +2754,19 @@ sub AddFlattenedTags($;$$)
                 foreach (keys %$fieldInfo) {
                     # must not copy PropertyPath (but can't delete it afterwards
                     # because the flat tag may already have this set)
-                    next if $_ eq 'PropertyPath';
-                    $$flatInfo{$_} = $$fieldInfo{$_} unless defined $$flatInfo{$_};
+                    next if $_ eq 'PropertyPath' or defined $$flatInfo{$_};
+                    # copy the property (making a copy of the Groups hash)
+                    $$flatInfo{$_} = $_ eq 'Groups' ? { %{$$fieldInfo{$_}} } : $$fieldInfo{$_};
                 }
-                # NOTE: Do NOT delete Groups because we need them if GotGroups was done
-                # --> just override group 2 later according to field group
+                # (NOTE: Can NOT delete Groups because we need them if GotGroups was done)
                 # re-generate List flag unless it is set to 0
                 delete $$flatInfo{List} if $$flatInfo{List};
             } else {
                 # generate new flattened tag information based on structure field
                 my $flatName = $flat . $flatField;
                 $flatInfo = { %$fieldInfo, Name => $flatName, Flat => 0 };
+                # make a copy of the Groups hash if necessary
+                $$flatInfo{Groups} = { %{$$fieldInfo{Groups}} } if $$fieldInfo{Groups};
                 # add new flattened tag to table
                 AddTagToTable($tagTablePtr, $flatID, $flatInfo);
                 ++$count;
@@ -2717,7 +2866,7 @@ sub ScanForXMP($$)
     }
     unless ($$et{VALUE}{FileType}) {
         $$et{FILE_TYPE} = $$et{FILE_EXT};
-        $et->SetFileType('<unknown file containing XMP>');
+        $et->SetFileType('<unknown file containing XMP>', undef, '');
     }
     my %dirInfo = (
         DataPt  => \$xmp,
@@ -2730,12 +2879,13 @@ sub ScanForXMP($$)
 
 #------------------------------------------------------------------------------
 # Print conversion for XMP-aux:LensID
-# Inputs: 0) ExifTool ref, 1) LensID, 2) Make, 3) LensInfo, 4) FocalLength, 5) LensModel
+# Inputs: 0) ExifTool ref, 1) LensID, 2) Make, 3) LensInfo, 4) FocalLength,
+#         5) LensModel, 6) MaxApertureValue
 # (yes, this is ugly -- blame Adobe)
 sub PrintLensID(@)
 {
     local $_;
-    my ($et, $id, $make, $info, $focalLength, $lensModel) = @_;
+    my ($et, $id, $make, $info, $focalLength, $lensModel, $maxAv) = @_;
     my ($mk, $printConv);
     my %alt = ( Pentax => 'Ricoh' );    # Pentax changed its name to Ricoh
     # missing: Olympus (no XMP:LensID written by Adobe)
@@ -2752,11 +2902,32 @@ sub PrintLensID(@)
         %$convName or last;
         my $printConv = \%$convName;
         use strict 'refs';
-        my ($minf, $maxf, $maxa, $mina);
+        # sf = short focal
+        # lf = long focal
+        # sa = max aperture at short focal
+        # la = max aperture at long focal
+        my ($sf, $lf, $sa, $la);
         if ($info) {
             my @a = split ' ', $info;
             $_ eq 'undef' and $_ = undef foreach @a;
-            ($minf, $maxf, $maxa, $mina) = @a;
+            ($sf, $lf, $sa, $la) = @a;
+            # for Sony and ambiguous LensID, $info data may be incorrect:
+            # use only if it agrees with $focalLength and $maxAv (ref JR)
+            if ($mk eq 'Sony' and
+                (($focalLength and (($sf and $focalLength < $sf - 0.5) or
+                                    ($lf and $focalLength > $lf + 0.5))) or
+                 ($maxAv and (($sa and $maxAv < $sa - 0.15) or
+                              ($la and $maxAv > $la + 0.15)))))
+            {
+                undef $sf;
+                undef $lf;
+                undef $sa;
+                undef $la;
+            } elsif ($maxAv) {
+                # (using the short-focal-length max aperture in place of MaxAperture
+                # is a bad approximation, so don't do this if MaxApertureValue exists)
+                undef $sa;
+            }
         }
         if ($mk eq 'Pentax' and $id =~ /^\d+$/) {
             # for Pentax, CS4 stores an int16u, but we use 2 x int8u
@@ -2778,7 +2949,7 @@ sub PrintLensID(@)
             $printConv = \%newConv;
         }
         return Image::ExifTool::Exif::PrintLensID($et, $str, $printConv,
-                    undef, $id, $focalLength, $maxa, undef, $minf, $maxf, $lensModel);
+                    undef, $id, $focalLength, $sa, $maxAv, $sf, $lf, $lensModel);
     }
     return "Unknown ($id)";
 }
@@ -2847,7 +3018,7 @@ sub FoundXMP($$$$;$)
     return 0 unless $tag;   # ignore things that aren't valid tags
 
     # translate namespace if necessary
-    $ns = $$xlatNamespace{$ns} if $$xlatNamespace{$ns};
+    $ns = $stdXlatNS{$ns} if $stdXlatNS{$ns};
     my $info = $$tagTablePtr{$ns};
     my ($table, $added, $xns, $tagID);
     if ($info) {
@@ -2934,7 +3105,7 @@ NoLoop:
                 # 2) add new entry in this tag table, but with namespace prefix on tag ID
                 my $n = $nsList[$i+1];  # namespace of structure field
                 # translate to standard ExifTool namespace
-                $n = $$xlatNamespace{$n} if $$xlatNamespace{$n};
+                $n = $stdXlatNS{$n} if $stdXlatNS{$n};
                 my $xn = $xmpNS{$n} || $n;  # standard XMP namespace
                 # no need to continue with variable-namespace logic if
                 # we are in our own namespace (right?)
@@ -2984,7 +3155,7 @@ NoLoop:
 
         # add tag Namespace entry for tags in variable-namespace tables
         $$tagInfo{Namespace} = $xns if $xns;
-        if ($curNS{$ns} and $curNS{$ns} =~ m{^http://ns.exiftool.ca/(.*?)/(.*?)/}) {
+        if ($$et{curURI}{$ns} and $$et{curURI}{$ns} =~ m{^http://ns.exiftool.ca/(.*?)/(.*?)/}) {
             my %grps = ( 0 => $1, 1 => $2 );
             # apply a little magic to recover original group names
             # from this exiftool-written RDF/XML file
@@ -3099,6 +3270,7 @@ sub ParseXMPElement($$$;$$$$)
     my ($count, $nItems) = (0, 0);
     my $isWriting = $$et{XMP_CAPTURE};
     my $isSVG = $$et{XMP_IS_SVG};
+    my $saveNS;     # save xlatNS lookup if changed for the scope of this element
 
     # get our parse procs
     my ($attrProc, $foundProc);
@@ -3118,6 +3290,9 @@ sub ParseXMPElement($$$;$$$$)
     # keep track of current nodeID at this nesting level
     my $oldNodeID = $$blankInfo{NodeID};
     pos($$dataPt) = $start;
+
+    # lookup for translating namespace prefixes
+    my $xlatNS = $$et{xlatNS};
 
     Element: for (;;) {
         # all done if there isn't enough data for another element
@@ -3164,15 +3339,95 @@ sub ParseXMPElement($$$;$$$$)
             $valEnd = $valStart;
         }
         $start = pos($$dataPt);         # start from here the next time around
-        my $parseResource;
+
+        # extract property attributes
+        my ($parseResource, %attrs, @attrs);
+        while ($attrs =~ m/(\S+?)\s*=\s*(['"])(.*?)\2/sg) {
+            my ($attr, $val) = ($1, $3);
+            # handle namespace prefixes (defined by xmlns:PREFIX, or used with PREFIX:tag)
+            if ($attr =~ /(.*?):/) {
+                if ($1 eq 'xmlns') {
+                    my $ns = substr($attr, 6);
+                    my $stdNS = $uri2ns{$val};
+                    unless ($stdNS) {
+                        my $try = $val;
+                        # patch for Nikon NX2 URI bug for Microsoft PhotoInfo namespace
+                        $try =~ s{/$}{} or $try .= '/';
+                        $stdNS = $uri2ns{$try};
+                        if ($stdNS) {
+                            $val = $try;
+                            $et->WarnOnce("Fixed incorrect URI for xmlns:$ns", 1);
+                        } else {
+                            # look for same namespace with different version number
+                            $try = quotemeta $val; # (note: escapes slashes too)
+                            $try =~ s{\\/\d+\\\.\d+(\\/|$)}{\\/\\d+\\\.\\d+$1};
+                            my ($good) = grep /^$try$/, keys %uri2ns;
+                            if ($good) {
+                                $stdNS = $uri2ns{$good};
+                                $et->VPrint(0, $$et{INDENT}, "[different $stdNS version: $val]\n");
+                            }
+                        }
+                    }
+                    # tame wild namespace prefixes (patches Microsoft stupidity)
+                    my $newNS;
+                    if ($stdNS) {
+                        # use standard namespace prefix if pre-defined
+                        if ($stdNS ne $ns) {
+                            $newNS = $stdNS;
+                        } elsif ($$xlatNS{$ns}) {
+                            # this prefix is re-defined to the standard prefix in this scope
+                            $newNS = '';
+                        }
+                    } elsif ($$et{curNS}{$val}) {
+                        # use a consistent prefix over the entire XMP for a given namespace URI
+                        $newNS = $$et{curNS}{$val} if $$et{curNS}{$val} ne $ns;
+                    } else {
+                        my $curURI = $$et{curURI};
+                        my $curNS = $$et{curNS};
+                        my $usedNS = $ns;
+                        # use unique prefixes for all namespaces across the entire XMP
+                        if ($$curURI{$ns} or $nsURI{$ns}) {
+                            # generate a temporary namespace prefix to resolve any conflict
+                            my $i = 0;
+                            ++$i while $$curURI{"tmp$i"};
+                            $newNS = $usedNS = "tmp$i";
+                        }
+                        # keep track of the namespace prefixes and URI's used in this XMP
+                        $$curNS{$val} = $usedNS;
+                        $$curURI{$usedNS} = $val;
+                    }
+                    if (defined $newNS) {
+                        # save translation used in containing scope if necessary
+                        # create new namespace translation for the scope of this element
+                        $saveNS or $saveNS = $xlatNS, $xlatNS = $$et{xlatNS} = { %$xlatNS };
+                        if (length $newNS) {
+                            # use the new namespace prefix
+                            $$xlatNS{$ns} = $newNS;
+                            $attr = 'xmlns:' . $newNS;
+                        } else {
+                            delete $$xlatNS{$ns};
+                        }
+                    }
+                } elsif ($$xlatNS{$1}) {
+                    $attr = $$xlatNS{$1} . substr($attr, length($1));
+                }
+            }
+            push @attrs, $attr;    # preserve order
+            $attrs{$attr} = $val;
+        }
+        # tame wild namespace prefixes (patch for Microsoft stupidity)
+        if ($prop =~ /(.*?):/ and $$xlatNS{$1}) {
+            $prop = $$xlatNS{$1} . substr($prop, length($1));
+        }
+
         if ($prop eq 'rdf:li') {
             # impose a reasonable maximum on the number of items in a list
             if ($nItems == 1000) {
                 my ($tg,$ns) = GetXMPTagID($propListPt);
                 if ($isWriting) {
-                    $et->Warn("Excessive number of items for $ns:$tg. Processing may be slow.", 1);
+                    $et->Warn("Excessive number of items for $ns:$tg. Processing may be slow", 1);
                 } elsif (not $$et{OPTIONS}{IgnoreMinorErrors}) {
-                    $et->Warn("Excessive number of items for $ns:$tg. Extracted only the first 1000.", 2);
+                    $et->Warn("Extracted only 1000 $ns:$tg items. Ignore minor errors to extract all", 2);
                     last;
                 }
             }
@@ -3200,14 +3455,8 @@ sub ParseXMPElement($$$;$$$$)
             $prop = 'x:xmpmeta';
         }
 
-        # extract property attributes
-        my (%attrs, @attrs, $val);
-        while ($attrs =~ m/(\S+?)\s*=\s*(['"])(.*?)\2/sg) {
-            push @attrs, $1;    # preserve order
-            $attrs{$1} = $3;
-        }
-
         # hook for special parsing of attributes
+        my $val;
         if ($attrProc) {
             $val = substr($$dataPt, $valStart, $valEnd - $valStart);
             if (&$attrProc(\@attrs, \%attrs, \$prop, \$val)) {
@@ -3245,6 +3494,7 @@ sub ParseXMPElement($$$;$$$$)
         # (attributes take the form a:b='c' or a:b="c")
         my ($shortName, $shorthand, $ignored);
         foreach $shortName (@attrs) {
+            next unless defined $attrs{$shortName};
             my $propName = $shortName;
             my ($ns, $name);
             if ($propName =~ /(.*?):(.*)/) {
@@ -3260,29 +3510,6 @@ sub ParseXMPElement($$$;$$$$)
                 # but what the heck, let's allow this anyway
                 $ns = '';
                 $name = $propName;
-            }
-            # keep track of the namespace prefixes used
-            if ($ns eq 'xmlns') {
-                my $uri = $attrs{$shortName};
-                next unless $uri; # (shouldn't happen)
-                my $stdNS = $uri2ns{$uri};
-                unless ($stdNS) {
-                    # patch for Nikon NX2 URI bug for Microsoft PhotoInfo namespace
-                    $uri =~ s{/$}{} or $uri .= '/';
-                    $stdNS = $uri2ns{$uri};
-                    if ($stdNS) {
-                        $attrs{$shortName} = $uri;
-                        $et->WarnOnce("Fixed incorrect URI for $shortName", 1);
-                    }
-                }
-                $curNS{$name} = $attrs{$shortName};
-                # translate namespace if non-standard (except 'x' and 'iX')
-                if ($stdNS and $name ne $stdNS and $stdNS ne 'x' and $stdNS ne 'iX') {
-                    # make a copy of the standard translations so we can modify it
-                    $xlatNamespace = { %stdXlatNS } if $xlatNamespace eq \%stdXlatNS;
-                    # translate this namespace prefix to the standard version
-                    $$xlatNamespace{$name} = $stdXlatNS{$stdNS} || $stdNS;
-                }
             }
             if ($isWriting) {
                 # keep track of our namespaces when writing
@@ -3403,6 +3630,9 @@ sub ParseXMPElement($$$;$$$$)
         ProcessBlankInfo($et, $tagTablePtr, $blankInfo, $isWriting);
         %$blankInfo = ();   # free some memory
     }
+    # restore namespace lookup from the containing scope
+    $$et{xlatNS} = $saveNS if $saveNS;
+
     return $count;  # return the number of elements found at this level
 }
 
@@ -3428,7 +3658,12 @@ sub ProcessXMP($$;$)
     my ($buff, $fmt, $hasXMP, $isXML, $isRDF, $isSVG);
     my $rtnVal = 0;
     my $bom = 0;
-    undef %curNS;
+
+    # namespaces and prefixes currently in effect while parsing the file,
+    # and lookup to translate brain-dead-Microsoft-Photo-software prefixes
+    $$et{curURI} = { };
+    $$et{curNS}  = { };
+    $$et{xlatNS} = { };
 
     # ignore non-standard XMP while in strict MWG compatibility mode
     if ($Image::ExifTool::MWG::strict and not $$et{XMP_CAPTURE} and
@@ -3546,9 +3781,14 @@ sub ProcessXMP($$;$)
                 $type = 'SVG';
             } elsif ($isXML and not $hasXMP and not $isRDF) {
                 $type = 'XML';
+                my $ext = $$et{FILE_EXT};
+                $type = $ext if $ext and $ext eq 'COS'; # recognize COS by extension
             }
         }
         $et->SetFileType($type);
+
+        my $fast = $et->Options('FastScan');
+        return 1 if $fast and $fast == 3;
 
         if ($type and $type eq 'INX') {
             # brute force search for first XMP packet in INX file
@@ -3691,9 +3931,6 @@ sub ProcessXMP($$;$)
         $dirLen = length $$dataPt;
         $dirEnd = $dirStart + $dirLen;
     }
-    # initialize namespace translation
-    $xlatNamespace = \%stdXlatNS;
-
     # avoid scanning for XMP later in case ScanForXMP is set
     $$et{FoundXMP} = 1 if $tagTablePtr eq \%Image::ExifTool::XMP::Main;
 
@@ -3745,8 +3982,10 @@ sub ProcessXMP($$;$)
     # reset NO_LIST flag (must do this _after_ RestoreStruct() above)
     delete $$et{NO_LIST};
     delete $$et{XMPParseOpts};
+    delete $$et{curURI};
+    delete $$et{curNS};
+    delete $$et{xlatNS};
 
-    undef %curNS;
     return $rtnVal;
 }
 
@@ -3772,7 +4011,7 @@ information.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

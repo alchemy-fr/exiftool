@@ -270,7 +270,7 @@ sub ParsePID($$$$$)
 {
     my ($et, $pid, $type, $pidName, $dataPt) = @_;
     # can't parse until we know the type (Program Map Table may be later in the stream)
-    return -1 unless defined $type;   
+    return -1 unless defined $type;
     my $verbose = $et->Options('Verbose');
     if ($verbose > 1) {
         my $out = $et->Options('TextOut');
@@ -467,7 +467,7 @@ sub ProcessM2TS($$)
             my $name = ($tableID{$table_id} || sprintf('Unknown (0x%x)',$table_id)) . ' Table';
             my $expectedID = $pid ? 0x02 : 0x00;
             unless ($table_id == $expectedID) {
-                $verbose > 1 and printf $out "  (skipping $name)\n";
+                $verbose > 1 and print $out "  (skipping $name)\n";
                 delete $needPID{$pid};
                 $didPID{$pid} = 1;
                 next;
@@ -689,7 +689,7 @@ video.
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

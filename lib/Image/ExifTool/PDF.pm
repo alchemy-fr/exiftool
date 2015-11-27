@@ -21,7 +21,7 @@ use vars qw($VERSION $AUTOLOAD $lastFetched);
 use Image::ExifTool qw(:DataAccess :Utils);
 require Exporter;
 
-$VERSION = '1.37';
+$VERSION = '1.38';
 
 sub FetchObject($$$$);
 sub ExtractObject($$;$$);
@@ -326,6 +326,7 @@ my %supportedFilter = (
     },
     Image_stream => {
         Name => 'EmbeddedImage',
+        Groups => { 2 => 'Preview' },
         Binary => 1,
     },
 );
@@ -920,7 +921,7 @@ sub ExtractObject($$;$$)
         }
         if ($$dict{$tag}) {
             # duplicate dictionary entries are not allowed
-            $et->Warn('Duplicate $tag entry in dictionary (ignored)');
+            $et->Warn("Duplicate '$tag' entry in dictionary (ignored)");
         } else {
             # save the entry
             push @tags, $tag;
@@ -1241,7 +1242,7 @@ sub DecodeStream($$)
                 } elsif ($$decodeParms{EarlyChange}) {
                     $et->WarnOnce("LZWDecode EarlyChange currently not supported");
                     return 0;
-                }                    
+                }
             }
             unless (DecodeLZW(\$$dict{_stream})) {
                 $et->WarnOnce('LZW decompress error');
@@ -1490,7 +1491,7 @@ sub DecryptInit($$$)
             # make sure there is no UTF-8 flag on the password
             if ($] >= 5.006 and (eval { require Encode; Encode::is_utf8($password) } or $@)) {
                 # repack by hand if Encode isn't available
-                $password = $@ ? pack('C*',unpack('U0C*',$password)) : Encode::encode('utf8',$password);
+                $password = $@ ? pack('C*',unpack($] < 5.010000 ? 'U0C*' : 'C0C*',$password)) : Encode::encode('utf8',$password);
             }
         } else {
             return 'Incorrect password';
@@ -1930,7 +1931,7 @@ sub ProcessDict($$$$;$$)
                     # otherwise we must first convert from PDFDocEncoding
                     $val = $et->Decode($val, ($val=~s/^\xfe\xff// ? 'UCS2' : 'PDFDoc'), 'MM');
                 }
-                if ($$tagInfo{List}) {
+                if ($$tagInfo{List} and not $$et{OPTIONS}{NoPDFList}) {
                     # separate tokens in comma or whitespace delimited lists
                     my @values = ($val =~ /,/) ? split /,+\s*/, $val : split ' ', $val;
                     foreach $val (@values) {
@@ -2296,7 +2297,7 @@ including AESV2 (AES-128) and AESV3 (AES-256).
 
 =head1 AUTHOR
 
-Copyright 2003-2014, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
