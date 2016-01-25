@@ -286,16 +286,18 @@ to the command line.
 
 <a name="Q8"></a>
 <p>8a. <b>"All maker note information is lost if I change the Make or Model tag"</b>, or
-<br>8b. <b>"I can't copy maker note information to an image"</b></p>
+<br>8b. <b>"I can't copy maker note information to an image"</b>, or
+<br>8c. <b>"I can't view a RAW image after changing the model tag"</b></p>
 
 <blockquote>
 The Make and Model tags are used by some image utilities (including ExifTool) to
 determine the format of the maker note information.  Deleting or changing either
 of these tags may prevent these utilities from recognizing or properly
-interpreting the maker notes.  Also beware that the maker notes information may
-be damaged if an image is edited when the maker notes are not properly
-recognized. So it is a good idea not to edit the Make and Model tags in the
-first place.</blockquote>
+interpreting the maker notes (which, for a RAW image, may mean that the image
+can no longer be properly rendered).  Also beware that the maker notes
+information may be damaged if an image is edited when the maker notes are not
+properly recognized. So it is a good idea not to edit the Make and Model tags in
+the first place.</blockquote>
 
 <blockquote>If you really want to delete the Make and Model information, you
 might as well delete the maker notes too.  You can do this with either of the
@@ -409,7 +411,7 @@ that EXIF may not be written as a block to TIFF-based file formats.  Beware that
 overwritten</b> by the new block.
 
 <pre><span class='blk'># copy EXIF as a block between same-named JPG files in different directories</span>
-exiftool -tagsfromfile SRCDIR/%f.%e -ext jpg DSTDIR
+exiftool -tagsfromfile SRCDIR/%f.%e -exif -ext jpg DSTDIR
 
 <span class='blk'># copy XMP as a block from one file to another</span>
 exiftool -tagsfromfile src.jpg -xmp dst.cr2
@@ -1528,7 +1530,7 @@ importing.</blockquote>
 for more details.</blockquote>
 
 <hr>
-<i>Last revised Sept 1, 2015</i>
+<i>Last revised Jan. 12, 2015</i>
 <p class='lf'><a href="index.html">&lt;-- Back to ExifTool home page</a></p>
 </body>
 </html>

@@ -668,6 +668,9 @@ distribution for examples.</p>
     <tr><td valign=top align=center><b>1</b>&nbsp;=</td><td>Extract and rebuild makernotes into self-contained block</td></tr>
     <tr><td valign=top align=center><b>2</b>&nbsp;=</td><td>Extract without rebuilding makernotes</td></tr>
     </table></td><td align=center>undef</td></tr>
+<tr><td>MDItemTags</td><td><a name="MDItemTags"></a>Flag to extract the OS X
+    metadata item tags (see the "mdls" man page for details).</td>
+    <td align=center>0 or 1</td><td align=center>undef</td></tr>
 <tr><td>MissingTagValue</td><td><a name="MissingTagValue"></a>Value for missing tags in
     expressions evaluated by <a href="#SetNewValuesFromFile">SetNewValuesFromFile</a>.
     If not set, a minor error is issued for missing values, or the value
@@ -707,9 +710,15 @@ distribution for examples.</p>
     QuickTime specification.</td><td align=center>0 or 1</td><td align=center>undef</td></tr>
 <tr><td>RequestAll</td><td><a name="RequestAll"></a>Flag to request all tags to be extracted.
     This causes some tags to be generated which normally would not be unless specifically
-    requested (by passing the tag name to ImageInfo or ExtractInfo).  Note that this flag is set
-    automatically during a call to <a href="#SetNewValuesFromFile">SetNewValuesFromFile</a> to
+    requested (by passing the tag name to <a href="#ImageInfo">ImageInfo</a> or
+    <a href="#ExtractInfo">ExtractInfo</a>).  Note that this flag is set automatically
+    during a call to <a href="#SetNewValuesFromFile">SetNewValuesFromFile</a> to
     make all tags available for copying.</td><td align=center>0 or 1</td><td align=center>undef</td></tr>
+<tr><td>RequestTags</td><td><a name="RequestTags"></a>List of additional tags to request in
+    next call to <a href="#ExtractInfo">ExtractInfo</a>.  This option is useful only for
+    tags which aren't extracted unless specifically requested.</td><td>List reference,
+    delimited string of tag names (any delimiter is allowed), or undef to clear the
+    previous RequestTags list.  Case is not significant.</td><td align=center>undef</td></tr>
 <tr><td>ScanForXMP</td><td><a name="ScanForXMP"></a>Flag to scan all files (even unrecognized
     formats) for XMP information unless XMP was already found in the file.  When combined with
     the FastScan option, only unrecognized file types are scanned for XMP.  
@@ -749,8 +758,7 @@ distribution for examples.</p>
 <tr><td>SystemTags</td><td><a name="SystemTags"></a>Flag to extract the
     following additional File System tags:  FileAttributes, FileDeviceNumber,
     FileInodeNumber, FileHardLinks, FileUserID, FileGroupID, FileDeviceID,
-    FileBlockSize and FileBlockCount.
-</td>
+    FileBlockSize and FileBlockCount.</td>
     <td align=center>0 or 1</td><td align=center>undef</td></tr>
 <tr><td>TextOut</td><td><a name="TextOut"></a>Output file for Verbose and HtmlDump options.</td>
     <td align=center>File reference</td><td align=center>\*STDOUT</td></tr>

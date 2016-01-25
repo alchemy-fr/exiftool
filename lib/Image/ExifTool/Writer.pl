@@ -1040,7 +1040,7 @@ sub SetNewValuesFromFile($$;@)
 {
     local $_;
     my ($self, $srcFile, @setTags) = @_;
-    my ($key, $tag, @exclude);
+    my ($key, $tag, @exclude, @reqTags);
 
     # get initial SetNewValuesFromFile options
     my %opts = ( Replace => 1 );    # replace existing list items by default
@@ -1080,6 +1080,7 @@ sub SetNewValuesFromFile($$;@)
         DateFormat      => $$options{DateFormat},
         Duplicates      => 1,
         Escape          => $$options{Escape},
+      # Exclude set below
         ExtendedXMP     => $$options{ExtendedXMP},
         ExtractEmbedded => $$options{ExtractEmbedded},
         FastScan        => $$options{FastScan},
@@ -1093,12 +1094,14 @@ sub SetNewValuesFromFile($$;@)
         ListItem        => $$options{ListItem},
         ListSep         => $$options{ListSep},
         MakerNotes      => $$options{FastScan} && $$options{FastScan} > 1 ? undef : 1,
+        MDItemTags      => $$options{MDItemTags},
         MissingTagValue => $$options{MissingTagValue},
         NoPDFList       => $$options{NoPDFList},
         Password        => $$options{Password},
         PrintConv       => $$options{PrintConv},
         QuickTimeUTC    => $$options{QuickTimeUTC},
-        RequestAll      => 1,
+        RequestAll      => 1, # (is this still necessary now that RequestTags are being set?)
+        RequestTags     => $$options{RequestTags},
         ScanForXMP      => $$options{ScanForXMP},
         StrictDate      => 1,
         Struct          => $structOpt,
@@ -1107,15 +1110,30 @@ sub SetNewValuesFromFile($$;@)
         UserParam       => $$options{UserParam},
         XMPAutoConv     => $$options{XMPAutoConv},
     );
-    # avoid extracting tags that are excluded
     foreach $tag (@setTags) {
-        next if ref $tag or $tag !~ /^-(.*)/;
-        push @exclude, $1;
+        next if ref $tag;
+        if ($tag =~ /^-(.*)/) {
+            # avoid extracting tags that are excluded
+            push @exclude, $1;
+            next;
+        }
+        # add specified tags to list of requested tags
+        $_ = $tag;
+        if (/(.+?)\s*(>|<)\s*(.+)/) {
+            if ($2 eq '>') {
+                $_ = $1;
+            } else {
+                $_ = $3;
+                /\$/ and push(@reqTags, /\$\{?(?:[-\w]+:)*([-\w?*]+)/g), next;
+            }
+        }
+        push @reqTags, $2 if /(^|:)([-\w?*]+)#?$/;
     }
     if (@exclude) {
         ExpandShortcuts(\@exclude, 1);
         $srcExifTool->Options(Exclude => \@exclude);
     }
+    $srcExifTool->Options(RequestTags => \@reqTags) if @reqTags;
     my $printConv = $$options{PrintConv};
     if ($opts{Type}) {
         # save source type separately because it may be different than dst Type
@@ -5650,7 +5668,7 @@ sub WriteJPEG($$)
             next Marker;
         }
         # write out this segment if $segDataPt is still defined
-        if (defined $segDataPt) {
+        if (defined $segDataPt and defined $$segDataPt) {
             # write the data for this record (the data could have been
             # modified, so recalculate the length word)
             my $size = length($$segDataPt);
@@ -5663,6 +5681,7 @@ sub WriteJPEG($$)
                 Write($outfile, $hdr, $s, $$segDataPt) or $err = 1;
             }
             undef $$segDataPt;  # free the buffer
+            undef $segDataPt;
         }
     }
     # make sure the ICC_Profile was complete
@@ -6165,7 +6184,7 @@ used routines.
 
 =head1 AUTHOR
 
-Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2016, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

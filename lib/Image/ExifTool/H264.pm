@@ -24,7 +24,7 @@ use vars qw($VERSION %convMake);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.12';
+$VERSION = '1.13';
 
 sub ProcessSEI($$);
 
@@ -100,15 +100,16 @@ my $parsePictureTiming; # flag to enable parsing of picture timing information (
         Combine => 1,   # the next tag (0x19) contains the rest of the date
         # first byte is timezone information:
         #   0x80 - unused
-        #   0x40 - DST flag (currently not decoded)
+        #   0x40 - DST flag
         #   0x20 - TimeZoneSign
         #   0x1e - TimeZoneValue
         #   0x01 - half-hour flag
         ValueConv => q{
             my ($tz, @a) = unpack('C*',$val);
-            return sprintf('%.2x%.2x:%.2x:%.2x %.2x:%.2x:%.2x%s%.2d:%s', @a,
+            return sprintf('%.2x%.2x:%.2x:%.2x %.2x:%.2x:%.2x%s%.2d:%s%s', @a,
                            $tz & 0x20 ? '-' : '+', ($tz >> 1) & 0x0f,
-                           $tz & 0x01 ? '30' : '00');
+                           $tz & 0x01 ? '30' : '00',
+                           $tz & 0x40 ? ' DST' : '');
         },
         PrintConv => '$self->ConvertDateTime($val)',
     },
@@ -1086,7 +1087,7 @@ information from H.264 video streams.
 
 =head1 AUTHOR
 
-Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2016, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

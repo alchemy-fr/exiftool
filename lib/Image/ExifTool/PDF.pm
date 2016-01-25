@@ -21,7 +21,7 @@ use vars qw($VERSION $AUTOLOAD $lastFetched);
 use Image::ExifTool qw(:DataAccess :Utils);
 require Exporter;
 
-$VERSION = '1.39';
+$VERSION = '1.40';
 
 sub FetchObject($$$$);
 sub ExtractObject($$;$$);
@@ -753,6 +753,11 @@ sub FetchObject($$$$)
     unless ($data =~ s/^$obj//) {
         $et->Warn("$tag object ($obj) not found at $offset");
         return undef;
+    }
+    # read the first line of data for the object (skipping comments if necessary)
+    for (;;) {
+        last if $data =~ /\S/ and $data !~ /^\s*%/;
+        $raf->ReadLine($data) or $et->Warn("Error reading $tag data"), return undef;
     }
     return ExtractObject($et, \$data, $raf, $xref);
 }
@@ -2303,7 +2308,7 @@ including AESV2 (AES-128) and AESV3 (AES-256).
 
 =head1 AUTHOR
 
-Copyright 2003-2015, Phil Harvey (phil at owl.phy.queensu.ca)
+Copyright 2003-2016, Phil Harvey (phil at owl.phy.queensu.ca)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
